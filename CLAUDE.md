@@ -29,6 +29,7 @@ bun remove <package>
 | UI components | HeroUI (`@heroui/react`) |
 | Styling | Tailwind CSS |
 | Drag interaction | `react-grab` |
+| Virtual scrolling | `react-window` or `react-virtual` |
 | Walrus SDK | `@mysten/walrus` |
 | Sui wallet | `@mysten/dapp-kit` |
 | Sui client | `@mysten/sui`, `@mysten/sui/grpc` (for Walrus SDK setup) |
@@ -85,10 +86,22 @@ Browser (Next.js / Vercel)
 ```
 walrus-drive/
 │
+├── packages/                           # Shared packages (Monorepo)
+│   └── shared/                         # Shared utilities
+│       ├── src/
+│       │   ├── lib/
+│       │   │   ├── walrus.ts          # Walrus client
+│       │   │   ├── sui.ts             # Sui client
+│       │   │   └── constants.ts       # Constants
+│       │   └── types/
+│       │       └── index.ts           # Shared types
+│       ├── package.json
+│       └── tsconfig.json
+│
 ├── contracts/                          # Move smart contracts
 │   ├── Move.toml
 │   └── sources/
-│       ├── file_record.move            # FileRecord object
+│       ├── file_record.move            # FileRecord object (with versioning)
 │       ├── folder.move                 # Folder object
 │       └── share_link.move             # ShareLink object + Registry
 │
@@ -110,7 +123,9 @@ walrus-drive/
 │   │   │   ├── UploadZone.tsx
 │   │   │   ├── ContextMenu.tsx
 │   │   │   ├── StatusBadge.tsx
-│   │   │   └── CodeSnippet.tsx
+│   │   │   ├── CodeSnippet.tsx
+│   │   │   ├── BreadcrumbNav.tsx      # Breadcrumb navigation
+│   │   │   └── SortFilter.tsx         # Sort and filter controls
 │   │   ├── sidebar/
 │   │   │   ├── Sidebar.tsx
 │   │   │   └── StorageUsage.tsx
@@ -127,9 +142,9 @@ walrus-drive/
 │   │   └── fileStore.ts                # Zustand: selected files, view mode, upload queue
 │   │
 │   ├── lib/
-│   │   ├── walrus.ts                   # Walrus client (SuiGrpcClient + walrus())
-│   │   ├── sui.ts                      # Sui client, PTB builders for contract calls
-│   │   ├── constants.ts                # Aggregator/publisher URLs, contract IDs, epoch defaults
+│   │   ├── walrus.ts                   # Walrus client (imports from @waldrive/shared)
+│   │   ├── sui.ts                      # Sui client (imports from @waldrive/shared)
+│   │   ├── constants.ts                # Constants (imports from @waldrive/shared)
 │   │   └── utils.ts                    # blobUrl(), shortenAddress(), formatBytes()
 │   │
 │   └── types/
@@ -145,9 +160,9 @@ walrus-drive/
 │   │   │   ├── folder.ts              # create_folder, list_folders tools
 │   │   │   └── share.ts              # create_share_link tool
 │   │   ├── lib/
-│   │   │   ├── walrus.ts              # Walrus client (reused from src/lib)
-│   │   │   ├── sui.ts                 # Sui client (reused from src/lib)
-│   │   │   └── constants.ts           # Constants (reused from src/lib)
+│   │   │   ├── walrus.ts              # Walrus client (imports from @waldrive/shared)
+│   │   │   ├── sui.ts                 # Sui client (imports from @waldrive/shared)
+│   │   │   └── constants.ts           # Constants (imports from @waldrive/shared)
 │   │   └── types/
 │   │       └── index.ts               # MCP tool types
 │   ├── package.json
@@ -221,6 +236,12 @@ module waldrive::file_record {
         uploaded_at_ms: u64,      // unix timestamp ms from Clock
         expiry_epoch: u64,        // Walrus expiry epoch number
         is_public: bool,
+        // Version management
+        version: u64,             // version number (starts at 1)
+        parent_version_id: Option<ID>,  // link to previous version
+        // Soft delete
+        is_deleted: bool,         // soft delete flag
+        deleted_at_ms: Option<u64>, // deletion timestamp
     }
 
     public entry fun register(
@@ -244,6 +265,10 @@ module waldrive::file_record {
             uploaded_at_ms: clock::timestamp_ms(clock),
             expiry_epoch,
             is_public: false,
+            version: 1,
+            parent_version_id: option::none(),
+            is_deleted: false,
+            deleted_at_ms: option::none(),
         };
         transfer::transfer(record, ctx.sender());
     }
@@ -266,6 +291,47 @@ module waldrive::file_record {
 
     public entry fun add_tag(record: &mut FileRecord, tag: String) {
         vector::push_back(&mut record.tags, tag);
+    }
+
+    // Soft delete
+    public entry fun soft_delete(record: &mut FileRecord, clock: &Clock) {
+        record.is_deleted = true;
+        record.deleted_at_ms = option::some(clock::timestamp_ms(clock));
+    }
+
+    // Restore from soft delete
+    public entry fun restore(record: &mut FileRecord) {
+        record.is_deleted = false;
+        record.deleted_at_ms = option::none();
+    }
+
+    // Create new version (creates a new FileRecord linked to the old one)
+    public entry fun create_version(
+        old_record: &FileRecord,
+        new_blob_id: String,
+        new_size: u64,
+        new_expiry_epoch: u64,
+        clock: &Clock,
+        ctx: &mut TxContext,
+    ) {
+        let new_record = FileRecord {
+            id: object::new(ctx),
+            blob_id: new_blob_id,
+            name: old_record.name,
+            mime_type: old_record.mime_type,
+            size: new_size,
+            folder_id: old_record.folder_id,
+            tags: old_record.tags,
+            owner: ctx.sender(),
+            uploaded_at_ms: clock::timestamp_ms(clock),
+            expiry_epoch: new_expiry_epoch,
+            is_public: old_record.is_public,
+            version: old_record.version + 1,
+            parent_version_id: option::some(object::id(old_record)),
+            is_deleted: false,
+            deleted_at_ms: option::none(),
+        };
+        transfer::transfer(new_record, ctx.sender());
     }
 }
 ```
@@ -321,6 +387,14 @@ module waldrive::folder {
     public entry fun rename(folder: &mut Folder, new_name: String) {
         folder.name = new_name;
     }
+
+    // Delete folder (must be empty)
+    // Note: In practice, the frontend should check if folder is empty before calling
+    // This function will fail if the folder has children (Sui object ownership check)
+    public entry fun delete(folder: Folder, _ctx: &mut TxContext) {
+        let Folder { id, name: _, parent_id: _, owner: _, created_at_ms: _ } = folder;
+        object::delete(id);
+    }
 }
 ```
 
@@ -349,6 +423,7 @@ module waldrive::share_link {
         file_name: String,
         owner: address,
         created_at_ms: u64,
+        expires_at_ms: Option<u64>,  // optional expiration time
     }
 
     // Called once during deployment via init
@@ -377,10 +452,46 @@ module waldrive::share_link {
             file_name,
             owner: ctx.sender(),
             created_at_ms: clock::timestamp_ms(clock),
+            expires_at_ms: option::none(),
         };
         let link_id = object::id(&link);
         table::add(&mut registry.codes, share_code, link_id);
         transfer::share_object(link);
+    }
+
+    // Create share link with expiration
+    public entry fun create_with_expiry(
+        registry: &mut ShareRegistry,
+        file_id: ID,
+        share_code: String,
+        blob_id: String,
+        file_name: String,
+        expires_at_ms: u64,
+        clock: &Clock,
+        ctx: &mut TxContext,
+    ) {
+        let link = ShareLink {
+            id: object::new(ctx),
+            file_id,
+            share_code: share_code,
+            blob_id,
+            file_name,
+            owner: ctx.sender(),
+            created_at_ms: clock::timestamp_ms(clock),
+            expires_at_ms: option::some(expires_at_ms),
+        };
+        let link_id = object::id(&link);
+        table::add(&mut registry.codes, share_code, link_id);
+        transfer::share_object(link);
+    }
+
+    // Check if share link is expired
+    public fun is_expired(link: &ShareLink, clock: &Clock): bool {
+        if (option::is_none(&link.expires_at_ms)) {
+            return false  // no expiration
+        };
+        let expires_at = *option::borrow(&link.expires_at_ms);
+        clock::timestamp_ms(clock) > expires_at
     }
 
     // Frontend looks up objectId from registry, then fetches the ShareLink object directly
@@ -479,6 +590,31 @@ export type ViewMode = 'grid' | 'list';
 Steps 2, 4, 5 each require a separate wallet interaction.
 UI must show clear step progress — never silently chain them.
 Use a step indicator component showing which of the 5 steps is active.
+
+### Frontend Features
+
+#### Breadcrumb Navigation
+- Display current folder path: `Home > Documents > Project`
+- Each segment is clickable to navigate to that folder
+- Use HeroUI `Breadcrumbs` component
+
+#### Sorting
+- Support sorting by: name, date, size, type
+- Default: name ascending
+- Use URL query params to persist sort state
+- Implement in `useFiles` hook with `sortBy` and `sortOrder` parameters
+
+#### Type Filtering
+- Filter by file type: images, videos, documents, code, archives
+- Use file extension or MIME type
+- Implement as toggle chips above file grid
+- Combine with search and folder filtering
+
+#### Virtual Scrolling
+- Use `react-window` or `react-virtual` for large file lists
+- Only render visible files (typically 20-30 items)
+- Dynamic row height based on file type (grid vs list view)
+- Implement in `FileGrid` and `FileList` components
 
 ### Reading Files
 
@@ -624,6 +760,8 @@ Users add this to their MCP client config (e.g., `~/.claude/claude_desktop_confi
 - Each tool must handle errors gracefully and return descriptive error messages
 - Tools that require wallet signing must prompt for confirmation (don't auto-sign)
 - Use `zod` for parameter validation
+- **Wallet**: Use Sui CLI wallet (`~/.sui/sui_config/sui.keystore`) for transaction signing
+- **Security**: Never expose private keys in logs or error messages
 
 ---
 

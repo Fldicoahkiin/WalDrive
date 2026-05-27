@@ -38,6 +38,7 @@ bun remove <package>
 | Share code generation | `nanoid` |
 | Smart contracts | Move (Sui) |
 | CORS proxy | Cloudflare Workers + Hono (upload only) |
+| MCP Server | `@modelcontextprotocol/sdk`, `zod` |
 | Frontend deploy | Vercel |
 
 ---
@@ -45,6 +46,15 @@ bun remove <package>
 ## Architecture
 
 ```
+AI Clients (Claude, Cursor, ChatGPT, Gemini, etc.)
+    │
+    ├── MCP Protocol ─────────────────────→ MCP Server (local process)
+    │                                           │
+    │                                           ├── upload_file → Walrus Publisher
+    │                                           ├── download_file → Walrus Aggregator
+    │                                           ├── list_files → Sui RPC
+    │                                           └── create_folder → Sui Move tx
+    │
 Browser (Next.js / Vercel)
     │
     ├── @mysten/dapp-kit ──────────────────→ Sui Wallet (sign, pay gas)
@@ -66,7 +76,7 @@ Browser (Next.js / Vercel)
           └── share_code → objectId ──────→ Sui event index (see Share Link section)
 ```
 
-**Rule:** CF Worker is stateless. It proxies raw bytes to the Walrus publisher and returns the blobId. All persistent state lives on Sui (Move) or Walrus.
+**Rule:** CF Worker is stateless. It proxies raw bytes to the Walrus publisher and returns the blobId. All persistent state lives on Sui (Move) or Walrus. MCP Server runs locally and has no CORS restrictions.
 
 ---
 
@@ -125,6 +135,24 @@ walrus-drive/
 │   └── types/
 │       └── index.ts                    # BlobFile, UploadStatus, ViewMode, SuiFileRecord
 │
+├── mcp-server/                         # MCP Server for AI clients
+│   ├── src/
+│   │   ├── index.ts                    # MCP Server entry point
+│   │   ├── tools/
+│   │   │   ├── upload.ts              # upload_file tool
+│   │   │   ├── download.ts            # download_file tool
+│   │   │   ├── list.ts                # list_files tool
+│   │   │   ├── folder.ts              # create_folder, list_folders tools
+│   │   │   └── share.ts              # create_share_link tool
+│   │   ├── lib/
+│   │   │   ├── walrus.ts              # Walrus client (reused from src/lib)
+│   │   │   ├── sui.ts                 # Sui client (reused from src/lib)
+│   │   │   └── constants.ts           # Constants (reused from src/lib)
+│   │   └── types/
+│   │       └── index.ts               # MCP tool types
+│   ├── package.json
+│   └── tsconfig.json
+│
 └── worker/                             # Cloudflare Worker — CORS proxy only
     ├── src/
     │   └── index.ts                    # Hono: single PUT /upload route
@@ -143,6 +171,12 @@ NEXT_PUBLIC_SHARE_REGISTRY_ID=0x...   # ShareRegistry shared object ID
 NEXT_PUBLIC_WALRUS_AGGREGATOR=https://aggregator.walrus-testnet.walrus.space
 NEXT_PUBLIC_WORKER_URL=https://waldrive-proxy.your-subdomain.workers.dev
 NEXT_PUBLIC_SUI_NETWORK=testnet
+
+# mcp-server/.env
+SUI_NETWORK=testnet
+WALRUS_AGGREGATOR=https://aggregator.walrus-testnet.walrus.space
+CONTRACT_PACKAGE_ID=0x...
+SHARE_REGISTRY_ID=0x...
 
 # worker — no secrets needed, it's a dumb pipe
 # wrangler.toml has WALRUS_PUBLISHER env var
@@ -496,6 +530,103 @@ const registry = await suiClient.getObject({
 
 ---
 
+## MCP Server — AI Client Interface
+
+MCP Server enables AI clients (Claude, Cursor, ChatGPT, Gemini, etc.) to operate Walrus files via the Model Context Protocol.
+
+### MCP Tools
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `upload_file` | Upload a file to Walrus and register metadata on Sui | `path: string`, `name?: string`, `folder_id?: string` |
+| `download_file` | Download a file from Walrus by blob ID | `blob_id: string`, `output_path?: string` |
+| `list_files` | List all files owned by the wallet | `folder_id?: string`, `limit?: number` |
+| `list_folders` | List all folders owned by the wallet | `parent_id?: string` |
+| `create_folder` | Create a new folder on Sui | `name: string`, `parent_id?: string` |
+| `get_file_info` | Get detailed file metadata from Sui | `object_id: string` |
+| `create_share_link` | Create a share link for a file | `file_id: string`, `share_code?: string` |
+
+### MCP Server Implementation
+
+```ts
+// mcp-server/src/index.ts
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { z } from 'zod';
+
+const server = new McpServer({
+  name: 'waldrive',
+  version: '0.1.0',
+});
+
+// Tool: upload_file
+server.tool(
+  'upload_file',
+  'Upload a file to Walrus decentralized storage',
+  {
+    path: z.string().describe('Local file path to upload'),
+    name: z.string().optional().describe('Display name (defaults to filename)'),
+    folder_id: z.string().optional().describe('Target folder object ID'),
+  },
+  async ({ path, name, folder_id }) => {
+    // 1. Read file bytes
+    // 2. Encode with WalrusFile.from()
+    // 3. Register blob on Sui (tx #1)
+    // 4. Upload bytes via CF Worker
+    // 5. Certify blob on Sui (tx #2)
+    // 6. Register FileRecord on Sui (tx #3)
+    return { content: [{ type: 'text', text: `Uploaded: ${blobId}` }] };
+  }
+);
+
+// Tool: list_files
+server.tool(
+  'list_files',
+  'List files owned by the connected wallet',
+  {
+    folder_id: z.string().optional().describe('Filter by folder ID'),
+    limit: z.number().optional().describe('Max results (default 50)'),
+  },
+  async ({ folder_id, limit }) => {
+    // Query Sui RPC: getOwnedObjects filtered by FileRecord type
+    return { content: [{ type: 'text', text: JSON.stringify(files) }] };
+  }
+);
+
+// Connect via stdio
+const transport = new StdioServerTransport();
+await server.connect(transport);
+```
+
+### MCP Client Configuration
+
+Users add this to their MCP client config (e.g., `~/.claude/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "waldrive": {
+      "command": "node",
+      "args": ["path/to/waldrive/mcp-server/dist/index.js"],
+      "env": {
+        "SUI_NETWORK": "testnet",
+        "WALRUS_AGGREGATOR": "https://aggregator.walrus-testnet.walrus.space"
+      }
+    }
+  }
+}
+```
+
+### MCP Server Rules
+
+- MCP Server runs locally, no CORS restrictions — can call Walrus Publisher directly
+- Reuse `src/lib/` utilities where possible (walrus.ts, sui.ts, constants.ts)
+- Each tool must handle errors gracefully and return descriptive error messages
+- Tools that require wallet signing must prompt for confirmation (don't auto-sign)
+- Use `zod` for parameter validation
+
+---
+
 ## CF Worker — Upload Proxy Only
 
 Single route. No KV, no DB, no state.
@@ -609,6 +740,12 @@ sui move test
 sui client publish --network testnet
 # → copy the published package ID and ShareRegistry object ID into .env.local
 
+# MCP Server
+cd mcp-server
+bun install
+bun run build     # Build MCP Server
+bun run dev       # Development mode with watch
+
 # CF Worker (upload proxy)
 cd worker
 bun install
@@ -628,3 +765,6 @@ bun run deploy    # wrangler deploy
 - CF Worker has no secrets, no KV bindings, no auth — it's a dumb pipe.
 - `nanoid` (frontend) generates the `share_code` string before calling `share_link::create`.
 - `ShareRegistry` is deployed once via `init()` — its object ID is fixed after first publish.
+- MCP Server runs locally — no CORS issues, can call Walrus Publisher directly.
+- MCP Server must prompt for wallet confirmation before signing transactions (never auto-sign).
+- MCP Server reuses `src/lib/` utilities to avoid code duplication.

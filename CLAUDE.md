@@ -1,0 +1,630 @@
+# WalDrive
+
+Google Drive-like file management UI for Walrus decentralized storage, built developer-first.
+
+Metadata lives **on Sui (Move objects)**, not in any centralized database. Blob data lives on **Walrus**. The frontend is the only "app" — no traditional backend.
+
+---
+
+## Package Manager
+
+**Use `bun` exclusively.** Never use npm, yarn, or pnpm.
+
+```bash
+bun install
+bun dev
+bun build
+bun add <package>
+bun remove <package>
+```
+
+---
+
+## Tech Stack
+
+| Layer | Choice |
+|---|---|
+| Frontend framework | Next.js 14 (App Router) |
+| Language | TypeScript (strict mode) |
+| UI components | HeroUI (`@heroui/react`) |
+| Styling | Tailwind CSS |
+| Drag interaction | `react-grab` |
+| Walrus SDK | `@mysten/walrus` |
+| Sui wallet | `@mysten/dapp-kit` |
+| Sui client | `@mysten/sui`, `@mysten/sui/grpc` (for Walrus SDK setup) |
+| Global state | Zustand |
+| Async / cache | TanStack React Query v5 |
+| Icons | lucide-react |
+| Share code generation | `nanoid` |
+| Smart contracts | Move (Sui) |
+| CORS proxy | Cloudflare Workers + Hono (upload only) |
+| Frontend deploy | Vercel |
+
+---
+
+## Architecture
+
+```
+Browser (Next.js / Vercel)
+    │
+    ├── @mysten/dapp-kit ──────────────────→ Sui Wallet (sign, pay gas)
+    │
+    ├── Upload
+    │     └── File bytes ────────────────→ CF Worker PUT /upload (CORS proxy)
+    │                                           └──→ Walrus Publisher
+    │                                                └── returns blobId
+    │     └── Register metadata tx ──────→ Sui (Move contract)
+    │              FileRecord { blobId, name, folder, tags, ... }
+    │
+    ├── Read / download
+    │     └── GET /v1/{blobId} ───────────→ Walrus Aggregator (direct, no CORS issue)
+    │
+    ├── File list / folders
+    │     └── getOwnedObjects ────────────→ Sui RPC (owned objects filtered by type)
+    │
+    └── Share link lookup
+          └── share_code → objectId ──────→ Sui event index (see Share Link section)
+```
+
+**Rule:** CF Worker is stateless. It proxies raw bytes to the Walrus publisher and returns the blobId. All persistent state lives on Sui (Move) or Walrus.
+
+---
+
+## Project Structure
+
+```
+walrus-drive/
+│
+├── contracts/                          # Move smart contracts
+│   ├── Move.toml
+│   └── sources/
+│       ├── file_record.move            # FileRecord object
+│       ├── folder.move                 # Folder object
+│       └── share_link.move             # ShareLink object + Registry
+│
+├── src/                                # Next.js frontend
+│   ├── app/
+│   │   ├── layout.tsx                  # Root layout, wallet + query providers
+│   │   ├── page.tsx                    # Landing / connect wallet
+│   │   └── drive/
+│   │       ├── page.tsx                # Main file manager
+│   │       └── [shareCode]/
+│   │           └── page.tsx            # Public share page (wallet-free read)
+│   │
+│   ├── components/
+│   │   ├── ui/                         # Custom primitives — prefer HeroUI first
+│   │   ├── drive/
+│   │   │   ├── FileGrid.tsx
+│   │   │   ├── FileList.tsx
+│   │   │   ├── FileDetailPanel.tsx
+│   │   │   ├── UploadZone.tsx
+│   │   │   ├── ContextMenu.tsx
+│   │   │   ├── StatusBadge.tsx
+│   │   │   └── CodeSnippet.tsx
+│   │   ├── sidebar/
+│   │   │   ├── Sidebar.tsx
+│   │   │   └── StorageUsage.tsx
+│   │   └── layout/
+│   │       └── Header.tsx
+│   │
+│   ├── hooks/
+│   │   ├── useWalrus.ts                # writeFilesFlow wrapper → blobId
+│   │   ├── useFiles.ts                 # React Query: getOwnedObjects filtered by FileRecord type
+│   │   ├── useFolders.ts               # React Query: getOwnedObjects filtered by Folder type
+│   │   └── useDragDrop.ts              # Global drag-and-drop handler
+│   │
+│   ├── stores/
+│   │   └── fileStore.ts                # Zustand: selected files, view mode, upload queue
+│   │
+│   ├── lib/
+│   │   ├── walrus.ts                   # Walrus client (SuiGrpcClient + walrus())
+│   │   ├── sui.ts                      # Sui client, PTB builders for contract calls
+│   │   ├── constants.ts                # Aggregator/publisher URLs, contract IDs, epoch defaults
+│   │   └── utils.ts                    # blobUrl(), shortenAddress(), formatBytes()
+│   │
+│   └── types/
+│       └── index.ts                    # BlobFile, UploadStatus, ViewMode, SuiFileRecord
+│
+└── worker/                             # Cloudflare Worker — CORS proxy only
+    ├── src/
+    │   └── index.ts                    # Hono: single PUT /upload route
+    ├── wrangler.toml
+    └── package.json
+```
+
+---
+
+## Environment Variables
+
+```bash
+# .env.local (frontend)
+NEXT_PUBLIC_CONTRACT_PACKAGE_ID=0x...
+NEXT_PUBLIC_SHARE_REGISTRY_ID=0x...   # ShareRegistry shared object ID
+NEXT_PUBLIC_WALRUS_AGGREGATOR=https://aggregator.walrus-testnet.walrus.space
+NEXT_PUBLIC_WORKER_URL=https://waldrive-proxy.your-subdomain.workers.dev
+NEXT_PUBLIC_SUI_NETWORK=testnet
+
+# worker — no secrets needed, it's a dumb pipe
+# wrangler.toml has WALRUS_PUBLISHER env var
+```
+
+---
+
+## Move Contracts
+
+### `Move.toml`
+
+```toml
+[package]
+name = "waldrive"
+edition = "2024.beta"
+
+[dependencies]
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "testnet" }
+
+[addresses]
+waldrive = "0x0"
+```
+
+---
+
+### `file_record.move`
+
+```move
+module waldrive::file_record {
+    use std::string::String;
+    use sui::clock::{Self, Clock};
+
+    public struct FileRecord has key, store {
+        id: UID,
+        blob_id: String,          // Walrus blob ID
+        name: String,             // display filename
+        mime_type: String,
+        size: u64,                // bytes
+        folder_id: Option<ID>,    // parent Folder object ID, none = root
+        tags: vector<String>,
+        owner: address,
+        uploaded_at_ms: u64,      // unix timestamp ms from Clock
+        expiry_epoch: u64,        // Walrus expiry epoch number
+        is_public: bool,
+    }
+
+    public entry fun register(
+        blob_id: String,
+        name: String,
+        mime_type: String,
+        size: u64,
+        expiry_epoch: u64,
+        clock: &Clock,
+        ctx: &mut TxContext,
+    ) {
+        let record = FileRecord {
+            id: object::new(ctx),
+            blob_id,
+            name,
+            mime_type,
+            size,
+            folder_id: option::none(),
+            tags: vector::empty(),
+            owner: ctx.sender(),
+            uploaded_at_ms: clock::timestamp_ms(clock),
+            expiry_epoch,
+            is_public: false,
+        };
+        transfer::transfer(record, ctx.sender());
+    }
+
+    public entry fun rename(record: &mut FileRecord, new_name: String) {
+        record.name = new_name;
+    }
+
+    public entry fun move_to_folder(record: &mut FileRecord, folder_id: ID) {
+        record.folder_id = option::some(folder_id);
+    }
+
+    public entry fun remove_from_folder(record: &mut FileRecord) {
+        record.folder_id = option::none();
+    }
+
+    public entry fun set_visibility(record: &mut FileRecord, is_public: bool) {
+        record.is_public = is_public;
+    }
+
+    public entry fun add_tag(record: &mut FileRecord, tag: String) {
+        vector::push_back(&mut record.tags, tag);
+    }
+}
+```
+
+---
+
+### `folder.move`
+
+```move
+module waldrive::folder {
+    use std::string::String;
+    use sui::clock::{Self, Clock};
+
+    public struct Folder has key, store {
+        id: UID,
+        name: String,
+        parent_id: Option<ID>,    // none = root level
+        owner: address,
+        created_at_ms: u64,
+    }
+
+    public entry fun create(
+        name: String,
+        clock: &Clock,
+        ctx: &mut TxContext,
+    ) {
+        let folder = Folder {
+            id: object::new(ctx),
+            name,
+            parent_id: option::none(),
+            owner: ctx.sender(),
+            created_at_ms: clock::timestamp_ms(clock),
+        };
+        transfer::transfer(folder, ctx.sender());
+    }
+
+    public entry fun create_nested(
+        name: String,
+        parent_id: ID,
+        clock: &Clock,
+        ctx: &mut TxContext,
+    ) {
+        let folder = Folder {
+            id: object::new(ctx),
+            name,
+            parent_id: option::some(parent_id),
+            owner: ctx.sender(),
+            created_at_ms: clock::timestamp_ms(clock),
+        };
+        transfer::transfer(folder, ctx.sender());
+    }
+
+    public entry fun rename(folder: &mut Folder, new_name: String) {
+        folder.name = new_name;
+    }
+}
+```
+
+---
+
+### `share_link.move`
+
+```move
+module waldrive::share_link {
+    use std::string::String;
+    use sui::table::{Self, Table};
+    use sui::clock::{Self, Clock};
+
+    // Registry is a singleton shared object — created once on deploy
+    // Maps share_code (String) → ShareLink object ID
+    public struct ShareRegistry has key {
+        id: UID,
+        codes: Table<String, ID>,
+    }
+
+    public struct ShareLink has key {
+        id: UID,
+        file_id: ID,
+        share_code: String,
+        blob_id: String,       // denormalized for wallet-free reads
+        file_name: String,
+        owner: address,
+        created_at_ms: u64,
+    }
+
+    // Called once during deployment via init
+    fun init(ctx: &mut TxContext) {
+        let registry = ShareRegistry {
+            id: object::new(ctx),
+            codes: table::new(ctx),
+        };
+        transfer::share_object(registry);
+    }
+
+    public entry fun create(
+        registry: &mut ShareRegistry,
+        file_id: ID,
+        share_code: String,
+        blob_id: String,
+        file_name: String,
+        clock: &Clock,
+        ctx: &mut TxContext,
+    ) {
+        let link = ShareLink {
+            id: object::new(ctx),
+            file_id,
+            share_code: share_code,
+            blob_id,
+            file_name,
+            owner: ctx.sender(),
+            created_at_ms: clock::timestamp_ms(clock),
+        };
+        let link_id = object::id(&link);
+        table::add(&mut registry.codes, share_code, link_id);
+        transfer::share_object(link);
+    }
+
+    // Frontend looks up objectId from registry, then fetches the ShareLink object directly
+    public fun lookup(registry: &ShareRegistry, share_code: &String): &ID {
+        table::borrow(&registry.codes, *share_code)
+    }
+}
+```
+
+> **Share link resolution flow:** Frontend generates `nanoid(8)` as `share_code`, calls `share_link::create`. To resolve `/drive/[shareCode]`, the frontend queries the `ShareRegistry` object (fixed ID from env) to get the `ShareLink` object ID, then fetches that object directly via `suiClient.getObject()`. No event scanning needed.
+
+---
+
+## Contract Constants
+
+```ts
+// lib/constants.ts
+export const CONTRACT = {
+  PACKAGE_ID: process.env.NEXT_PUBLIC_CONTRACT_PACKAGE_ID!,
+  SHARE_REGISTRY_ID: process.env.NEXT_PUBLIC_SHARE_REGISTRY_ID!,
+  // module names
+  FILE_RECORD: 'file_record',
+  FOLDER: 'folder',
+  SHARE_LINK: 'share_link',
+} as const;
+
+export const WALRUS = {
+  PUBLISHER:  process.env.NEXT_PUBLIC_WALRUS_AGGREGATOR!.replace('aggregator', 'publisher'),
+  AGGREGATOR: process.env.NEXT_PUBLIC_WALRUS_AGGREGATOR!,
+  EPOCHS_DEFAULT: 3,
+} as const;
+
+export const WORKER_URL = process.env.NEXT_PUBLIC_WORKER_URL!;
+
+export const blobUrl = (blobId: string) =>
+  `${WALRUS.AGGREGATOR}/v1/${blobId}`;
+```
+
+---
+
+## Core Types
+
+```ts
+// types/index.ts
+export type UploadStatus =
+  | 'idle'
+  | 'encoding'
+  | 'registering'    // Sui tx #1: blob register
+  | 'uploading'      // bytes → Walrus
+  | 'certifying'     // Sui tx #2: blob certify
+  | 'saving_meta'    // Sui tx #3: FileRecord::register
+  | 'done'
+  | 'failed';
+
+export interface BlobFile {
+  // Sui object fields
+  objectId: string;
+  blobId: string;
+  name: string;
+  mimeType: string;
+  size: number;
+  folderId: string | null;
+  tags: string[];
+  owner: string;
+  uploadedAtMs: number;       // unix ms from Clock
+  expiryEpoch: number;        // Walrus epoch number
+  isPublic: boolean;
+  // local UI only
+  status: UploadStatus;
+}
+
+export interface SuiFolder {
+  objectId: string;
+  name: string;
+  parentId: string | null;
+  createdAtMs: number;
+}
+
+export type ViewMode = 'grid' | 'list';
+```
+
+---
+
+## Key Behaviors
+
+### Upload Flow (5-step, browser wallet safe)
+
+```
+1. encode         → WalrusFile.from({ contents, identifier })
+2. register       → Sui tx: blob registration        (wallet signs #1)
+3. upload         → PUT bytes to CF Worker → Walrus publisher
+4. certify        → Sui tx: certify blob             (wallet signs #2)
+5. save_meta      → Sui tx: file_record::register()  (wallet signs #3)
+```
+
+Steps 2, 4, 5 each require a separate wallet interaction.
+UI must show clear step progress — never silently chain them.
+Use a step indicator component showing which of the 5 steps is active.
+
+### Reading Files
+
+```ts
+// hooks/useFiles.ts — query Sui RPC directly, no API call
+const { data } = useQuery({
+  queryKey: ['files', walletAddress],
+  queryFn: () => suiClient.getOwnedObjects({
+    owner: walletAddress,
+    filter: {
+      StructType: `${CONTRACT.PACKAGE_ID}::${CONTRACT.FILE_RECORD}::FileRecord`,
+    },
+    options: { showContent: true },
+  }),
+});
+```
+
+### Share Link Resolution
+
+```ts
+// /drive/[shareCode]/page.tsx
+// 1. Get the registry object (fixed ID)
+const registry = await suiClient.getObject({
+  id: CONTRACT.SHARE_REGISTRY_ID,
+  options: { showContent: true },
+});
+// 2. Read the Table to find the ShareLink object ID for this share_code
+// 3. Fetch that ShareLink object → get blob_id
+// 4. Render file from Walrus aggregator directly (no wallet needed)
+```
+
+### File Persistence
+
+| Layer | What it stores | Source of truth? |
+|---|---|---|
+| Walrus | Raw blob bytes | ✅ immutable |
+| Sui chain | FileRecord, Folder, ShareLink Move objects | ✅ yes |
+| localStorage | Optimistic UI cache | ❌ always reconcile on mount |
+| CF Worker | Nothing | — stateless pipe |
+
+### Status Colors
+
+| Status | HeroUI color |
+|---|---|
+| `encoding` / `uploading` | `warning` (orange) |
+| `registering` / `certifying` / `saving_meta` | `primary` (blue) |
+| `done` | `success` (green) |
+| `failed` | `danger` (red) |
+
+---
+
+## CF Worker — Upload Proxy Only
+
+Single route. No KV, no DB, no state.
+
+```ts
+// worker/src/index.ts
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+
+const WALRUS_PUBLISHER = 'https://publisher.walrus-testnet.walrus.space';
+
+const app = new Hono();
+app.use('*', cors());
+
+app.put('/upload', async (c) => {
+  const body = await c.req.arrayBuffer();
+  const epochs = c.req.query('epochs') ?? '3';
+
+  const res = await fetch(
+    `${WALRUS_PUBLISHER}/v1/blobs?epochs=${epochs}`,
+    {
+      method: 'PUT',
+      body,
+      headers: { 'Content-Type': 'application/octet-stream' },
+    }
+  );
+
+  const data = await res.json();
+  return c.json(data, res.status as any);
+});
+
+export default app;
+```
+
+---
+
+## HeroUI Usage
+
+Always reach for HeroUI before writing custom components:
+
+```tsx
+// ✅ Prefer this
+import { Button, Card, Chip, Tooltip, Spinner, Modal, Tabs, Dropdown } from '@heroui/react';
+
+// ❌ Not this — don't reinvent what HeroUI already has
+const MyButton = ({ children }) => <button className="...">{children}</button>;
+```
+
+Component mapping:
+- Upload button → `<Button color="primary">`
+- Status labels → `<Chip color="warning|primary|success|danger">`
+- File cards → `<Card isPressable isHoverable>`
+- Loading → `<Spinner>`
+- Blob ID copy → `<Tooltip content="Copied!">`
+- Context menu → `<Dropdown>` + `<DropdownMenu>`
+- Upload progress modal → `<Modal>`
+- Grid / List toggle → `<Tabs>`
+
+HeroUI is configured with Tailwind — extend via `tailwind.config.ts`, not inline overrides.
+
+---
+
+## react-grab Usage
+
+Use `react-grab` for grabbable/pannable surfaces:
+
+```tsx
+import { useGrab } from 'react-grab';
+
+const { onMouseDown } = useGrab(containerRef);
+<div
+  ref={containerRef}
+  onMouseDown={onMouseDown}
+  className="overflow-x-auto cursor-grab active:cursor-grabbing"
+>
+  {files.map(...)}
+</div>
+```
+
+Apply to: **FileGrid** (scroll overflow), **FileDetailPanel** image preview (pan when zoomed).
+
+Do NOT apply to clickable elements. Use `e.stopPropagation()` on interactive children inside a grab surface.
+
+---
+
+## Code Style
+
+- Functional components only, no class components
+- Named exports for components, default export for pages
+- Co-locate types with component if used only there
+- Prefer `async/await` over `.then()` chains
+- No `any` — use `unknown` and narrow explicitly
+- Tailwind + HeroUI only — no inline styles, no CSS modules
+- Keep components under 150 lines; extract hooks for logic
+
+---
+
+## Commands
+
+```bash
+# Frontend
+bun dev           # localhost:3000
+bun build
+bun lint
+bun typecheck     # tsc --noEmit
+
+# Move contracts
+cd contracts
+sui move build
+sui move test
+sui client publish --network testnet
+# → copy the published package ID and ShareRegistry object ID into .env.local
+
+# CF Worker (upload proxy)
+cd worker
+bun install
+bun run dev       # wrangler dev → localhost:8787
+bun run deploy    # wrangler deploy
+```
+
+---
+
+## Notes
+
+- **Testnet only** for now. Mainnet: update `NEXT_PUBLIC_CONTRACT_PACKAGE_ID`, `NEXT_PUBLIC_SHARE_REGISTRY_ID`, and Walrus URLs in `.env.local`.
+- `uploaded_at_ms` uses `clock::timestamp_ms(clock)` — real unix milliseconds, not Sui epoch number.
+- `expiry_epoch` is a Walrus epoch number (not time), used to show countdown in UI.
+- Wallet required to upload and register metadata. Reading public blobs and share links is wallet-free.
+- Move objects are the source of truth. Never trust localStorage over what's on chain.
+- CF Worker has no secrets, no KV bindings, no auth — it's a dumb pipe.
+- `nanoid` (frontend) generates the `share_code` string before calling `share_link::create`.
+- `ShareRegistry` is deployed once via `init()` — its object ID is fixed after first publish.

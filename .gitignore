@@ -52,3 +52,4 @@ target/
 # Claude
 .claude/projects/
 .remember/
+.heroui-docs/

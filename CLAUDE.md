@@ -893,6 +893,16 @@ bun run deploy    # wrangler deploy
 
 ---
 
+## Design Skills
+
+| Skill | Source | Purpose |
+|-------|--------|---------|
+| impeccable | `.agents/skills/impeccable/` | UI anti-pattern detection: `/impeccable detect src/` |
+| heroui-react | `.agents/skills/heroui-react/` | HeroUI v3 component reference + scripts |
+| Linear design | `DESIGN.md` | Dark theme design system (lavender-blue accent #5e6ad2) |
+
+---
+
 ## Notes
 
 - **Testnet only** for now. Mainnet: update `NEXT_PUBLIC_CONTRACT_PACKAGE_ID`, `NEXT_PUBLIC_SHARE_REGISTRY_ID`, and Walrus URLs in `.env.local`.

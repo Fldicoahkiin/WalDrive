@@ -1,0 +1,9 @@
+[package]
+name = "waldrive"
+edition = "2024.beta"
+# Sui / MoveStdlib are auto-injected by the sui CLI, matched to its own version.
+# Do NOT add an explicit [dependencies] Sui = {rev=...} — that disables the
+# auto-match and reintroduces CLI/framework version skew.
+
+[addresses]
+waldrive = "0x0"

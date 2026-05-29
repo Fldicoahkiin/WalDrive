@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@heroui/react";
 import { X, ExternalLink } from "lucide-react";
 import { blobUrl, formatBytes } from "@/lib/utils";
+import { ShareButton } from "@/components/drive/ShareButton";
 import type { BlobFile } from "@waldrive/shared";
 
 export function FileDetailPanel({ file, onClose }: { file: BlobFile; onClose: () => void }) {
@@ -42,10 +43,13 @@ export function FileDetailPanel({ file, onClose }: { file: BlobFile; onClose: ()
           <span>
             {file.mimeType} · {formatBytes(file.size)}
           </span>
-          <Button variant="secondary" size="sm" onPress={() => window.open(url, "_blank")}>
-            <ExternalLink className="size-4" />
-            Open
-          </Button>
+          <div className="flex items-center gap-2">
+            <ShareButton file={file} />
+            <Button variant="secondary" size="sm" onPress={() => window.open(url, "_blank")}>
+              <ExternalLink className="size-4" />
+              Open
+            </Button>
+          </div>
         </div>
       </div>
     </div>

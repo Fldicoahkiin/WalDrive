@@ -1,16 +1,22 @@
 {
   "version": 1,
   "skills": {
+    "heroui-react": {
+      "source": "heroui-inc/heroui",
+      "sourceType": "github",
+      "computedHash": "92a42da5bfc89635847ac18083bfba43cf841b30e85dd1c363e610c5a398c8bc"
+    },
     "impeccable": {
       "source": "pbakaus/impeccable",
       "sourceType": "github",
       "skillPath": "skill/SKILL.md",
       "computedHash": "34e59a34b9705187e87039faa5d9585aebe0056ef657f761b905afef276a3362"
     },
-    "heroui-react": {
-      "source": "heroui-inc/heroui",
+    "native-feel-cross-platform-desktop": {
+      "source": "yetone/native-feel-skill",
       "sourceType": "github",
-      "computedHash": "92a42da5bfc89635847ac18083bfba43cf841b30e85dd1c363e610c5a398c8bc"
+      "skillPath": "SKILL.md",
+      "computedHash": "59b597a6695718cb226551e910c1b7be39db17750ab645d3e1bf92924d92fc06"
     }
   }
 }

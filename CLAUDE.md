@@ -1,8 +1,29 @@
 # WalDrive
 
-Google Drive-like file management UI for Walrus decentralized storage, built developer-first.
+A file-management UI + visual console for Walrus decentralized storage, built for the **Sui Overflow 2026 Walrus track**. The pitch is frontend interaction and fluidity.
 
-Metadata lives **on Sui (Move objects)**, not in any centralized database. Blob data lives on **Walrus**. The frontend is the only "app" — no traditional backend.
+Metadata lives **on Sui (Move objects)**, blob data lives on **Walrus**. No centralized backend.
+
+Three pieces:
+- **Web console** (the star) — browse / upload / preview / search / share, focused on fluid interaction
+- **MCP Server** — lets developers / CLI / AI clients operate the same Walrus data from the command line
+- **Move contracts** — file metadata on-chain, verifiable
+
+> Positioning: the track theme is AI agent memory; this project **downplays agent logic** and focuses on "file-management tool + console". MCP is the developer/agent entry point but implements no agent behavior.
+
+---
+
+## Hackathon Context
+
+- **Track**: Sui Overflow 2026 — Walrus track (matches official idea #32 "Walrus file-management UI").
+- ⚠️ **Confirm the deadline yourself** (overflow.sui.io / HackerEarth) — public sources disagree.
+- **Demo throughline** (scope is cut around this):
+  ```
+  Console fluidity as the main axis:
+  drag to upload → file appears live → instant preview → search/filter → one-click read-only share link
+  MCP as the supporting highlight: developers operate the same Walrus data via CLI/scripts
+  ```
+- **Scope tiers**: MVP = the minimum that supports the demo above; everything else goes to the Roadmap section, not deleted.
 
 ---
 
@@ -24,74 +45,66 @@ bun remove <package>
 
 | Layer | Choice |
 |---|---|
-| Frontend framework | Next.js 14 (App Router) |
+| Frontend framework | Next.js (App Router, v15+) — note: `params`/`searchParams` are async |
 | Language | TypeScript (strict mode) |
-| UI components | HeroUI (`@heroui/react`) |
-| Styling | Tailwind CSS |
-| Drag interaction | `react-grab` |
-| Virtual scrolling | `react-window` or `react-virtual` |
-| Walrus SDK | `@mysten/walrus` |
-| Sui wallet | `@mysten/dapp-kit` |
-| Sui client | `@mysten/sui`, `@mysten/sui/grpc` (for Walrus SDK setup) |
+| UI components | HeroUI **v3** (`@heroui/react` + `@heroui/styles`) — compound components, `onPress` |
+| Styling | Tailwind CSS **v4** (CSS-first `@theme`, not `tailwind.config.ts`) |
+| Walrus upload | Publisher HTTP PUT (MVP) · `@mysten/walrus` `writeFilesFlow` (Roadmap) |
+| Sui wallet | `@mysten/dapp-kit` (browser console) |
+| Sui client | `@mysten/sui` |
 | Global state | Zustand |
 | Async / cache | TanStack React Query v5 |
 | Icons | lucide-react |
 | Share code generation | `nanoid` |
 | Smart contracts | Move (Sui) |
-| CORS proxy | Cloudflare Workers + Hono (upload only) |
 | MCP Server | `@modelcontextprotocol/sdk`, `zod` |
 | Frontend deploy | Vercel |
+| Drag-to-pan (`react-grab`) | Roadmap |
+| Virtual scrolling (`react-window`) | Roadmap |
 
 ---
 
 ## Architecture
 
 ```
-AI Clients (Claude, Cursor, ChatGPT, Gemini, etc.)
-    │
-    ├── MCP Protocol ─────────────────────→ MCP Server (local process)
-    │                                           │
-    │                                           ├── upload_file → Walrus Publisher
-    │                                           ├── download_file → Walrus Aggregator
-    │                                           ├── list_files → Sui RPC
-    │                                           └── create_folder → Sui Move tx
-    │
-Browser (Next.js / Vercel)
-    │
-    ├── @mysten/dapp-kit ──────────────────→ Sui Wallet (sign, pay gas)
-    │
-    ├── Upload
-    │     └── File bytes ────────────────→ CF Worker PUT /upload (CORS proxy)
-    │                                           └──→ Walrus Publisher
-    │                                                └── returns blobId
-    │     └── Register metadata tx ──────→ Sui (Move contract)
-    │              FileRecord { blobId, name, folder, tags, ... }
+Web Console (Next.js / Vercel)                 MCP Server (local — devs / CLI / AI clients)
+    │                                              │
+    ├── @mysten/dapp-kit → Sui Wallet              ├── upload_file → Publisher HTTP, then sign
+    │   (sign metadata tx, pay SUI gas)            │                 file_record::register (local keypair)
+    │                                              ├── list_files → Sui RPC
+    ├── Upload (MVP: Publisher direct)             └── download / folder / share → Roadmap
+    │   ① PUT bytes → Walrus Publisher
+    │      ?epochs=N&deletable=true&send_object_to={user}
+    │      · publisher fronts the WAL storage cost
+    │      · blob object is sent to the user (renewable / deletable)
+    │      · returns blobId (readable from aggregator immediately)
+    │   ② Sui tx: file_record::register(blobId, …)   (wallet signs, 1 tx)
     │
     ├── Read / download
-    │     └── GET /v1/{blobId} ───────────→ Walrus Aggregator (direct, no CORS issue)
+    │   └── GET aggregator /v1/blobs/{blobId}        (public, no CORS, no wallet)
     │
-    ├── File list / folders
-    │     └── getOwnedObjects ────────────→ Sui RPC (owned objects filtered by type)
+    ├── File list
+    │   └── getOwnedObjects (FileRecord type)        (Sui RPC, paginate via cursor)
     │
-    └── Share link lookup
-          └── share_code → objectId ──────→ Sui event index (see Share Link section)
+    └── Share link
+        └── share_code → ShareRegistry table → ShareLink object → blobId
 ```
 
-**Rule:** CF Worker is stateless. It proxies raw bytes to the Walrus publisher and returns the blobId. All persistent state lives on Sui (Move) or Walrus. MCP Server runs locally and has no CORS restrictions.
+**Rule:** No centralized backend. Browser uploads go straight to the public Walrus publisher (testnet CORS is open — verified). Reads hit the aggregator directly. All persistent state lives on Sui (Move) or Walrus. The MCP Server runs locally (no CORS limits).
 
 ---
 
 ## Project Structure
 
 ```
-walrus-drive/
+waldrive/                               # bun workspaces monorepo
 │
-├── packages/                           # Shared packages (Monorepo)
-│   └── shared/                         # Shared utilities
-│       ├── src/
-│       │   ├── lib/
-│       │   │   ├── walrus.ts          # Walrus client
-│       │   │   ├── sui.ts             # Sui client
+├── packages/
+│   └── shared/                         # runtime-agnostic ONLY (browser + Node MCP):
+│       ├── src/                        #   constants, types, Sui/Walrus client factories.
+│       │   ├── lib/                    #   NO React / Next code here.
+│       │   │   ├── walrus.ts          # Walrus client factory
+│       │   │   ├── sui.ts             # Sui client factory
 │       │   │   └── constants.ts       # Constants
 │       │   └── types/
 │       │       └── index.ts           # Shared types
@@ -101,16 +114,16 @@ walrus-drive/
 ├── contracts/                          # Move smart contracts
 │   ├── Move.toml
 │   └── sources/
-│       ├── file_record.move            # FileRecord object (with versioning)
-│       ├── folder.move                 # Folder object
+│       ├── file_record.move            # FileRecord (versioning/soft-delete fields = Roadmap)
+│       ├── folder.move                 # Folder object (nested folders = Roadmap)
 │       └── share_link.move             # ShareLink object + Registry
 │
-├── src/                                # Next.js frontend
+├── src/                                # Next.js frontend (the console)
 │   ├── app/
 │   │   ├── layout.tsx                  # Root layout, wallet + query providers
 │   │   ├── page.tsx                    # Landing / connect wallet
 │   │   └── drive/
-│   │       ├── page.tsx                # Main file manager
+│   │       ├── page.tsx                # Main file console
 │   │       └── [shareCode]/
 │   │           └── page.tsx            # Public share page (wallet-free read)
 │   │
@@ -124,8 +137,8 @@ walrus-drive/
 │   │   │   ├── ContextMenu.tsx
 │   │   │   ├── StatusBadge.tsx
 │   │   │   ├── CodeSnippet.tsx
-│   │   │   ├── BreadcrumbNav.tsx      # Breadcrumb navigation
-│   │   │   └── SortFilter.tsx         # Sort and filter controls
+│   │   │   ├── BreadcrumbNav.tsx      # Roadmap (nested folders)
+│   │   │   └── SortFilter.tsx         # Roadmap (sort + type filter)
 │   │   ├── sidebar/
 │   │   │   ├── Sidebar.tsx
 │   │   │   └── StorageUsage.tsx
@@ -133,46 +146,37 @@ walrus-drive/
 │   │       └── Header.tsx
 │   │
 │   ├── hooks/
-│   │   ├── useWalrus.ts                # writeFilesFlow wrapper → blobId
-│   │   ├── useFiles.ts                 # React Query: getOwnedObjects filtered by FileRecord type
-│   │   ├── useFolders.ts               # React Query: getOwnedObjects filtered by Folder type
+│   │   ├── useUpload.ts                # uploadBlob() → blobId (Publisher PUT, MVP), then register
+│   │   ├── useFiles.ts                 # React Query: getOwnedObjects (FileRecord), paginated
+│   │   ├── useFolders.ts               # Roadmap (nested folders)
 │   │   └── useDragDrop.ts              # Global drag-and-drop handler
 │   │
 │   ├── stores/
 │   │   └── fileStore.ts                # Zustand: selected files, view mode, upload queue
 │   │
 │   ├── lib/
-│   │   ├── walrus.ts                   # Walrus client (imports from @waldrive/shared)
-│   │   ├── sui.ts                      # Sui client (imports from @waldrive/shared)
-│   │   ├── constants.ts                # Constants (imports from @waldrive/shared)
+│   │   ├── walrus.ts                   # re-export from @waldrive/shared
+│   │   ├── sui.ts                      # re-export from @waldrive/shared
+│   │   ├── constants.ts                # re-export from @waldrive/shared
 │   │   └── utils.ts                    # blobUrl(), shortenAddress(), formatBytes()
 │   │
 │   └── types/
 │       └── index.ts                    # BlobFile, UploadStatus, ViewMode, SuiFileRecord
 │
-├── mcp-server/                         # MCP Server for AI clients
-│   ├── src/
-│   │   ├── index.ts                    # MCP Server entry point
-│   │   ├── tools/
-│   │   │   ├── upload.ts              # upload_file tool
-│   │   │   ├── download.ts            # download_file tool
-│   │   │   ├── list.ts                # list_files tool
-│   │   │   ├── folder.ts              # create_folder, list_folders tools
-│   │   │   └── share.ts              # create_share_link tool
-│   │   ├── lib/
-│   │   │   ├── walrus.ts              # Walrus client (imports from @waldrive/shared)
-│   │   │   ├── sui.ts                 # Sui client (imports from @waldrive/shared)
-│   │   │   └── constants.ts           # Constants (imports from @waldrive/shared)
-│   │   └── types/
-│   │       └── index.ts               # MCP tool types
-│   ├── package.json
-│   └── tsconfig.json
-│
-└── worker/                             # Cloudflare Worker — CORS proxy only
+└── mcp-server/                         # MCP Server for devs / CLI / AI clients
     ├── src/
-    │   └── index.ts                    # Hono: single PUT /upload route
-    ├── wrangler.toml
-    └── package.json
+    │   ├── index.ts                    # MCP Server entry point (stdio)
+    │   ├── tools/
+    │   │   ├── upload.ts               # upload_file tool (MVP)
+    │   │   ├── list.ts                 # list_files tool (MVP)
+    │   │   ├── download.ts             # Roadmap
+    │   │   ├── folder.ts               # Roadmap
+    │   │   └── share.ts                # Roadmap
+    │   ├── lib/                        # re-export from @waldrive/shared
+    │   └── types/
+    │       └── index.ts                # MCP tool types
+    ├── package.json
+    └── tsconfig.json
 ```
 
 ---
@@ -184,22 +188,23 @@ walrus-drive/
 NEXT_PUBLIC_CONTRACT_PACKAGE_ID=0x...
 NEXT_PUBLIC_SHARE_REGISTRY_ID=0x...   # ShareRegistry shared object ID
 NEXT_PUBLIC_WALRUS_AGGREGATOR=https://aggregator.walrus-testnet.walrus.space
-NEXT_PUBLIC_WORKER_URL=https://waldrive-proxy.your-subdomain.workers.dev
+NEXT_PUBLIC_WALRUS_PUBLISHER=https://publisher.walrus-testnet.walrus.space
 NEXT_PUBLIC_SUI_NETWORK=testnet
 
 # mcp-server/.env
 SUI_NETWORK=testnet
 WALRUS_AGGREGATOR=https://aggregator.walrus-testnet.walrus.space
+WALRUS_PUBLISHER=https://publisher.walrus-testnet.walrus.space
 CONTRACT_PACKAGE_ID=0x...
 SHARE_REGISTRY_ID=0x...
-
-# worker — no secrets needed, it's a dumb pipe
-# wrangler.toml has WALRUS_PUBLISHER env var
+WALDRIVE_KEYPAIR=suiprivkey1...        # dedicated testnet keypair for MCP signing — NOT your main keystore
 ```
 
 ---
 
 ## Move Contracts
+
+> ⚠️ **DRAFT** — design sketches, not the source of truth. Once `contracts/sources/*.move` exists, the compiled code wins and this section is replaced by an interface summary. Versioning / soft-delete / tags / nested folders are **Roadmap** (kept here as the target shape, not the MVP cut).
 
 ### `Move.toml`
 
@@ -388,9 +393,13 @@ module waldrive::folder {
         folder.name = new_name;
     }
 
-    // Delete folder (must be empty)
-    // Note: In practice, the frontend should check if folder is empty before calling
-    // This function will fail if the folder has children (Sui object ownership check)
+    // Delete folder. NOTE: folder_id is a SOFT reference (just an ID); Sui does NOT
+    // block deletion when children exist — this always succeeds, leaving orphans
+    // (child FileRecord.folder_id points to a deleted Folder).
+    // KNOWN ISSUE — cascade strategy undecided (see Roadmap "on-chain model"):
+    //   (a) frontend checks emptiness before calling (chain can't enforce it)
+    //   (b) one PTB processes folder + all children together
+    //   (c) on delete, reset children's folder_id back to root
     public entry fun delete(folder: Folder, _ctx: &mut TxContext) {
         let Folder { id, name: _, parent_id: _, owner: _, created_at_ms: _ } = folder;
         object::delete(id);
@@ -502,6 +511,8 @@ module waldrive::share_link {
 ```
 
 > **Share link resolution flow:** Frontend generates `nanoid(8)` as `share_code`, calls `share_link::create`. To resolve `/drive/[shareCode]`, the frontend queries the `ShareRegistry` object (fixed ID from env) to get the `ShareLink` object ID, then fetches that object directly via `suiClient.getObject()`. No event scanning needed.
+>
+> ⚠️ **KNOWN ISSUE (undecided):** `ShareRegistry` is a singleton shared object — every `create` takes `&mut` on it, so Sui serializes them through consensus; and `table::add` aborts on a duplicate `share_code` (nanoid(8) collision is low but nonzero, and anyone can write codes). Alternatives: use the `ShareLink` objectId directly as the URL (drop the registry) / dynamic fields / an off-chain indexer. See Roadmap.
 
 ---
 
@@ -519,15 +530,15 @@ export const CONTRACT = {
 } as const;
 
 export const WALRUS = {
-  PUBLISHER:  process.env.NEXT_PUBLIC_WALRUS_AGGREGATOR!.replace('aggregator', 'publisher'),
+  // configured explicitly — do NOT derive publisher from aggregator by string replace
   AGGREGATOR: process.env.NEXT_PUBLIC_WALRUS_AGGREGATOR!,
+  PUBLISHER:  process.env.NEXT_PUBLIC_WALRUS_PUBLISHER!,
   EPOCHS_DEFAULT: 3,
 } as const;
 
-export const WORKER_URL = process.env.NEXT_PUBLIC_WORKER_URL!;
-
+// read path is /v1/blobs/{blobId} — the old /v1/{blobId} returns 404 (verified)
 export const blobUrl = (blobId: string) =>
-  `${WALRUS.AGGREGATOR}/v1/${blobId}`;
+  `${WALRUS.AGGREGATOR}/v1/blobs/${blobId}`;
 ```
 
 ---
@@ -538,11 +549,8 @@ export const blobUrl = (blobId: string) =>
 // types/index.ts
 export type UploadStatus =
   | 'idle'
-  | 'encoding'
-  | 'registering'    // Sui tx #1: blob register
-  | 'uploading'      // bytes → Walrus
-  | 'certifying'     // Sui tx #2: blob certify
-  | 'saving_meta'    // Sui tx #3: FileRecord::register
+  | 'uploading'      // PUT bytes → Walrus publisher (returns blobId)
+  | 'saving_meta'    // Sui tx: file_record::register (wallet signs, 1 tx)
   | 'done'
   | 'failed';
 
@@ -577,44 +585,40 @@ export type ViewMode = 'grid' | 'list';
 
 ## Key Behaviors
 
-### Upload Flow (5-step, browser wallet safe)
+### Upload Flow — MVP: Publisher direct (2 steps)
 
 ```
-1. encode         → WalrusFile.from({ contents, identifier })
-2. register       → Sui tx: blob registration        (wallet signs #1)
-3. upload         → PUT bytes to CF Worker → Walrus publisher
-4. certify        → Sui tx: certify blob             (wallet signs #2)
-5. save_meta      → Sui tx: file_record::register()  (wallet signs #3)
+① PUT bytes → Walrus Publisher
+     /v1/blobs?epochs=N&deletable=true&send_object_to={userAddress}
+     · publisher fronts the WAL storage cost
+     · blob object goes to the user (so they can renew / delete it)
+     · returns blobId — readable from the aggregator immediately (no certify wait)
+② Sui tx: file_record::register(blobId, name, mime, size, expiry, clock)
+     · wallet signs ONCE — user pays only SUI gas for this tx
 ```
 
-Steps 2, 4, 5 each require a separate wallet interaction.
-UI must show clear step progress — never silently chain them.
-Use a step indicator component showing which of the 5 steps is active.
+- **Fees**: publisher covers WAL (storage); the user pays SUI gas only for step ②.
+- **`deletable=true` + `send_object_to` are required** — without them the blob object stays with the publisher, and the user can neither renew nor delete their own file.
+- **Constraints**: public publisher ~10 MiB cap, rate-limited, testnet free. Mainnet publishers require auth (see Roadmap).
+- **Encoding floor**: Walrus erasure-codes into a ~66 MB minimum billed size, so small files cost about the same — expect this for a "many small files" drive.
+- **Abstraction**: wrap as `uploadBlob(bytes) → blobId`; Publisher is the default impl. SDK `writeFilesFlow` (B) is a Roadmap impl behind the same interface.
+
+UI: exactly one wallet interaction. Progress = uploading → saving_meta → done. Show a step indicator, never silently chain.
 
 ### Frontend Features
 
-#### Breadcrumb Navigation
-- Display current folder path: `Home > Documents > Project`
-- Each segment is clickable to navigate to that folder
-- Use HeroUI `Breadcrumbs` component
+**MVP — fluidity is the pitch, spend the time here:**
+- Live updates: after upload the file appears in the list without a manual refresh (React Query invalidate / optimistic insert)
+- Instant inline preview: images / markdown / code / PDF
+- Instant client-side search across loaded files (zero latency)
+- Drag-to-upload with progress + optimistic "appears, then confirms on-chain"
+- Skeletons, transitions, dark theme (DESIGN.md), polished empty states
 
-#### Sorting
-- Support sorting by: name, date, size, type
-- Default: name ascending
-- Use URL query params to persist sort state
-- Implement in `useFiles` hook with `sortBy` and `sortOrder` parameters
-
-#### Type Filtering
-- Filter by file type: images, videos, documents, code, archives
-- Use file extension or MIME type
-- Implement as toggle chips above file grid
-- Combine with search and folder filtering
-
-#### Virtual Scrolling
-- Use `react-window` or `react-virtual` for large file lists
-- Only render visible files (typically 20-30 items)
-- Dynamic row height based on file type (grid vs list view)
-- Implement in `FileGrid` and `FileList` components
+**Roadmap — listed, not built for the demo:**
+- Breadcrumb navigation (needs nested folders)
+- Sorting (name / date / size / type, persisted in URL query)
+- Type filtering (images / videos / docs / code / archives, toggle chips)
+- Virtual scrolling (`react-window`) — only once a list grows to hundreds of items
 
 ### Reading Files
 
@@ -630,6 +634,10 @@ const { data } = useQuery({
     options: { showContent: true },
   }),
 });
+// NOTE:
+// - getOwnedObjects returns ~50/page — paginate with cursor (hasNextPage / nextCursor)
+// - is_deleted and old versions (parent_version_id chain) can't be filtered server-side;
+//   pull them back and filter client-side (a Roadmap concern once counts grow)
 ```
 
 ### Share Link Resolution
@@ -653,14 +661,13 @@ const registry = await suiClient.getObject({
 | Walrus | Raw blob bytes | ✅ immutable |
 | Sui chain | FileRecord, Folder, ShareLink Move objects | ✅ yes |
 | localStorage | Optimistic UI cache | ❌ always reconcile on mount |
-| CF Worker | Nothing | — stateless pipe |
 
 ### Status Colors
 
 | Status | HeroUI color |
 |---|---|
-| `encoding` / `uploading` | `warning` (orange) |
-| `registering` / `certifying` / `saving_meta` | `primary` (blue) |
+| `uploading` | `warning` (orange) |
+| `saving_meta` | `primary` (blue) |
 | `done` | `success` (green) |
 | `failed` | `danger` (red) |
 
@@ -672,15 +679,15 @@ MCP Server enables AI clients (Claude, Cursor, ChatGPT, Gemini, etc.) to operate
 
 ### MCP Tools
 
-| Tool | Description | Parameters |
-|------|-------------|------------|
-| `upload_file` | Upload a file to Walrus and register metadata on Sui | `path: string`, `name?: string`, `folder_id?: string` |
-| `download_file` | Download a file from Walrus by blob ID | `blob_id: string`, `output_path?: string` |
-| `list_files` | List all files owned by the wallet | `folder_id?: string`, `limit?: number` |
-| `list_folders` | List all folders owned by the wallet | `parent_id?: string` |
-| `create_folder` | Create a new folder on Sui | `name: string`, `parent_id?: string` |
-| `get_file_info` | Get detailed file metadata from Sui | `object_id: string` |
-| `create_share_link` | Create a share link for a file | `file_id: string`, `share_code?: string` |
+| Tool | Tier | Description | Parameters |
+|------|------|-------------|------------|
+| `upload_file` | **MVP** | Upload a file to Walrus and register metadata on Sui | `path: string`, `name?: string`, `folder_id?: string` |
+| `list_files` | **MVP** | List all files owned by the wallet | `folder_id?: string`, `limit?: number` |
+| `download_file` | Roadmap | Download a file from Walrus by blob ID | `blob_id: string`, `output_path?: string` |
+| `list_folders` | Roadmap | List all folders owned by the wallet | `parent_id?: string` |
+| `create_folder` | Roadmap | Create a new folder on Sui | `name: string`, `parent_id?: string` |
+| `get_file_info` | Roadmap | Get detailed file metadata from Sui | `object_id: string` |
+| `create_share_link` | Roadmap | Create a share link for a file | `file_id: string`, `share_code?: string` |
 
 ### MCP Server Implementation
 
@@ -706,11 +713,9 @@ server.tool(
   },
   async ({ path, name, folder_id }) => {
     // 1. Read file bytes
-    // 2. Encode with WalrusFile.from()
-    // 3. Register blob on Sui (tx #1)
-    // 4. Upload bytes via CF Worker
-    // 5. Certify blob on Sui (tx #2)
-    // 6. Register FileRecord on Sui (tx #3)
+    // 2. PUT bytes → Walrus Publisher (?epochs=N&deletable=true&send_object_to={addr})
+    //    → blobId (no CORS / no relay needed; MCP runs locally)
+    // 3. Sui tx: file_record::register(blobId, …) signed by the dedicated keypair
     return { content: [{ type: 'text', text: `Uploaded: ${blobId}` }] };
   }
 );
@@ -755,98 +760,46 @@ Users add this to their MCP client config (e.g., `~/.claude/claude_desktop_confi
 
 ### MCP Server Rules
 
-- MCP Server runs locally, no CORS restrictions — can call Walrus Publisher directly
-- Reuse `src/lib/` utilities where possible (walrus.ts, sui.ts, constants.ts)
+- MCP Server runs locally, no CORS restrictions — calls the Walrus Publisher directly (no relay)
+- Reuse `@waldrive/shared` utilities (walrus, sui, constants)
 - Each tool must handle errors gracefully and return descriptive error messages
-- Tools that require wallet signing must prompt for confirmation (don't auto-sign)
 - Use `zod` for parameter validation
-- **Wallet**: Use Sui CLI wallet (`~/.sui/sui_config/sui.keystore`) for transaction signing
-- **Security**: Never expose private keys in logs or error messages
-
----
-
-## CF Worker — Upload Proxy Only
-
-Single route. No KV, no DB, no state.
-
-```ts
-// worker/src/index.ts
-import { Hono } from 'hono';
-import { cors } from 'hono/cors';
-
-const WALRUS_PUBLISHER = 'https://publisher.walrus-testnet.walrus.space';
-
-const app = new Hono();
-app.use('*', cors());
-
-app.put('/upload', async (c) => {
-  const body = await c.req.arrayBuffer();
-  const epochs = c.req.query('epochs') ?? '3';
-
-  const res = await fetch(
-    `${WALRUS_PUBLISHER}/v1/blobs?epochs=${epochs}`,
-    {
-      method: 'PUT',
-      body,
-      headers: { 'Content-Type': 'application/octet-stream' },
-    }
-  );
-
-  const data = await res.json();
-  return c.json(data, res.status as any);
-});
-
-export default app;
-```
+- **Wallet — dedicated testnet keypair** (`WALDRIVE_KEYPAIR` env), NOT your main `~/.sui/sui_config/sui.keystore`. A stdio process driven by an AI client must not hold keys to real assets.
+- **Confirmation**: a stdio MCP server has no UI and can't pop its own dialog. "Don't auto-sign" relies on the client's *elicitation* capability; if the client lacks it, scope risk via the low-privilege keypair above and make writes explicit in tool output.
+- **Security**: never expose private keys in logs or error messages
 
 ---
 
 ## HeroUI Usage
 
-Always reach for HeroUI before writing custom components:
+Always reach for HeroUI before writing custom components. **This project uses HeroUI v3** — do NOT apply v2 patterns:
+
+- **No `<HeroUIProvider>`** (v2 only) — v3 needs no provider
+- **Compound components**: `<Card><Card.Header><Card.Title>…`, not flat `<Card title=…>`
+- **`onPress`, not `onClick`** (React Aria)
+- **Tailwind v4**: `@import "tailwindcss"` then `@import "@heroui/styles"` in globals.css; theme via CSS `@theme` + oklch variables, NOT `tailwind.config.ts`
+- Map the DESIGN.md accent `#5e6ad2` to an oklch CSS variable (hex and v3 oklch must not drift)
 
 ```tsx
-// ✅ Prefer this
-import { Button, Card, Chip, Tooltip, Spinner, Modal, Tabs, Dropdown } from '@heroui/react';
-
-// ❌ Not this — don't reinvent what HeroUI already has
-const MyButton = ({ children }) => <button className="...">{children}</button>;
+// ✅ v3: compound + onPress
+import { Card, Button } from '@heroui/react';
+<Card isPressable isHoverable>
+  <Card.Header><Card.Title>{file.name}</Card.Title></Card.Header>
+</Card>
+<Button color="primary" onPress={upload}>Upload</Button>
 ```
 
 Component mapping:
-- Upload button → `<Button color="primary">`
+- Upload button → `<Button color="primary" onPress>`
 - Status labels → `<Chip color="warning|primary|success|danger">`
-- File cards → `<Card isPressable isHoverable>`
+- File cards → `<Card isPressable isHoverable>` (compound)
 - Loading → `<Spinner>`
 - Blob ID copy → `<Tooltip content="Copied!">`
-- Context menu → `<Dropdown>` + `<DropdownMenu>`
-- Upload progress modal → `<Modal>`
+- Context menu → `<Dropdown>` + `<Dropdown.Menu>`
+- Upload progress → `<Modal>`
 - Grid / List toggle → `<Tabs>`
 
-HeroUI is configured with Tailwind — extend via `tailwind.config.ts`, not inline overrides.
-
----
-
-## react-grab Usage
-
-Use `react-grab` for grabbable/pannable surfaces:
-
-```tsx
-import { useGrab } from 'react-grab';
-
-const { onMouseDown } = useGrab(containerRef);
-<div
-  ref={containerRef}
-  onMouseDown={onMouseDown}
-  className="overflow-x-auto cursor-grab active:cursor-grabbing"
->
-  {files.map(...)}
-</div>
-```
-
-Apply to: **FileGrid** (scroll overflow), **FileDetailPanel** image preview (pan when zoomed).
-
-Do NOT apply to clickable elements. Use `e.stopPropagation()` on interactive children inside a grab surface.
+Always fetch v3 docs before implementing (heroui-react skill / `https://heroui.com/docs/react/components/{name}.mdx`).
 
 ---
 
@@ -883,12 +836,6 @@ cd mcp-server
 bun install
 bun run build     # Build MCP Server
 bun run dev       # Development mode with watch
-
-# CF Worker (upload proxy)
-cd worker
-bun install
-bun run dev       # wrangler dev → localhost:8787
-bun run deploy    # wrangler deploy
 ```
 
 ---
@@ -899,20 +846,51 @@ bun run deploy    # wrangler deploy
 |-------|--------|---------|
 | impeccable | `.agents/skills/impeccable/` | UI anti-pattern detection: `/impeccable detect src/` |
 | heroui-react | `.agents/skills/heroui-react/` | HeroUI v3 component reference + scripts |
+| native-feel-cross-platform-desktop | `.agents/skills/native-feel-cross-platform-desktop/` | Interaction/fluidity ideas — take the native-feel principles, not the Tauri/Rust desktop architecture |
 | Linear design | `DESIGN.md` | Dark theme design system (lavender-blue accent #5e6ad2) |
+
+---
+
+## Roadmap
+
+Deferred past the hackathon MVP — kept by design, not dropped:
+
+**Upload / Walrus**
+- SDK `writeFilesFlow` (B): user-signed, self-paid WAL, fully on-chain (mainnet path); browser needs an upload relay
+- Blob renewal before `expiry_epoch` (otherwise data is dropped while the FileRecord lingers)
+- Mainnet publisher auth (the testnet direct-publisher path won't work as-is on mainnet)
+
+**Contracts / on-chain model**
+- Versioning: `create_version` + mark the superseded record (else both versions show in the list)
+- Soft delete + trash: `is_deleted` / `restore`
+- Tags: `add_tag` + a missing `remove_tag`; `move_to_folder` should validate the target is a Folder of the same owner
+- Folder cascade: pick a strategy for the orphan issue (see `folder::delete`)
+- ShareRegistry contention / collision: see the share_link known issue
+
+**Frontend**
+- Nested folders + breadcrumb, sort, type filter, virtual scrolling (`react-window`), drag-to-pan (`react-grab`)
+- Share-link expiry / `is_public` toggle
+- `getOwnedObjects` pagination; client-side filtering of soft-deleted / old versions
+
+**MCP**
+- `download_file`, `create_folder`, `list_folders`, `get_file_info`, `create_share_link`
+
+**Design**
+- Map DESIGN.md `#5e6ad2` → oklch CSS variable for HeroUI v3
 
 ---
 
 ## Notes
 
-- **Testnet only** for now. Mainnet: update `NEXT_PUBLIC_CONTRACT_PACKAGE_ID`, `NEXT_PUBLIC_SHARE_REGISTRY_ID`, and Walrus URLs in `.env.local`.
-- `uploaded_at_ms` uses `clock::timestamp_ms(clock)` — real unix milliseconds, not Sui epoch number.
+- **Testnet only** for now. Mainnet: update `NEXT_PUBLIC_CONTRACT_PACKAGE_ID`, `NEXT_PUBLIC_SHARE_REGISTRY_ID`, Walrus URLs, and the upload path (mainnet publishers require auth — see Roadmap).
+- **Read path is `/v1/blobs/{blobId}`** (verified); the old `/v1/{blobId}` returns 404.
+- **Fees split**: the public publisher fronts WAL (storage); the user pays SUI gas for `file_record::register`. "Publisher free" ≠ "user pays nothing".
+- **Encoding floor**: tiny files still encode to a ~66 MB minimum billed size — storing 1 KB and 1 MB costs about the same.
+- `uploaded_at_ms` uses `clock::timestamp_ms(clock)` — real unix milliseconds, not a Sui epoch number.
 - `expiry_epoch` is a Walrus epoch number (not time), used to show countdown in UI.
 - Wallet required to upload and register metadata. Reading public blobs and share links is wallet-free.
 - Move objects are the source of truth. Never trust localStorage over what's on chain.
-- CF Worker has no secrets, no KV bindings, no auth — it's a dumb pipe.
 - `nanoid` (frontend) generates the `share_code` string before calling `share_link::create`.
 - `ShareRegistry` is deployed once via `init()` — its object ID is fixed after first publish.
-- MCP Server runs locally — no CORS issues, can call Walrus Publisher directly.
-- MCP Server must prompt for wallet confirmation before signing transactions (never auto-sign).
-- MCP Server reuses `src/lib/` utilities to avoid code duplication.
+- MCP Server runs locally — no CORS issues, calls the Walrus Publisher directly (no relay).
+- MCP Server uses a dedicated testnet keypair, never your main keystore (see MCP Server Rules).

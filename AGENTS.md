@@ -2,41 +2,40 @@
 
 ## OVERVIEW
 
-WalDrive — Google Drive-like file management UI for Walrus decentralized storage. Next.js 14 + TypeScript + HeroUI + Tailwind. Metadata on Sui (Move objects), blobs on Walrus. MCP Server for AI clients.
+WalDrive — a file-management UI + visual console for Walrus decentralized storage, built for the **Sui Overflow 2026 Walrus track**. Pitch: frontend fluidity. Next.js (App Router) + TypeScript + HeroUI v3 + Tailwind v4. Metadata on Sui (Move objects), blobs on Walrus, no centralized backend. MCP Server is the dev/CLI entry point. Agent logic is downplayed.
 
 ## STRUCTURE
 
 ```
-walrus-drive/
-├── packages/shared/    # Shared utilities (walrus.ts, sui.ts, constants.ts)
-├── contracts/          # Move smart contracts (file_record, folder, share_link)
-├── src/                # Next.js frontend
-│   ├── app/            # App Router pages
-│   ├── components/     # UI components (drive/, sidebar/, layout/)
-│   ├── hooks/          # useWalrus, useFiles, useFolders, useDragDrop
-│   ├── stores/         # Zustand (fileStore)
-│   └── lib/            # Client utilities
-├── mcp-server/         # MCP Server for AI clients
-└── worker/             # Cloudflare Worker (CORS proxy only)
+waldrive/                # bun workspaces monorepo
+├── packages/shared/     # runtime-agnostic: constants, types, Sui/Walrus client factories
+├── contracts/           # Move smart contracts (file_record, folder, share_link)
+├── src/                 # Next.js frontend (the console)
+│   ├── app/             # App Router pages (drive/, drive/[shareCode])
+│   ├── components/      # UI (drive/, sidebar/, layout/)
+│   ├── hooks/           # useUpload, useFiles, useDragDrop
+│   ├── stores/          # Zustand (fileStore)
+│   └── lib/             # re-export from @waldrive/shared + utils
+└── mcp-server/          # MCP Server for devs / CLI / AI clients
 ```
 
 ## WHERE TO LOOK
 
 | Task | Location | Notes |
 |------|----------|-------|
-| File metadata | `contracts/sources/file_record.move` | FileRecord object with versioning |
-| Folder hierarchy | `contracts/sources/folder.move` | Folder object |
+| File metadata | `contracts/sources/file_record.move` | FileRecord (versioning/soft-delete = Roadmap) |
+| Folder hierarchy | `contracts/sources/folder.move` | Folder (nested = Roadmap; delete has orphan issue) |
 | Share links | `contracts/sources/share_link.move` | ShareLink + ShareRegistry |
-| Upload flow | `src/hooks/useWalrus.ts` | 5-step: encode→register→upload→certify→save_meta |
-| File listing | `src/hooks/useFiles.ts` | React Query: getOwnedObjects filtered by FileRecord |
-| File grid | `src/components/drive/FileGrid.tsx` | Virtual scrolling with react-window |
-| MCP tools | `mcp-server/src/tools/` | upload, download, list, folder, share |
-| CORS proxy | `worker/src/index.ts` | Single PUT /upload route |
+| Upload flow | `src/hooks/useUpload.ts` | MVP 2-step: PUT publisher → file_record::register |
+| File listing | `src/hooks/useFiles.ts` | React Query: getOwnedObjects (FileRecord), paginate via cursor |
+| File grid | `src/components/drive/FileGrid.tsx` | virtual scrolling = Roadmap |
+| Read / preview | `src/lib/utils.ts` `blobUrl()` | aggregator `/v1/blobs/{blobId}` |
+| MCP tools | `mcp-server/src/tools/` | upload + list (MVP); rest Roadmap |
 
 ## CONVENTIONS
 
 - **bun only** — never npm/yarn/pnpm
-- **HeroUI first** — always use HeroUI components before custom
+- **HeroUI v3 first** — compound components, `onPress`; Tailwind v4 (`@theme`, no `tailwind.config.ts`)
 - **Tailwind + HeroUI** — no inline styles, no CSS modules
 - **Functional components** — no class components
 - **No `any`** — use `unknown` and narrow explicitly
@@ -44,8 +43,9 @@ walrus-drive/
 
 ## DESIGN
 
-- Dark theme, lavender-blue accent (#5e6ad2) — see `DESIGN.md`
+- Dark theme, lavender-blue accent (`#5e6ad2` → map to oklch for HeroUI v3) — see `DESIGN.md`
 - HeroUI v3 component reference — `.agents/skills/heroui-react/SKILL.md`
+- Native-feel / fluidity ideas — `.agents/skills/native-feel-cross-platform-desktop/`
 - Anti-pattern detection — `/impeccable detect src/`
 
 ## ANTI-PATTERNS
@@ -58,6 +58,7 @@ walrus-drive/
 - No components > 150 lines — extract hooks
 - No `const renderXxx = () => <JSX/>` inside component bodies
 - No array index as list keys — use semantic unique values
+- No CF Worker / no centralized backend — browser uploads go straight to the public publisher
 
 ## COMMANDS
 
@@ -67,5 +68,4 @@ bun build            # Production build
 sui move build       # Build Move contracts
 sui move test        # Test Move contracts
 cd mcp-server && bun run build  # Build MCP Server
-cd worker && bun run dev        # CF Worker dev
 ```

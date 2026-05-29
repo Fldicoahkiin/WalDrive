@@ -1,10 +1,12 @@
 "use client";
 
-import { Button } from "@heroui/react";
 import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
-import { FolderOpen, Upload } from "lucide-react";
+import { Spinner } from "@heroui/react";
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/sidebar/Sidebar";
+import { UploadZone } from "@/components/drive/UploadZone";
+import { FileGrid } from "@/components/drive/FileGrid";
+import { useFiles } from "@/hooks/useFiles";
 
 export default function DrivePage() {
   const account = useCurrentAccount();
@@ -14,35 +16,39 @@ export default function DrivePage() {
       <Header />
       <div className="flex flex-1">
         <Sidebar />
-        <main className="flex flex-1 items-center justify-center p-8">
-          {account ? <EmptyDrive /> : <ConnectPrompt />}
-        </main>
+        <main className="flex-1 p-8">{account ? <DriveContent /> : <ConnectPrompt />}</main>
       </div>
     </div>
   );
 }
 
-function EmptyDrive() {
+function DriveContent() {
+  const { data: files, isLoading, isError, error } = useFiles();
+
   return (
-    <div className="flex max-w-sm flex-col items-center text-center">
-      <div className="mb-5 flex size-14 items-center justify-center rounded-xl border border-hairline bg-surface-1">
-        <FolderOpen className="size-7 text-ink-subtle" aria-hidden />
-      </div>
-      <h2 className="text-lg font-semibold tracking-tight text-ink">No files yet</h2>
-      <p className="mt-2 text-sm text-ink-subtle">
-        Upload a file to store it on Walrus and register its metadata on Sui.
-      </p>
-      <Button variant="primary" className="mt-6" isDisabled>
-        <Upload className="size-4" aria-hidden />
-        Upload file
-      </Button>
+    <div className="mx-auto flex max-w-5xl flex-col gap-6">
+      <UploadZone />
+      {isLoading && (
+        <div className="flex justify-center py-12">
+          <Spinner />
+        </div>
+      )}
+      {isError && (
+        <p className="py-4 text-center text-sm text-red-400">
+          Failed to load files: {error instanceof Error ? error.message : "unknown error"}
+        </p>
+      )}
+      {files && files.length === 0 && (
+        <p className="py-12 text-center text-sm text-ink-subtle">No files yet — upload one above.</p>
+      )}
+      {files && files.length > 0 && <FileGrid files={files} />}
     </div>
   );
 }
 
 function ConnectPrompt() {
   return (
-    <div className="flex max-w-sm flex-col items-center text-center">
+    <div className="flex h-full flex-col items-center justify-center text-center">
       <h2 className="text-lg font-semibold tracking-tight text-ink">Connect your wallet</h2>
       <p className="mt-2 text-sm text-ink-subtle">
         A Sui wallet is required to view and manage your files.

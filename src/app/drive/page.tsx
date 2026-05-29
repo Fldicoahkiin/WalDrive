@@ -1,12 +1,15 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
 import { Spinner } from "@heroui/react";
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/sidebar/Sidebar";
 import { UploadZone } from "@/components/drive/UploadZone";
 import { FileGrid } from "@/components/drive/FileGrid";
+import { FileDetailPanel } from "@/components/drive/FileDetailPanel";
 import { useFiles } from "@/hooks/useFiles";
+import type { BlobFile } from "@waldrive/shared";
 
 export default function DrivePage() {
   const account = useCurrentAccount();
@@ -24,10 +27,31 @@ export default function DrivePage() {
 
 function DriveContent() {
   const { data: files, isLoading, isError, error } = useFiles();
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<BlobFile | null>(null);
+
+  const filtered = useMemo(() => {
+    if (!files) return [];
+    const q = query.trim().toLowerCase();
+    return q ? files.filter((f) => f.name.toLowerCase().includes(q)) : files;
+  }, [files, query]);
+
+  const hasFiles = Boolean(files && files.length > 0);
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6">
       <UploadZone />
+
+      {hasFiles && (
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search files…"
+          className="w-full rounded-lg border border-hairline bg-surface-1 px-3 py-2 text-sm text-ink placeholder:text-ink-subtle focus:border-accent focus:outline-none"
+        />
+      )}
+
       {isLoading && (
         <div className="flex justify-center py-12">
           <Spinner />
@@ -41,7 +65,12 @@ function DriveContent() {
       {files && files.length === 0 && (
         <p className="py-12 text-center text-sm text-ink-subtle">No files yet — upload one above.</p>
       )}
-      {files && files.length > 0 && <FileGrid files={files} />}
+      {filtered.length > 0 && <FileGrid files={filtered} onOpen={setSelected} />}
+      {hasFiles && filtered.length === 0 && (
+        <p className="py-8 text-center text-sm text-ink-subtle">No files match “{query}”.</p>
+      )}
+
+      {selected && <FileDetailPanel file={selected} onClose={() => setSelected(null)} />}
     </div>
   );
 }

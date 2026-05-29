@@ -92,7 +92,7 @@ Connect a Sui wallet, then drag a file onto the drive to upload it.
 
 ## MCP server
 
-Lets AI clients (Claude, Cursor, …) and scripts operate the same Walrus data from the command line. It signs with a **dedicated testnet keypair** (`WALDRIVE_KEYPAIR`) — never your main Sui keystore.
+Lets AI clients (Claude, Cursor, …) and scripts operate the same Walrus data from the command line. It signs with a **dedicated testnet keypair** (`WALDRIVE_KEYPAIR`) — never your main Sui keystore. Generate one with `sui client new-address ed25519`, fund it via faucet, and export its `suiprivkey1…` string. See `mcp-server/.env.example`.
 
 | Tool | Description |
 |---|---|
@@ -105,7 +105,7 @@ Client config (e.g. `~/.claude/claude_desktop_config.json`):
   "mcpServers": {
     "waldrive": {
       "command": "bun",
-      "args": ["run", "/abs/path/to/waldrive/mcp-server/src/index.ts"],
+      "args": ["/abs/path/to/waldrive/mcp-server/src/index.ts"],
       "env": {
         "SUI_NETWORK": "testnet",
         "CONTRACT_PACKAGE_ID": "0x4374…2771d",

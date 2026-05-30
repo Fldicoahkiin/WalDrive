@@ -1,49 +1,14 @@
-import { motion } from "motion/react";
-import type { ReactNode } from "react";
-import { cn } from "@/lib/cn";
+import { Button as HeroButton } from "@heroui/react";
+import type { ComponentProps } from "react";
 
-type Variant = "primary" | "secondary" | "ghost" | "danger";
+/**
+ * Thin pass-through over HeroUI v3 Button so the app imports one Button.
+ * HeroUI already supplies the pressed-scale transform, focus ring, and pending
+ * state; globals.css maps its variant colors onto the Linear palette. We only
+ * narrow the prop type and keep `@/components/ui/Button` as the single import.
+ */
+export type ButtonProps = ComponentProps<typeof HeroButton>;
 
-const VARIANTS: Record<Variant, string> = {
-  primary: "bg-accent text-on-accent hover:bg-accent-hover",
-  secondary: "bg-surface-2 text-ink border border-hairline hover:border-hairline-strong",
-  ghost: "text-ink-subtle hover:bg-surface-2 hover:text-ink",
-  danger: "bg-danger text-white hover:opacity-90",
-};
-
-export function Button({
-  children,
-  variant = "secondary",
-  className,
-  onClick,
-  disabled,
-  type = "button",
-  title,
-}: {
-  children: ReactNode;
-  variant?: Variant;
-  className?: string;
-  onClick?: () => void;
-  disabled?: boolean;
-  type?: "button" | "submit";
-  title?: string;
-}) {
-  return (
-    <motion.button
-      type={type}
-      title={title}
-      onClick={onClick}
-      disabled={disabled}
-      whileTap={disabled ? undefined : { scale: 0.97 }}
-      transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
-      className={cn(
-        "inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium",
-        "transition-colors duration-150 disabled:pointer-events-none disabled:opacity-40",
-        VARIANTS[variant],
-        className,
-      )}
-    >
-      {children}
-    </motion.button>
-  );
+export function Button(props: ButtonProps) {
+  return <HeroButton {...props} />;
 }

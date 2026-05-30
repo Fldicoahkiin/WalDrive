@@ -1,74 +1,82 @@
 @import "tailwindcss";
+@import "@heroui/styles";
 
 /* ============================================================
-   WalDrive theme — Linear design system (see DESIGN.md).
-   Dark is default; light flips via `html.light`. Tokens are
-   runtime CSS variables so a single class swap re-themes everything.
+   WalDrive — HeroUI v3 themed to the Linear design system (DESIGN.md).
+   Import HeroUI styles, then override its semantic variables to DESIGN's
+   palette. Dark is default; light flips via [data-theme="light"].
+   @theme bridges our own tokens (canvas/ink/…) onto HeroUI's variables so
+   existing bg-canvas / text-ink classes and HeroUI components stay in sync.
    ============================================================ */
 
-:root {
-  /* surface ladder */
-  --canvas: #010102;
-  --surface-1: #0f1011;
-  --surface-2: #141516;
-  --surface-3: #18191a;
-  /* ink */
-  --ink: #f7f8f8;
+:root,
+[data-theme="dark"] {
+  /* HeroUI semantic (used by HeroUI components) */
+  --background: #010102;
+  --foreground: #f7f8f8;
+  --surface: #0f1011;
+  --surface-foreground: #f7f8f8;
+  --surface-secondary: #141516;
+  --surface-tertiary: #18191a;
+  --overlay: #141516;
+  --overlay-foreground: #f7f8f8;
+  --muted: #8a8f98;
+  --default: #18191a;
+  --default-foreground: #f7f8f8;
+  --accent: #5e6ad2;
+  --accent-foreground: #ffffff;
+  --border: #23252a;
+  --success: #27a644;
+  --danger: #e5484d;
+  --radius: 0.5rem;
+  --cursor-interactive: default; /* native-feel: no pointer on interactive elements */
+  /* our extra ink ladder + strong hairline (DESIGN has finer steps than HeroUI) */
   --ink-muted: #d0d6e0;
   --ink-subtle: #8a8f98;
   --ink-tertiary: #62666d;
-  /* lines */
-  --hairline: #23252a;
   --hairline-strong: #34343a;
-  /* accent (Linear lavender) */
-  --accent: #5e6ad2;
-  --accent-hover: #828fff;
-  --accent-press: #5e69d1;
-  --on-accent: #ffffff;
-  /* semantic */
-  --success: #27a644;
-  --danger: #e5484d;
-  /* scrim */
-  --overlay: color-mix(in srgb, #000 62%, transparent);
   color-scheme: dark;
 }
 
-html.light {
-  --canvas: #ffffff;
-  --surface-1: #f7f8f8;
-  --surface-2: #eef0f2;
-  --surface-3: #e6e9ec;
-  --ink: #08090a;
+[data-theme="light"] {
+  --background: #ffffff;
+  --foreground: #08090a;
+  --surface: #f7f8f8;
+  --surface-foreground: #08090a;
+  --surface-secondary: #eef0f2;
+  --surface-tertiary: #e6e9ec;
+  --overlay: #ffffff;
+  --overlay-foreground: #08090a;
+  --muted: #6b7280;
+  --default: #eef0f2;
+  --default-foreground: #08090a;
+  --accent: #5e6ad2;
+  --accent-foreground: #ffffff;
+  --border: #e6e8eb;
+  --success: #1a8c37;
+  --danger: #dc2626;
+  --cursor-interactive: default;
   --ink-muted: #3c4149;
   --ink-subtle: #6b7280;
   --ink-tertiary: #9aa0a8;
-  --hairline: #e6e8eb;
   --hairline-strong: #d2d6db;
-  --accent: #5e6ad2;
-  --accent-hover: #4f5ac0;
-  --accent-press: #4a55b8;
-  --on-accent: #ffffff;
-  --success: #1a8c37;
-  --danger: #dc2626;
-  --overlay: color-mix(in srgb, #1a1a22 32%, transparent);
   color-scheme: light;
 }
 
 @theme inline {
-  --color-canvas: var(--canvas);
-  --color-surface-1: var(--surface-1);
-  --color-surface-2: var(--surface-2);
-  --color-surface-3: var(--surface-3);
-  --color-ink: var(--ink);
+  --color-canvas: var(--background);
+  --color-surface-1: var(--surface);
+  --color-surface-2: var(--surface-secondary);
+  --color-surface-3: var(--surface-tertiary);
+  --color-ink: var(--foreground);
   --color-ink-muted: var(--ink-muted);
   --color-ink-subtle: var(--ink-subtle);
   --color-ink-tertiary: var(--ink-tertiary);
-  --color-hairline: var(--hairline);
+  --color-hairline: var(--border);
   --color-hairline-strong: var(--hairline-strong);
   --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-accent-press: var(--accent-press);
-  --color-on-accent: var(--on-accent);
+  --color-accent-hover: color-mix(in oklab, var(--accent) 88%, white);
+  --color-on-accent: var(--accent-foreground);
   --color-success: var(--success);
   --color-danger: var(--danger);
 
@@ -77,73 +85,50 @@ html.light {
     Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
 
-  --radius-xs: 4px;
-  --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
-
-  /* native-feel motion: tight ease-out, no web-style bounce on simple changes */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in-out: cubic-bezier(0.45, 0, 0.55, 1);
 }
 
-/* Transparent so macOS window vibrancy shows through; content paints its own surfaces. */
+/* Transparent so macOS window vibrancy shows through. */
 html,
 body {
   background: transparent;
 }
 body {
-  color: var(--ink);
+  color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   letter-spacing: -0.011em;
 }
-
 #root {
   min-height: 100dvh;
 }
 
-/* native-feel: chrome is not selectable; only explicit content areas are */
-* {
+/* native-feel: chrome not selectable; only content/editable areas are */
+*:not(input):not(textarea):not([contenteditable="true"]):not(.selectable) {
   user-select: none;
   -webkit-user-select: none;
-  cursor: default;
-}
-input,
-textarea,
-[contenteditable="true"],
-.selectable {
-  user-select: text;
-  -webkit-user-select: text;
-  cursor: text;
 }
 
-/* thin overlay scrollbars, fade to stronger on hover */
 ::-webkit-scrollbar {
   width: 9px;
   height: 9px;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--hairline-strong);
+  background: var(--border);
   border-radius: 9999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--ink-tertiary);
+  background: var(--muted);
   background-clip: padding-box;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
-}
-
-/* focus ring — Linear lavender, only on keyboard focus */
-:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent);
-  outline-offset: 2px;
-  border-radius: var(--radius-sm);
 }
 
 @media (prefers-reduced-motion: reduce) {

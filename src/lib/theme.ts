@@ -21,6 +21,7 @@ export function useTheme() {
     const root = document.documentElement;
     root.classList.toggle("light", theme === "light");
     root.classList.toggle("dark", theme === "dark");
+    root.setAttribute("data-theme", theme); // HeroUI v3 keys off data-theme
     localStorage.setItem(STORAGE_KEY, theme);
   }, [theme]);
 

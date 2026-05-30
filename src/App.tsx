@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
+import { Input } from "@heroui/react";
+import type { BlobFile } from "@waldrive/shared";
 import { TitleBar } from "@/components/TitleBar";
 import { Sidebar } from "@/components/Sidebar";
 import { UploadZone } from "@/components/UploadZone";
@@ -7,7 +9,6 @@ import { FileGrid } from "@/components/FileGrid";
 import { PreviewModal } from "@/components/PreviewModal";
 import { useFiles } from "@/hooks/useFiles";
 import { useWallet } from "@/stores/walletStore";
-import type { BlobFile } from "@waldrive/shared";
 
 export function App() {
   const initWallet = useWallet((s) => s.init);
@@ -33,14 +34,17 @@ export function App() {
         <main className="flex flex-1 flex-col gap-4 overflow-auto p-6">
           <div className="relative">
             <Search
-              className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-tertiary"
               aria-hidden
+              className="pointer-events-none absolute top-1/2 left-3 z-10 size-4 -translate-y-1/2 text-ink-tertiary"
             />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
+            <Input
+              fullWidth
+              aria-label="Search files"
+              className="selectable pl-9"
               placeholder="Search files…"
-              className="selectable w-full rounded-lg border border-hairline bg-surface-1 py-2 pl-9 pr-3 text-sm text-ink placeholder:text-ink-tertiary focus:border-accent focus:outline-none"
+              value={query}
+              variant="secondary"
+              onChange={(e) => setQuery(e.target.value)}
             />
           </div>
 
@@ -51,7 +55,7 @@ export function App() {
           ) : filtered.length === 0 ? (
             <p className="py-16 text-center text-sm text-ink-subtle">
               {query
-                ? `No files match "${query}".`
+                ? `No files match “${query}”.`
                 : "No files yet — drag one above to store it on Walrus."}
             </p>
           ) : (

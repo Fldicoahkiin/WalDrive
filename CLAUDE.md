@@ -2,10 +2,12 @@
 
 A file-management UI + visual console for Walrus decentralized storage, built for the **Sui Overflow 2026 Walrus track**. The pitch is frontend interaction and fluidity.
 
+WalDrive is a **cross-platform desktop app** (Tauri 2.0 shell + Vite/React SPA), not a web app. It signs Sui transactions in-process with a local keypair — no browser, no wallet extension.
+
 Metadata lives **on Sui (Move objects)**, blob data lives on **Walrus**. No centralized backend.
 
 Three pieces:
-- **Web console** (the star) — browse / upload / preview / search / share, focused on fluid interaction
+- **Desktop console** (the star) — browse / upload / preview / search / share, focused on fluid interaction
 - **MCP Server** — lets developers / CLI / AI clients operate the same Walrus data from the command line
 - **Move contracts** — file metadata on-chain, verifiable
 
@@ -33,8 +35,9 @@ Three pieces:
 
 ```bash
 bun install
-bun dev
-bun build
+bun dev          # Vite dev server (browser preview at :5173)
+bun tauri dev    # launch the desktop window
+bun build        # Vite production build (→ dist/, bundled by Tauri)
 bun add <package>
 bun remove <package>
 ```
@@ -45,20 +48,22 @@ bun remove <package>
 
 | Layer | Choice |
 |---|---|
-| Frontend framework | Next.js (App Router, v15+) — note: `params`/`searchParams` are async |
+| Desktop shell | **Tauri 2.0** (Rust, `src-tauri/`) — single transparent overlay window, `tauri-plugin-window-state` |
+| Frontend | **Vite 6 + React 19** SPA (`src/`), single window, no router/SSR |
 | Language | TypeScript (strict mode) |
 | UI components | HeroUI **v3** (`@heroui/react` + `@heroui/styles`) — compound components, `onPress` |
 | Styling | Tailwind CSS **v4** (CSS-first `@theme`, not `tailwind.config.ts`) |
+| Motion | `motion` (framer-motion, imported as `motion/react`) |
+| Theme | dark + light via `data-theme` + class on `<html>` (`src/lib/theme.ts`) |
 | Walrus upload | Publisher HTTP PUT (MVP) · `@mysten/walrus` `writeFilesFlow` (Roadmap) |
-| Sui wallet | `@mysten/dapp-kit` (browser console) |
+| Sui wallet | **local Ed25519 keypair**, signs in-process (`src/lib/wallet.ts`) — no browser extension |
 | Sui client | `@mysten/sui` |
 | Global state | Zustand |
 | Async / cache | TanStack React Query v5 |
 | Icons | lucide-react |
-| Share code generation | `nanoid` |
+| Share code generation | `nanoid` (Roadmap — MVP shares the aggregator `blobUrl`) |
 | Smart contracts | Move (Sui) |
 | MCP Server | `@modelcontextprotocol/sdk`, `zod` |
-| Frontend deploy | Vercel |
 | Drag-to-pan (`react-grab`) | Roadmap |
 | Virtual scrolling (`react-window`) | Roadmap |
 
@@ -67,30 +72,32 @@ bun remove <package>
 ## Architecture
 
 ```
-Web Console (Next.js / Vercel)                 MCP Server (local — devs / CLI / AI clients)
+Desktop Console (Tauri 2.0 + Vite/React)       MCP Server (local — devs / CLI / AI clients)
     │                                              │
-    ├── @mysten/dapp-kit → Sui Wallet              ├── upload_file → Publisher HTTP, then sign
-    │   (sign metadata tx, pay SUI gas)            │                 file_record::register (local keypair)
-    │                                              ├── list_files → Sui RPC
-    ├── Upload (MVP: Publisher direct)             └── download / folder / share → Roadmap
+    ├── local Ed25519 keypair (in-process)         ├── upload_file → Publisher HTTP, then sign
+    │   signs metadata tx, pays SUI gas            │                 file_record::register (local keypair)
+    │   — no browser wallet, no popup              ├── list_files → Sui RPC
+    │                                              └── download / folder / share → Roadmap
+    ├── Upload (MVP: Publisher direct)
     │   ① PUT bytes → Walrus Publisher
     │      ?epochs=N&deletable=true&send_object_to={user}
     │      · publisher fronts the WAL storage cost
     │      · blob object is sent to the user (renewable / deletable)
     │      · returns blobId (readable from aggregator immediately)
-    │   ② Sui tx: file_record::register(blobId, …)   (wallet signs, 1 tx)
+    │   ② Sui tx: file_record::register(blobId, …)
+    │      signAndExecuteTransaction({ signer: keypair }) — in-process, 1 tx
     │
-    ├── Read / download
-    │   └── GET aggregator /v1/blobs/{blobId}        (public, no CORS, no wallet)
+    ├── Read / preview
+    │   └── GET aggregator /v1/blobs/{blobId}        (public, no wallet)
     │
     ├── File list
     │   └── getOwnedObjects (FileRecord type)        (Sui RPC, paginate via cursor)
     │
-    └── Share link
-        └── share_code → ShareRegistry table → ShareLink object → blobId
+    └── Share
+        └── copy aggregator blobUrl(blobId) to clipboard   (self-contained, no web page)
 ```
 
-**Rule:** No centralized backend. Browser uploads go straight to the public Walrus publisher (testnet CORS is open — verified). Reads hit the aggregator directly. All persistent state lives on Sui (Move) or Walrus. The MCP Server runs locally (no CORS limits).
+**Rule:** No centralized backend. The app PUTs straight to the public Walrus publisher (a local process has no CORS limits). Reads hit the aggregator directly. All persistent state lives on Sui (Move) or Walrus. The MCP Server also runs locally.
 
 ---
 
@@ -99,82 +106,79 @@ Web Console (Next.js / Vercel)                 MCP Server (local — devs / CLI 
 ```
 waldrive/                               # bun workspaces monorepo
 │
+├── index.html                          # Vite SPA entry (mounts #root)
+├── vite.config.ts                      # Vite + React + Tailwind v4 plugins
+├── tsconfig.json
+│
+├── src-tauri/                          # Tauri 2.0 desktop shell (Rust)
+│   ├── Cargo.toml                      # crate `waldrive_lib` + binary `waldrive`
+│   ├── tauri.conf.json                 # window (transparent overlay, 1200×800), devUrl :5173, bundle
+│   ├── capabilities/default.json       # window permissions
+│   ├── icons/                          # app icons
+│   └── src/
+│       ├── main.rs                     # binary entry → waldrive_lib::run()
+│       └── lib.rs                      # Tauri builder + window-state plugin (backend commands = Roadmap)
+│
 ├── packages/
 │   └── shared/                         # runtime-agnostic ONLY (browser + Node MCP):
-│       ├── src/                        #   constants, types, Sui/Walrus client factories.
-│       │   ├── lib/                    #   NO React / Next code here.
-│       │   │   ├── walrus.ts          # Walrus client factory
-│       │   │   ├── sui.ts             # Sui client factory
-│       │   │   └── constants.ts       # Constants
-│       │   └── types/
-│       │       └── index.ts           # Shared types
-│       ├── package.json
-│       └── tsconfig.json
+│       └── src/                        #   constants, types, Sui/Walrus helpers. NO React code here.
+│           ├── walrus.ts               # uploadBlob() Publisher PUT
+│           ├── sui.ts                  # createSuiClient()
+│           ├── constants.ts            # Node-side constants (read process.env)
+│           ├── types.ts                # BlobFile, UploadStatus, …
+│           └── index.ts                # barrel export (@waldrive/shared)
 │
 ├── contracts/                          # Move smart contracts
 │   ├── Move.toml
 │   └── sources/
 │       ├── file_record.move            # FileRecord (versioning/soft-delete fields = Roadmap)
 │       ├── folder.move                 # Folder object (nested folders = Roadmap)
-│       └── share_link.move             # ShareLink object + Registry
+│       └── share_link.move             # ShareLink object + Registry (unused by desktop MVP — Roadmap)
 │
-├── src/                                # Next.js frontend (the console)
-│   ├── app/
-│   │   ├── layout.tsx                  # Root layout, wallet + query providers
-│   │   ├── page.tsx                    # Landing / connect wallet
-│   │   └── drive/
-│   │       ├── page.tsx                # Main file console
-│   │       └── [shareCode]/
-│   │           └── page.tsx            # Public share page (wallet-free read)
+├── src/                                # Vite/React desktop frontend (the console)
+│   ├── main.tsx                        # React root + QueryClientProvider
+│   ├── App.tsx                         # single-window shell: TitleBar + Sidebar + grid + PreviewModal
+│   ├── globals.css                     # Tailwind + HeroUI styles, DESIGN.md palette, dark/light tokens
+│   ├── vite-env.d.ts
 │   │
 │   ├── components/
-│   │   ├── ui/                         # Custom primitives — prefer HeroUI first
-│   │   ├── drive/
-│   │   │   ├── FileGrid.tsx
-│   │   │   ├── FileList.tsx
-│   │   │   ├── FileDetailPanel.tsx
-│   │   │   ├── UploadZone.tsx
-│   │   │   ├── ContextMenu.tsx
-│   │   │   ├── StatusBadge.tsx
-│   │   │   ├── CodeSnippet.tsx
-│   │   │   ├── BreadcrumbNav.tsx      # Roadmap (nested folders)
-│   │   │   └── SortFilter.tsx         # Roadmap (sort + type filter)
-│   │   ├── sidebar/
-│   │   │   ├── Sidebar.tsx
-│   │   │   └── StorageUsage.tsx
-│   │   └── layout/
-│   │       └── Header.tsx
+│   │   ├── ui/Button.tsx               # custom primitive — prefer HeroUI first
+│   │   ├── TitleBar.tsx                # tauri-drag-region header, wallet address, theme toggle
+│   │   ├── Sidebar.tsx
+│   │   ├── UploadZone.tsx              # drag-to-upload
+│   │   ├── FileGrid.tsx                # motion grid (virtual scrolling = Roadmap)
+│   │   └── PreviewModal.tsx            # inline preview + "copy share link" (blobUrl)
 │   │
 │   ├── hooks/
-│   │   ├── useUpload.ts                # uploadBlob() → blobId (Publisher PUT, MVP), then register
-│   │   ├── useFiles.ts                 # React Query: getOwnedObjects (FileRecord), paginated
-│   │   ├── useFolders.ts               # Roadmap (nested folders)
-│   │   └── useDragDrop.ts              # Global drag-and-drop handler
+│   │   ├── useUpload.ts                # uploadBlob() → blobId, then in-process register
+│   │   └── useFiles.ts                 # React Query: getOwnedObjects (FileRecord), cursor-paginated
 │   │
 │   ├── stores/
-│   │   └── fileStore.ts                # Zustand: selected files, view mode, upload queue
+│   │   └── walletStore.ts              # Zustand: local Ed25519 keypair + address
 │   │
 │   ├── lib/
+│   │   ├── wallet.ts                   # loadKeypairFromSuiPrivkey() — in-process signer
+│   │   ├── theme.ts                    # useTheme() — dark/light via data-theme
 │   │   ├── walrus.ts                   # re-export from @waldrive/shared
 │   │   ├── sui.ts                      # re-export from @waldrive/shared
-│   │   ├── constants.ts                # re-export from @waldrive/shared
-│   │   └── utils.ts                    # blobUrl(), shortenAddress(), formatBytes()
+│   │   ├── constants.ts                # Vite constants (read import.meta.env.VITE_*)
+│   │   ├── cn.ts                       # className merge
+│   │   └── utils.ts                    # shortenAddress(), formatBytes()
 │   │
-│   └── types/
-│       └── index.ts                    # BlobFile, UploadStatus, ViewMode, SuiFileRecord
+│   └── types/index.ts                  # local UI types
 │
 └── mcp-server/                         # MCP Server for devs / CLI / AI clients
     ├── src/
     │   ├── index.ts                    # MCP Server entry point (stdio)
     │   ├── tools/
     │   │   ├── upload.ts               # upload_file tool (MVP)
-    │   │   ├── list.ts                 # list_files tool (MVP)
-    │   │   ├── download.ts             # Roadmap
-    │   │   ├── folder.ts               # Roadmap
-    │   │   └── share.ts                # Roadmap
-    │   ├── lib/                        # re-export from @waldrive/shared
-    │   └── types/
-    │       └── index.ts                # MCP tool types
+    │   │   └── list.ts                 # list_files tool (MVP)
+    │   └── lib/
+    │       ├── context.ts              # shared client + keypair context
+    │       ├── wallet.ts               # dedicated keypair loader
+    │       ├── mime.ts
+    │       └── result.ts
+    ├── .env.example
     ├── package.json
     └── tsconfig.json
 ```
@@ -184,12 +188,12 @@ waldrive/                               # bun workspaces monorepo
 ## Environment Variables
 
 ```bash
-# .env.local (frontend)
-NEXT_PUBLIC_CONTRACT_PACKAGE_ID=0x...
-NEXT_PUBLIC_SHARE_REGISTRY_ID=0x...   # ShareRegistry shared object ID
-NEXT_PUBLIC_WALRUS_AGGREGATOR=https://aggregator.walrus-testnet.walrus.space
-NEXT_PUBLIC_WALRUS_PUBLISHER=https://publisher.walrus-testnet.walrus.space
-NEXT_PUBLIC_SUI_NETWORK=testnet
+# .env (frontend — Vite reads import.meta.env.VITE_*, NOT process.env)
+VITE_CONTRACT_PACKAGE_ID=0x...
+VITE_WALRUS_AGGREGATOR=https://aggregator.walrus-testnet.walrus.space
+VITE_WALRUS_PUBLISHER=https://publisher.walrus-testnet.walrus.space
+VITE_SUI_NETWORK=testnet
+VITE_WALDRIVE_KEYPAIR=suiprivkey1...   # local desktop wallet secret (dedicated testnet keypair)
 
 # mcp-server/.env
 SUI_NETWORK=testnet
@@ -519,22 +523,25 @@ module waldrive::share_link {
 ## Contract Constants
 
 ```ts
-// lib/constants.ts
+// src/lib/constants.ts — Vite reads import.meta.env.VITE_*, NOT process.env.
+// (@waldrive/shared's constants read process.env for the Node/MCP runtime.)
 export const CONTRACT = {
-  PACKAGE_ID: process.env.NEXT_PUBLIC_CONTRACT_PACKAGE_ID!,
-  SHARE_REGISTRY_ID: process.env.NEXT_PUBLIC_SHARE_REGISTRY_ID!,
-  // module names
+  PACKAGE_ID: import.meta.env.VITE_CONTRACT_PACKAGE_ID ?? '',
   FILE_RECORD: 'file_record',
-  FOLDER: 'folder',
   SHARE_LINK: 'share_link',
 } as const;
 
 export const WALRUS = {
   // configured explicitly — do NOT derive publisher from aggregator by string replace
-  AGGREGATOR: process.env.NEXT_PUBLIC_WALRUS_AGGREGATOR!,
-  PUBLISHER:  process.env.NEXT_PUBLIC_WALRUS_PUBLISHER!,
+  AGGREGATOR: import.meta.env.VITE_WALRUS_AGGREGATOR ?? 'https://aggregator.walrus-testnet.walrus.space',
+  PUBLISHER:  import.meta.env.VITE_WALRUS_PUBLISHER ?? 'https://publisher.walrus-testnet.walrus.space',
   EPOCHS_DEFAULT: 3,
 } as const;
+
+export const SUI_NETWORK = (import.meta.env.VITE_SUI_NETWORK ?? 'testnet') as SuiNetwork;
+
+/** Local desktop wallet secret (suiprivkey1...). */
+export const WALDRIVE_KEYPAIR = import.meta.env.VITE_WALDRIVE_KEYPAIR ?? '';
 
 // read path is /v1/blobs/{blobId} — the old /v1/{blobId} returns 404 (verified)
 export const blobUrl = (blobId: string) =>
@@ -594,16 +601,18 @@ export type ViewMode = 'grid' | 'list';
      · blob object goes to the user (so they can renew / delete it)
      · returns blobId — readable from the aggregator immediately (no certify wait)
 ② Sui tx: file_record::register(blobId, name, mime, size, expiry, clock)
-     · wallet signs ONCE — user pays only SUI gas for this tx
+     · signAndExecuteTransaction({ signer: keypair }) — in-process, no popup
+     · user pays only SUI gas for this tx
 ```
 
+- **Signing**: the local keypair signs in-process (`useUpload.ts`). No wallet extension, no popup.
 - **Fees**: publisher covers WAL (storage); the user pays SUI gas only for step ②.
 - **`deletable=true` + `send_object_to` are required** — without them the blob object stays with the publisher, and the user can neither renew nor delete their own file.
 - **Constraints**: public publisher ~10 MiB cap, rate-limited, testnet free. Mainnet publishers require auth (see Roadmap).
 - **Encoding floor**: Walrus erasure-codes into a ~66 MB minimum billed size, so small files cost about the same — expect this for a "many small files" drive.
 - **Abstraction**: wrap as `uploadBlob(bytes) → blobId`; Publisher is the default impl. SDK `writeFilesFlow` (B) is a Roadmap impl behind the same interface.
 
-UI: exactly one wallet interaction. Progress = uploading → saving_meta → done. Show a step indicator, never silently chain.
+UI: progress = uploading → saving_meta → done. Show a step indicator, never silently chain.
 
 ### Frontend Features
 
@@ -612,7 +621,7 @@ UI: exactly one wallet interaction. Progress = uploading → saving_meta → don
 - Instant inline preview: images / markdown / code / PDF
 - Instant client-side search across loaded files (zero latency)
 - Drag-to-upload with progress + optimistic "appears, then confirms on-chain"
-- Skeletons, transitions, dark theme (DESIGN.md), polished empty states
+- Skeletons, transitions, dark + light theme (DESIGN.md), polished empty states
 
 **Roadmap — listed, not built for the demo:**
 - Breadcrumb navigation (needs nested folders)
@@ -640,19 +649,17 @@ const { data } = useQuery({
 //   pull them back and filter client-side (a Roadmap concern once counts grow)
 ```
 
-### Share Link Resolution
+### Sharing — MVP: copy the aggregator URL
+
+The desktop app is self-contained, so there's no web share page. "Share link" in `PreviewModal` copies the public aggregator URL to the clipboard — anyone can open it, no wallet:
 
 ```ts
-// /drive/[shareCode]/page.tsx
-// 1. Get the registry object (fixed ID)
-const registry = await suiClient.getObject({
-  id: CONTRACT.SHARE_REGISTRY_ID,
-  options: { showContent: true },
-});
-// 2. Read the Table to find the ShareLink object ID for this share_code
-// 3. Fetch that ShareLink object → get blob_id
-// 4. Render file from Walrus aggregator directly (no wallet needed)
+// src/components/PreviewModal.tsx
+await navigator.clipboard.writeText(blobUrl(file.blobId));
+// → https://aggregator.walrus-testnet.walrus.space/v1/blobs/{blobId}
 ```
+
+> **Roadmap** — `share_link.move` (ShareLink + ShareRegistry) and short `nanoid` share codes are kept on-chain for a future web share surface, but the desktop MVP does not call them.
 
 ### File Persistence
 
@@ -777,8 +784,8 @@ Always reach for HeroUI before writing custom components. **This project uses He
 - **No `<HeroUIProvider>`** (v2 only) — v3 needs no provider
 - **Compound components**: `<Card><Card.Header><Card.Title>…`, not flat `<Card title=…>`
 - **`onPress`, not `onClick`** (React Aria)
-- **Tailwind v4**: `@import "tailwindcss"` then `@import "@heroui/styles"` in globals.css; theme via CSS `@theme` + oklch variables, NOT `tailwind.config.ts`
-- Map the DESIGN.md accent `#5e6ad2` to an oklch CSS variable (hex and v3 oklch must not drift)
+- **Tailwind v4**: `@import "tailwindcss"` then `@import "@heroui/styles"` in `src/globals.css`; theme via CSS variables + `@theme`, NOT `tailwind.config.ts`
+- DESIGN.md palette is wired by overriding HeroUI's semantic vars in `src/globals.css` (`--accent: #5e6ad2`, etc.); dark is default, light flips via `[data-theme="light"]`
 
 ```tsx
 // ✅ v3: compound + onPress
@@ -806,7 +813,7 @@ Always fetch v3 docs before implementing (heroui-react skill / `https://heroui.c
 ## Code Style
 
 - Functional components only, no class components
-- Named exports for components, default export for pages
+- Named exports for components and hooks
 - Co-locate types with component if used only there
 - Prefer `async/await` over `.then()` chains
 - No `any` — use `unknown` and narrow explicitly
@@ -818,11 +825,13 @@ Always fetch v3 docs before implementing (heroui-react skill / `https://heroui.c
 ## Commands
 
 ```bash
-# Frontend
-bun dev           # localhost:3000
-bun build
-bun lint
+# Frontend / desktop
+bun dev           # Vite dev server — localhost:5173 (browser preview)
+bun tauri dev     # launch the desktop window (runs Vite + the Rust shell)
+bun build         # Vite production build → dist/
+bun tauri build   # bundle the desktop app (.app / .dmg / .exe …)
 bun typecheck     # tsc --noEmit
+cargo build --manifest-path src-tauri/Cargo.toml   # build the Rust shell alone
 
 # Move contracts
 cd contracts
@@ -846,8 +855,8 @@ bun run dev       # Development mode with watch
 |-------|--------|---------|
 | impeccable | `.agents/skills/impeccable/` | UI anti-pattern detection: `/impeccable detect src/` |
 | heroui-react | `.agents/skills/heroui-react/` | HeroUI v3 component reference + scripts |
-| native-feel-cross-platform-desktop | `.agents/skills/native-feel-cross-platform-desktop/` | Interaction/fluidity ideas — take the native-feel principles, not the Tauri/Rust desktop architecture |
-| Linear design | `DESIGN.md` | Dark theme design system (lavender-blue accent #5e6ad2) |
+| native-feel-cross-platform-desktop | `.agents/skills/native-feel-cross-platform-desktop/` | Tauri/WebView native-feel + fluidity — directly applies (this is a Tauri desktop app) |
+| Linear design | `DESIGN.md` | Dark + light design system (lavender-blue accent #5e6ad2) |
 
 ---
 
@@ -882,15 +891,14 @@ Deferred past the hackathon MVP — kept by design, not dropped:
 
 ## Notes
 
-- **Testnet only** for now. Mainnet: update `NEXT_PUBLIC_CONTRACT_PACKAGE_ID`, `NEXT_PUBLIC_SHARE_REGISTRY_ID`, Walrus URLs, and the upload path (mainnet publishers require auth — see Roadmap).
+- **Testnet only** for now. Mainnet: update `VITE_CONTRACT_PACKAGE_ID`, Walrus URLs, and the upload path (mainnet publishers require auth — see Roadmap).
 - **Read path is `/v1/blobs/{blobId}`** (verified); the old `/v1/{blobId}` returns 404.
 - **Fees split**: the public publisher fronts WAL (storage); the user pays SUI gas for `file_record::register`. "Publisher free" ≠ "user pays nothing".
 - **Encoding floor**: tiny files still encode to a ~66 MB minimum billed size — storing 1 KB and 1 MB costs about the same.
 - `uploaded_at_ms` uses `clock::timestamp_ms(clock)` — real unix milliseconds, not a Sui epoch number.
 - `expiry_epoch` is a Walrus epoch number (not time), used to show countdown in UI.
-- Wallet required to upload and register metadata. Reading public blobs and share links is wallet-free.
+- The local keypair signs upload + register in-process — no wallet extension, no popup. Reading public blobs is wallet-free.
 - Move objects are the source of truth. Never trust localStorage over what's on chain.
-- `nanoid` (frontend) generates the `share_code` string before calling `share_link::create`.
-- `ShareRegistry` is deployed once via `init()` — its object ID is fixed after first publish.
+- Desktop MVP shares by copying the aggregator `blobUrl`. `share_link.move` / `nanoid` codes are Roadmap (a future web share surface).
 - MCP Server runs locally — no CORS issues, calls the Walrus Publisher directly (no relay).
 - MCP Server uses a dedicated testnet keypair, never your main keystore (see MCP Server Rules).

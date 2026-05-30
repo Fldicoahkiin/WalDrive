@@ -1,30 +1,26 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["dom", "dom.iterable", "ES2022"],
-    "allowJs": true,
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
     "verbatimModuleSyntax": true,
-    "plugins": [{ "name": "next" }],
+    "jsx": "react-jsx",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
     "paths": {
       "@/*": ["./src/*"],
       "@waldrive/shared": ["./packages/shared/src/index.ts"]
     }
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": ["node_modules", "contracts", "mcp-server", "worker"]
+  "include": ["src", "vite.config.ts"],
+  "exclude": ["node_modules", "contracts", "mcp-server", "src-tauri", ".migration-removed"]
 }

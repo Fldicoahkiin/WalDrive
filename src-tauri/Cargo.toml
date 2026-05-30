@@ -1,0 +1,28 @@
+[package]
+name = "waldrive"
+version = "0.1.0"
+description = "WalDrive — desktop file manager for Walrus decentralized storage"
+authors = ["WalDrive"]
+edition = "2021"
+rust-version = "1.77.2"
+
+# main.rs and lib.rs share one entry point (lib name differs from the binary
+# name so the desktop binary `waldrive` can depend on the `waldrive_lib` crate).
+[lib]
+name = "waldrive_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# macos-private-api is required for the transparent window on macOS.
+tauri = { version = "2", features = ["macos-private-api"] }
+# Persists window size/position across launches.
+tauri-plugin-window-state = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[features]
+# Used by `tauri dev`/`tauri build` for the default dev/release split.
+custom-protocol = ["tauri/custom-protocol"]

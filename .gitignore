@@ -3,10 +3,16 @@ node_modules/
 .pnp
 .pnp.js
 
-# Next.js
-.next/
-out/
+# Vite
+dist/
+dist-ssr/
 build/
+
+# Tauri (generated schemas + Rust build output)
+src-tauri/gen/
+
+# Migration holding area (old Next.js app, removed during Tauri migration)
+.migration-removed/
 
 # Environment
 .env
@@ -40,14 +46,9 @@ coverage/
 
 # TypeScript
 *.tsbuildinfo
-next-env.d.ts
 
-# Rust / Move
+# Rust / Move / Tauri
 target/
-
-# Wrangler
-.wrangler/
-.dev.vars
 
 # Claude
 .claude/projects/

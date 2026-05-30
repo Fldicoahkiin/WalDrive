@@ -1,14 +1,13 @@
-"use client";
-
 import { useQuery } from "@tanstack/react-query";
-import { useSuiClient, useCurrentAccount } from "@mysten/dapp-kit";
-import type { SuiObjectResponse } from "@mysten/sui/client";
-import { CONTRACT } from "@/lib/constants";
+import { SuiClient, getFullnodeUrl, type SuiObjectResponse } from "@mysten/sui/client";
+import { useWallet } from "@/stores/walletStore";
+import { CONTRACT, SUI_NETWORK } from "@/lib/constants";
 import type { BlobFile } from "@waldrive/shared";
 
+const suiClient = new SuiClient({ url: getFullnodeUrl(SUI_NETWORK) });
 const FILE_RECORD_TYPE = `${CONTRACT.PACKAGE_ID}::${CONTRACT.FILE_RECORD}::FileRecord`;
 
-/** Parse a FileRecord move object into a BlobFile. u64 fields arrive as strings. */
+/** u64 move fields arrive as strings — Number() them. */
 function parseFileRecord(res: SuiObjectResponse): BlobFile | null {
   const content = res.data?.content;
   if (!content || content.dataType !== "moveObject") return null;
@@ -20,7 +19,7 @@ function parseFileRecord(res: SuiObjectResponse): BlobFile | null {
     mimeType: String(f.mime_type ?? ""),
     size: Number(f.size ?? 0),
     folderId: (f.folder_id as string | null) ?? null,
-    tags: [], // FileRecord has no tags in the MVP contract (Roadmap)
+    tags: [],
     owner: String(f.owner ?? ""),
     uploadedAtMs: Number(f.uploaded_at_ms ?? 0),
     expiryEpoch: Number(f.expiry_epoch ?? 0),
@@ -29,21 +28,18 @@ function parseFileRecord(res: SuiObjectResponse): BlobFile | null {
   };
 }
 
-/** Owned FileRecord objects for the connected wallet, newest first. Paginates via cursor. */
+/** Files owned by the local wallet, newest first, cursor-paginated. */
 export function useFiles() {
-  const client = useSuiClient();
-  const account = useCurrentAccount();
-  const owner = account?.address;
-
+  const address = useWallet((s) => s.address);
   return useQuery({
-    queryKey: ["files", owner],
-    enabled: Boolean(owner && CONTRACT.PACKAGE_ID),
+    queryKey: ["files", address],
+    enabled: Boolean(address && CONTRACT.PACKAGE_ID),
     queryFn: async (): Promise<BlobFile[]> => {
       const files: BlobFile[] = [];
       let cursor: string | null | undefined = null;
       do {
-        const page = await client.getOwnedObjects({
-          owner: owner as string,
+        const page = await suiClient.getOwnedObjects({
+          owner: address as string,
           filter: { StructType: FILE_RECORD_TYPE },
           options: { showContent: true },
           cursor,

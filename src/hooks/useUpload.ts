@@ -1,30 +1,31 @@
-"use client";
-
 import { useCallback, useState } from "react";
-import { useSignAndExecuteTransaction, useCurrentAccount } from "@mysten/dapp-kit";
 import { useQueryClient } from "@tanstack/react-query";
+import { SuiClient, getFullnodeUrl } from "@mysten/sui/client";
 import { Transaction } from "@mysten/sui/transactions";
 import { uploadBlob } from "@waldrive/shared";
 import type { UploadStatus } from "@waldrive/shared";
-import { CONTRACT, WALRUS } from "@/lib/constants";
+import { useWallet } from "@/stores/walletStore";
+import { CONTRACT, WALRUS, SUI_NETWORK } from "@/lib/constants";
 
+const suiClient = new SuiClient({ url: getFullnodeUrl(SUI_NETWORK) });
 const SUI_CLOCK_ID = "0x6";
 
 /**
- * MVP upload: PUT bytes to the Walrus publisher (publisher fronts WAL, blob object
- * sent to the user), then one wallet-signed file_record::register tx.
+ * Desktop upload: PUT bytes to the Walrus publisher (blob sent to the local
+ * wallet), then file_record::register signed in-process by the local keypair.
+ * No wallet popup — the app holds the key.
  */
 export function useUpload() {
-  const account = useCurrentAccount();
-  const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
+  const keypair = useWallet((s) => s.keypair);
+  const address = useWallet((s) => s.address);
   const queryClient = useQueryClient();
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [error, setError] = useState<string | null>(null);
 
   const upload = useCallback(
     async (file: File) => {
-      if (!account) {
-        setError("Connect a wallet first.");
+      if (!keypair || !address) {
+        setError("Wallet not ready.");
         setStatus("failed");
         return;
       }
@@ -32,7 +33,7 @@ export function useUpload() {
       try {
         setStatus("uploading");
         const bytes = new Uint8Array(await file.arrayBuffer());
-        const blobId = await uploadBlob(bytes, { sendObjectTo: account.address });
+        const blobId = await uploadBlob(bytes, { sendObjectTo: address });
 
         setStatus("saving_meta");
         const tx = new Transaction();
@@ -42,28 +43,23 @@ export function useUpload() {
             tx.pure.string(blobId),
             tx.pure.string(file.name),
             tx.pure.string(file.type || "application/octet-stream"),
-            tx.pure.u64(file.size),
-            // expiry_epoch placeholder; Roadmap: thread the publisher's storage.endEpoch through uploadBlob
-            tx.pure.u64(WALRUS.EPOCHS_DEFAULT),
+            tx.pure.u64(BigInt(file.size)),
+            tx.pure.u64(BigInt(WALRUS.EPOCHS_DEFAULT)),
             tx.object(SUI_CLOCK_ID),
           ],
         });
-        await signAndExecute({ transaction: tx });
+        await suiClient.signAndExecuteTransaction({ signer: keypair, transaction: tx });
 
         setStatus("done");
-        await queryClient.invalidateQueries({ queryKey: ["files", account.address] });
+        await queryClient.invalidateQueries({ queryKey: ["files", address] });
+        setTimeout(() => setStatus("idle"), 1200);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Upload failed.");
         setStatus("failed");
       }
     },
-    [account, signAndExecute, queryClient],
+    [keypair, address, queryClient],
   );
 
-  const reset = useCallback(() => {
-    setStatus("idle");
-    setError(null);
-  }, []);
-
-  return { upload, status, error, reset };
+  return { upload, status, error, reset: () => { setStatus("idle"); setError(null); } };
 }

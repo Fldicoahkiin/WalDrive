@@ -31,36 +31,48 @@ export function App() {
       <TitleBar />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        <main className="flex flex-1 flex-col gap-4 overflow-auto p-6">
-          <div className="relative">
-            <Search
-              aria-hidden
-              className="pointer-events-none absolute top-1/2 left-3 z-10 size-4 -translate-y-1/2 text-ink-tertiary"
-            />
-            <Input
-              fullWidth
-              aria-label="Search files"
-              className="selectable pl-9"
-              placeholder="Search files…"
-              value={query}
-              variant="secondary"
-              onChange={(e) => setQuery(e.target.value)}
-            />
+        <main className="flex-1 overflow-auto">
+          <div className="mx-auto flex max-w-5xl flex-col gap-5 px-6 py-6">
+            <div className="relative">
+              <Search
+                aria-hidden
+                className="pointer-events-none absolute top-1/2 left-3 z-10 size-4 -translate-y-1/2 text-ink-tertiary"
+              />
+              <Input
+                fullWidth
+                aria-label="Search files"
+                className="selectable pl-9"
+                placeholder="Search files…"
+                value={query}
+                variant="secondary"
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
+
+            <UploadZone />
+
+            {isLoading ? (
+              <p className="py-16 text-center text-sm text-ink-subtle">Loading files…</p>
+            ) : filtered.length === 0 ? (
+              <p className="py-16 text-center text-sm text-ink-subtle">
+                {query
+                  ? `No files match “${query}”.`
+                  : "No files yet — drag one above to store it on Walrus."}
+              </p>
+            ) : (
+              <>
+                <div className="flex items-baseline gap-2">
+                  <h2 className="text-sm font-medium text-ink">Files</h2>
+                  <span className="text-xs text-ink-tertiary">{filtered.length}</span>
+                </div>
+                <FileGrid
+                  files={filtered}
+                  selectedId={selected?.objectId ?? null}
+                  onOpen={setSelected}
+                />
+              </>
+            )}
           </div>
-
-          <UploadZone />
-
-          {isLoading ? (
-            <p className="py-16 text-center text-sm text-ink-subtle">Loading files…</p>
-          ) : filtered.length === 0 ? (
-            <p className="py-16 text-center text-sm text-ink-subtle">
-              {query
-                ? `No files match “${query}”.`
-                : "No files yet — drag one above to store it on Walrus."}
-            </p>
-          ) : (
-            <FileGrid files={filtered} onOpen={setSelected} />
-          )}
         </main>
       </div>
       <PreviewModal file={selected} onClose={() => setSelected(null)} />

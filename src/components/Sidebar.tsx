@@ -12,7 +12,7 @@ export function Sidebar() {
 
   return (
     <aside className="flex w-60 shrink-0 flex-col gap-3 border-r border-hairline p-4">
-      <Card>
+      <Card className="lift">
         <Card.Header className="flex-row items-center gap-2 text-ink-subtle">
           <Wallet aria-hidden className="size-3.5" />
           <Card.Title className="text-xs font-medium">Wallet</Card.Title>
@@ -25,7 +25,7 @@ export function Sidebar() {
         </Card.Content>
       </Card>
 
-      <Card>
+      <Card className="lift">
         <Card.Header className="flex-row items-center gap-2 text-ink-subtle">
           <Database aria-hidden className="size-3.5" />
           <Card.Title className="text-xs font-medium">Storage</Card.Title>

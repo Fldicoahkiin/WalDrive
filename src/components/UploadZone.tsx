@@ -1,4 +1,5 @@
 import { useRef, useState, type DragEvent } from "react";
+import { motion } from "motion/react";
 import { Upload } from "lucide-react";
 import { ProgressBar } from "@heroui/react";
 import type { UploadStatus } from "@waldrive/shared";
@@ -30,11 +31,14 @@ export function UploadZone() {
     pick(e.dataTransfer.files);
   }
 
+  const idle = !stage && status !== "failed";
+
   return (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-xl border border-dashed px-4 py-3 transition-colors duration-150",
-        dragging ? "border-accent bg-surface-1" : "border-hairline",
+        "flex items-center gap-3 rounded-xl border border-dashed px-4 py-3.5 transition-[background-color,border-color] duration-200",
+        idle ? "justify-center" : "justify-between",
+        dragging ? "border-accent bg-accent/5" : "border-hairline hover:border-hairline-strong",
       )}
       onDragLeave={() => setDragging(false)}
       onDragOver={(e) => {
@@ -62,13 +66,18 @@ export function UploadZone() {
           {error ?? "Upload failed."}
         </span>
       ) : (
-        <span className="flex flex-1 items-center gap-2.5 text-sm text-ink-subtle">
-          <Upload aria-hidden className="size-4" />
-          Drag a file here, or
+        <span className="flex items-center gap-2 text-sm text-ink-subtle">
+          <motion.span
+            animate={{ y: dragging ? -2 : 0 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <Upload aria-hidden className={cn("size-4", dragging && "text-accent")} />
+          </motion.span>
+          {dragging ? "Drop to upload" : "Drag a file here, or"}
         </span>
       )}
 
-      {!busy && (
+      {!busy && !dragging && (
         <Button
           size="sm"
           variant={status === "failed" ? "secondary" : "primary"}

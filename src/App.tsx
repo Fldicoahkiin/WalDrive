@@ -5,7 +5,7 @@ import type { BlobFile } from "@waldrive/shared";
 import { TitleBar } from "@/components/TitleBar";
 import { Sidebar } from "@/components/Sidebar";
 import { UploadZone } from "@/components/UploadZone";
-import { FileGrid } from "@/components/FileGrid";
+import { FileGrid, FileGridSkeleton } from "@/components/FileGrid";
 import { PreviewModal } from "@/components/PreviewModal";
 import { useFiles } from "@/hooks/useFiles";
 import { useWallet } from "@/stores/walletStore";
@@ -52,7 +52,7 @@ export function App() {
             <UploadZone />
 
             {isLoading ? (
-              <p className="py-16 text-center text-sm text-ink-subtle">Loading files…</p>
+              <FileGridSkeleton />
             ) : filtered.length === 0 ? (
               <p className="py-16 text-center text-sm text-ink-subtle">
                 {query

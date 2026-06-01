@@ -48,7 +48,10 @@ export function useUpload() {
             tx.object(SUI_CLOCK_ID),
           ],
         });
-        await suiClient.signAndExecuteTransaction({ signer: keypair, transaction: tx });
+        const { digest } = await suiClient.signAndExecuteTransaction({ signer: keypair, transaction: tx });
+        // getOwnedObjects reads the indexer, which lags tx execution — wait so
+        // the refetch below actually returns the new FileRecord (live appear).
+        await suiClient.waitForTransaction({ digest });
 
         setStatus("done");
         await queryClient.invalidateQueries({ queryKey: ["files", address] });

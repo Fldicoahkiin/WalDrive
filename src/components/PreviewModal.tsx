@@ -5,6 +5,7 @@ import type { BlobFile } from "@waldrive/shared";
 import { Button } from "@/components/ui/Button";
 import { blobUrl } from "@/lib/constants";
 import { formatBytes } from "@/lib/utils";
+import { fileKind } from "@/lib/fileKind";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -26,66 +27,95 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
     setTimeout(() => setCopied(false), 1500);
   }
 
+  const kind = file ? fileKind(file.mimeType, file.name) : null;
+  const isImage = file?.mimeType.startsWith("image/") ?? false;
+
   return (
     <AnimatePresence>
-      {file && (
+      {file && kind && (
         <motion.div
           animate={{ opacity: 1 }}
           className="fixed inset-0 z-50 flex items-center justify-center p-6"
           exit={{ opacity: 0 }}
           initial={{ opacity: 0 }}
-          style={{ background: "var(--overlay)" }}
-          transition={{ duration: 0.15 }}
+          style={{ background: "color-mix(in oklab, var(--background) 72%, transparent)" }}
+          transition={{ duration: 0.18 }}
           onClick={onClose}
         >
           <motion.div
-            animate={{ scale: 1, y: 0 }}
-            className="flex max-h-[80vh] w-full max-w-xl flex-col overflow-hidden rounded-xl border border-hairline bg-surface-1"
-            exit={{ scale: 0.97, opacity: 0 }}
-            initial={{ scale: 0.96, y: 8 }}
-            transition={{ duration: 0.18, ease: EASE }}
+            layoutId={`file-${file.objectId}`}
+            className="lift-2 flex max-h-[80vh] w-full max-w-xl flex-col overflow-hidden rounded-xl border border-hairline-strong bg-surface-1"
+            transition={{ layout: { duration: 0.32, ease: EASE } }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-hairline px-4 py-3">
-              <span className="truncate text-sm font-medium text-ink" title={file.name}>
-                {file.name}
-              </span>
-              <Button isIconOnly aria-label="Close" size="sm" variant="ghost" onPress={onClose}>
-                <X className="size-4" />
-              </Button>
-            </div>
-            <div className="flex-1 overflow-auto p-4">
-              {file.mimeType.startsWith("image/") ? (
-                <img
-                  alt={file.name}
-                  className="mx-auto max-h-[55vh] rounded-lg object-contain"
-                  src={blobUrl(file.blobId)}
-                />
-              ) : (
-                <div className="flex h-40 items-center justify-center text-sm text-ink-subtle">
-                  No inline preview — use Open.
+            <motion.div
+              animate={{ opacity: 1 }}
+              className="flex min-h-0 flex-1 flex-col"
+              initial={{ opacity: 0 }}
+              transition={{ duration: 0.2, delay: 0.12 }}
+            >
+              <div className="flex items-center justify-between gap-3 border-b border-hairline px-4 py-3">
+                <div className="flex min-w-0 items-center gap-2">
+                  <kind.Icon
+                    aria-hidden
+                    className="size-4 shrink-0"
+                    style={{ color: kind.color }}
+                    strokeWidth={1.75}
+                  />
+                  <span className="truncate text-sm font-medium text-ink" title={file.name}>
+                    {file.name}
+                  </span>
                 </div>
-              )}
-            </div>
-            <div className="flex items-center justify-between gap-3 border-t border-hairline px-4 py-3 text-xs text-ink-subtle">
-              <span>
-                {file.mimeType} · {formatBytes(file.size)}
-              </span>
-              <div className="flex items-center gap-2">
-                <Button size="sm" variant="secondary" onPress={copyLink}>
-                  {copied ? <Check className="size-3.5" /> : <Share2 className="size-3.5" />}
-                  {copied ? "Copied" : "Share link"}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onPress={() => window.open(blobUrl(file.blobId), "_blank")}
-                >
-                  <ExternalLink className="size-3.5" />
-                  Open
+                <Button isIconOnly aria-label="Close" size="sm" variant="ghost" onPress={onClose}>
+                  <X className="size-4" />
                 </Button>
               </div>
-            </div>
+
+              <div className="flex-1 overflow-auto p-4">
+                {isImage ? (
+                  <img
+                    alt={file.name}
+                    className="mx-auto max-h-[55vh] rounded-lg object-contain"
+                    src={blobUrl(file.blobId)}
+                  />
+                ) : (
+                  <div className="flex h-40 flex-col items-center justify-center gap-3 text-sm text-ink-subtle">
+                    <span
+                      className="flex size-14 items-center justify-center rounded-2xl"
+                      style={{ background: `color-mix(in oklab, ${kind.color} 14%, transparent)` }}
+                    >
+                      <kind.Icon
+                        aria-hidden
+                        className="size-7"
+                        style={{ color: kind.color }}
+                        strokeWidth={1.5}
+                      />
+                    </span>
+                    No inline preview — open to view.
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between gap-3 border-t border-hairline px-4 py-3 text-xs text-ink-subtle">
+                <span className="truncate">
+                  {file.mimeType} · {formatBytes(file.size)}
+                </span>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Button size="sm" variant="secondary" onPress={copyLink}>
+                    {copied ? <Check className="size-3.5" /> : <Share2 className="size-3.5" />}
+                    {copied ? "Copied" : "Share link"}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    onPress={() => window.open(blobUrl(file.blobId), "_blank")}
+                  >
+                    <ExternalLink className="size-3.5" />
+                    Open
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         </motion.div>
       )}

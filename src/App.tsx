@@ -9,6 +9,14 @@ import { FileGrid, FileGridSkeleton } from "@/components/FileGrid";
 import { PreviewModal } from "@/components/PreviewModal";
 import { useFiles } from "@/hooks/useFiles";
 import { useWallet } from "@/stores/walletStore";
+import { cn } from "@/lib/cn";
+
+type SortKey = "date" | "name" | "size";
+const SORTS: { key: SortKey; label: string }[] = [
+  { key: "date", label: "Date" },
+  { key: "name", label: "Name" },
+  { key: "size", label: "Size" },
+];
 
 export function App() {
   const initWallet = useWallet((s) => s.init);
@@ -18,13 +26,21 @@ export function App() {
 
   const { data: files, isLoading } = useFiles();
   const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<SortKey>("date");
   const [selected, setSelected] = useState<BlobFile | null>(null);
 
-  const filtered = useMemo(() => {
+  const visible = useMemo(() => {
     if (!files) return [];
     const q = query.trim().toLowerCase();
-    return q ? files.filter((f) => f.name.toLowerCase().includes(q)) : files;
-  }, [files, query]);
+    const matched = q ? files.filter((f) => f.name.toLowerCase().includes(q)) : files;
+    return [...matched].sort((a, b) =>
+      sort === "name"
+        ? a.name.localeCompare(b.name)
+        : sort === "size"
+          ? b.size - a.size
+          : b.uploadedAtMs - a.uploadedAtMs,
+    );
+  }, [files, query, sort]);
 
   return (
     <div className="flex h-dvh flex-col bg-canvas text-ink">
@@ -53,7 +69,7 @@ export function App() {
 
             {isLoading ? (
               <FileGridSkeleton />
-            ) : filtered.length === 0 ? (
+            ) : visible.length === 0 ? (
               <p className="py-16 text-center text-sm text-ink-subtle">
                 {query
                   ? `No files match “${query}”.`
@@ -61,12 +77,31 @@ export function App() {
               </p>
             ) : (
               <>
-                <div className="flex items-baseline gap-2">
-                  <h2 className="text-sm font-medium text-ink">Files</h2>
-                  <span className="text-xs text-ink-tertiary">{filtered.length}</span>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-baseline gap-2">
+                    <h2 className="text-sm font-medium text-ink">Files</h2>
+                    <span className="text-xs text-ink-tertiary">{visible.length}</span>
+                  </div>
+                  <div className="flex items-center gap-0.5 rounded-lg border border-hairline bg-surface-1 p-0.5">
+                    {SORTS.map((s) => (
+                      <button
+                        key={s.key}
+                        className={cn(
+                          "rounded-md px-2.5 py-1 text-xs transition-colors",
+                          sort === s.key
+                            ? "bg-surface-2 text-ink"
+                            : "text-ink-subtle hover:text-ink",
+                        )}
+                        type="button"
+                        onClick={() => setSort(s.key)}
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <FileGrid
-                  files={filtered}
+                  files={visible}
                   selectedId={selected?.objectId ?? null}
                   onOpen={setSelected}
                 />

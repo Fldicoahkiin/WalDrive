@@ -44,12 +44,18 @@ export function FileGrid({
           return (
             <motion.button
               key={file.objectId}
+              layout
               animate={{ opacity: selectedId === file.objectId ? 0 : 1, y: 0 }}
               aria-label={`Open ${file.name}`}
               className="group text-left outline-none"
               exit={{ opacity: 0, scale: 0.96 }}
               initial={{ opacity: 0, y: 8 }}
-              transition={{ duration: 0.22, delay: Math.min(i * 0.025, 0.25), ease: EASE }}
+              transition={{
+                duration: 0.22,
+                delay: Math.min(i * 0.025, 0.25),
+                ease: EASE,
+                layout: { duration: 0.3, ease: EASE },
+              }}
               type="button"
               onClick={() => onOpen(file)}
             >

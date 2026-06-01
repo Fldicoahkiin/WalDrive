@@ -163,6 +163,7 @@ waldrive/                               # bun workspaces monorepo
 │   │   ├── sui.ts                      # re-export from @waldrive/shared
 │   │   ├── constants.ts                # Vite constants (read import.meta.env.VITE_*)
 │   │   ├── cn.ts                       # className merge
+│   │   ├── fileKind.ts                 # mime/ext → icon + tag color + label; relativeTime()
 │   │   └── utils.ts                    # shortenAddress(), formatBytes()
 │   │
 │   └── types/index.ts                  # local UI types

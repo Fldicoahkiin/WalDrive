@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Check, ExternalLink, Share2, X } from "lucide-react";
 import type { BlobFile } from "@waldrive/shared";
@@ -11,6 +11,7 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 
 export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose: () => void }) {
   const [copied, setCopied] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -19,6 +20,13 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+
+  useEffect(() => {
+    if (!file) return;
+    const restoreTo = document.activeElement as HTMLElement | null;
+    panelRef.current?.focus();
+    return () => restoreTo?.focus();
+  }, [file]);
 
   async function copyLink() {
     if (!file) return;
@@ -43,8 +51,13 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
           onClick={onClose}
         >
           <motion.div
+            ref={panelRef}
+            aria-label={file.name}
+            aria-modal="true"
             layoutId={`file-${file.objectId}`}
-            className="lift-2 flex max-h-[80vh] w-full max-w-xl flex-col overflow-hidden rounded-xl border border-hairline-strong bg-surface-1"
+            className="lift-2 flex max-h-[80vh] w-full max-w-xl flex-col overflow-hidden rounded-xl border border-hairline-strong bg-surface-1 outline-none"
+            role="dialog"
+            tabIndex={-1}
             transition={{ layout: { duration: 0.32, ease: EASE } }}
             onClick={(e) => e.stopPropagation()}
           >

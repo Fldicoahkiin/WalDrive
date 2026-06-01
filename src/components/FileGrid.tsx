@@ -26,7 +26,7 @@ export function FileGrid({
               key={file.objectId}
               animate={{ opacity: selectedId === file.objectId ? 0 : 1, y: 0 }}
               aria-label={`Open ${file.name}`}
-              className="text-left outline-none"
+              className="group text-left outline-none"
               exit={{ opacity: 0, scale: 0.96 }}
               initial={{ opacity: 0, y: 8 }}
               transition={{ duration: 0.22, delay: Math.min(i * 0.025, 0.25), ease: EASE }}
@@ -35,7 +35,7 @@ export function FileGrid({
             >
               <motion.div
                 layoutId={`file-${file.objectId}`}
-                className="lift group flex flex-col overflow-hidden rounded-lg border border-hairline bg-surface-1 transition-[background-color,border-color,box-shadow] duration-200 group-focus-visible:ring-2 group-focus-visible:ring-accent-focus/50 hover:border-hairline-strong hover:bg-surface-2 hover:shadow-[var(--lift-2)]"
+                className="lift flex flex-col overflow-hidden rounded-lg border border-hairline bg-surface-1 transition-[background-color,border-color,box-shadow] duration-200 group-focus-visible:ring-2 group-focus-visible:ring-accent-focus/50 hover:border-hairline-strong hover:bg-surface-2 hover:shadow-[var(--lift-2)]"
               >
                 <div
                   className="flex h-28 items-center justify-center overflow-hidden"

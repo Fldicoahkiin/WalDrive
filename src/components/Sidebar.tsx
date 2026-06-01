@@ -6,7 +6,7 @@ import { shortenAddress, formatBytes } from "@/lib/utils";
 
 export function Sidebar() {
   const address = useWallet((s) => s.address);
-  const { data: files } = useFiles();
+  const { data: files, isLoading } = useFiles();
   const count = files?.length ?? 0;
   const totalBytes = files?.reduce((sum, f) => sum + f.size, 0) ?? 0;
 
@@ -32,9 +32,11 @@ export function Sidebar() {
         </Card.Header>
         <Card.Content className="gap-0.5">
           <p className="text-sm text-ink">
-            {count} file{count === 1 ? "" : "s"}
+            {isLoading ? "—" : `${count} file${count === 1 ? "" : "s"}`}
           </p>
-          <p className="text-xs text-ink-subtle">{formatBytes(totalBytes)} on Walrus</p>
+          <p className="text-xs text-ink-subtle">
+            {isLoading ? "Loading…" : `${formatBytes(totalBytes)} on Walrus`}
+          </p>
         </Card.Content>
       </Card>
     </aside>

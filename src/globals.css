@@ -25,6 +25,8 @@
   --default-foreground: #f7f8f8;
   --accent: #5e6ad2;
   --accent-foreground: #ffffff;
+  --accent-hover: #828fff; /* DESIGN primary-hover */
+  --accent-focus: #5e69d1; /* DESIGN primary-focus */
   --border: #23252a;
   --success: #27a644;
   --danger: #e5484d;
@@ -35,6 +37,10 @@
   --ink-subtle: #8a8f98;
   --ink-tertiary: #62666d;
   --hairline-strong: #34343a;
+  /* Linear depth: a faint white highlight on a lifted panel's top edge — the
+     "pixel rendered" feel (DESIGN "Decorative Depth"). Dark resists drop shadow. */
+  --lift-1: inset 0 1px 0 0 rgb(255 255 255 / 0.045);
+  --lift-2: inset 0 1px 0 0 rgb(255 255 255 / 0.07);
   color-scheme: dark;
 }
 
@@ -52,6 +58,8 @@
   --default-foreground: #08090a;
   --accent: #5e6ad2;
   --accent-foreground: #ffffff;
+  --accent-hover: #828fff;
+  --accent-focus: #5e69d1;
   --border: #e6e8eb;
   --success: #1a8c37;
   --danger: #dc2626;
@@ -60,6 +68,10 @@
   --ink-subtle: #6b7280;
   --ink-tertiary: #9aa0a8;
   --hairline-strong: #d2d6db;
+  /* Light has no top-edge highlight (white on white is invisible); depth comes
+     from a hairline-soft drop shadow instead. */
+  --lift-1: 0 1px 2px 0 rgb(15 17 17 / 0.05), inset 0 1px 0 0 rgb(255 255 255 / 0.7);
+  --lift-2: 0 4px 14px -2px rgb(15 17 17 / 0.1), inset 0 1px 0 0 rgb(255 255 255 / 0.8);
   color-scheme: light;
 }
 
@@ -75,7 +87,8 @@
   --color-hairline: var(--border);
   --color-hairline-strong: var(--hairline-strong);
   --color-accent: var(--accent);
-  --color-accent-hover: color-mix(in oklab, var(--accent) 88%, white);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-focus: var(--accent-focus);
   --color-on-accent: var(--accent-foreground);
   --color-success: var(--success);
   --color-danger: var(--danger);
@@ -89,6 +102,14 @@
   --radius-lg: 12px;
   --radius-xl: 16px;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Lifted-panel depth — top-edge highlight (dark) / soft shadow (light). */
+@utility lift {
+  box-shadow: var(--lift-1);
+}
+@utility lift-2 {
+  box-shadow: var(--lift-2);
 }
 
 /* Transparent so macOS window vibrancy shows through. */

@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { LayoutGrid, List, Search } from "lucide-react";
 import { Input } from "@heroui/react";
 import type { BlobFile } from "@waldrive/shared";
 import { TitleBar } from "@/components/TitleBar";
 import { Sidebar } from "@/components/Sidebar";
 import { UploadZone } from "@/components/UploadZone";
 import { FileGrid, FileGridSkeleton } from "@/components/FileGrid";
+import { FileList, FileListSkeleton } from "@/components/FileList";
 import { PreviewModal } from "@/components/PreviewModal";
 import { useFiles } from "@/hooks/useFiles";
 import { useWallet } from "@/stores/walletStore";
@@ -18,6 +19,12 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: "size", label: "Size" },
 ];
 
+type ViewMode = "grid" | "list";
+const VIEWS: { key: ViewMode; label: string; Icon: typeof LayoutGrid }[] = [
+  { key: "grid", label: "Grid view", Icon: LayoutGrid },
+  { key: "list", label: "List view", Icon: List },
+];
+
 export function App() {
   const initWallet = useWallet((s) => s.init);
   useEffect(() => {
@@ -27,6 +34,7 @@ export function App() {
   const { data: files, isLoading } = useFiles();
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("date");
+  const [view, setView] = useState<ViewMode>("grid");
   const [selected, setSelected] = useState<BlobFile | null>(null);
 
   const visible = useMemo(() => {
@@ -68,7 +76,11 @@ export function App() {
             <UploadZone />
 
             {isLoading ? (
-              <FileGridSkeleton />
+              view === "grid" ? (
+                <FileGridSkeleton />
+              ) : (
+                <FileListSkeleton />
+              )
             ) : visible.length === 0 ? (
               <p className="py-16 text-center text-sm text-ink-subtle">
                 {query
@@ -82,29 +94,58 @@ export function App() {
                     <h2 className="text-sm font-medium text-ink">Files</h2>
                     <span className="text-xs text-ink-tertiary">{visible.length}</span>
                   </div>
-                  <div className="flex items-center gap-0.5 rounded-lg border border-hairline bg-surface-1 p-0.5">
-                    {SORTS.map((s) => (
-                      <button
-                        key={s.key}
-                        className={cn(
-                          "rounded-md px-2.5 py-1 text-xs transition-colors",
-                          sort === s.key
-                            ? "bg-surface-2 text-ink"
-                            : "text-ink-subtle hover:text-ink",
-                        )}
-                        type="button"
-                        onClick={() => setSort(s.key)}
-                      >
-                        {s.label}
-                      </button>
-                    ))}
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-0.5 rounded-lg border border-hairline bg-surface-1 p-0.5">
+                      {SORTS.map((s) => (
+                        <button
+                          key={s.key}
+                          className={cn(
+                            "rounded-md px-2.5 py-1 text-xs transition-colors",
+                            sort === s.key
+                              ? "bg-surface-2 text-ink"
+                              : "text-ink-subtle hover:text-ink",
+                          )}
+                          type="button"
+                          onClick={() => setSort(s.key)}
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-0.5 rounded-lg border border-hairline bg-surface-1 p-0.5">
+                      {VIEWS.map((v) => (
+                        <button
+                          key={v.key}
+                          aria-label={v.label}
+                          aria-pressed={view === v.key}
+                          className={cn(
+                            "rounded-md p-1.5 transition-colors",
+                            view === v.key
+                              ? "bg-surface-2 text-ink"
+                              : "text-ink-subtle hover:text-ink",
+                          )}
+                          type="button"
+                          onClick={() => setView(v.key)}
+                        >
+                          <v.Icon aria-hidden className="size-3.5" strokeWidth={1.75} />
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
-                <FileGrid
-                  files={visible}
-                  selectedId={selected?.objectId ?? null}
-                  onOpen={setSelected}
-                />
+                {view === "grid" ? (
+                  <FileGrid
+                    files={visible}
+                    selectedId={selected?.objectId ?? null}
+                    onOpen={setSelected}
+                  />
+                ) : (
+                  <FileList
+                    files={visible}
+                    selectedId={selected?.objectId ?? null}
+                    onOpen={setSelected}
+                  />
+                )}
               </>
             )}
           </div>

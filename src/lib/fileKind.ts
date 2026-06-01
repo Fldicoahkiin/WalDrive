@@ -45,6 +45,20 @@ export function fileKind(mimeType: string, name: string): FileKind {
   return { Icon: File, color: "#8a8f98", label };
 }
 
+export type PreviewMode = "image" | "pdf" | "text" | "none";
+
+const TEXT_MIME = /^(text\/|application\/(json|xml|javascript|x-sh|toml|x-yaml|x-toml))/;
+const TEXT_EXT = new Set(["md", "markdown", "txt", "csv", "log", "json", "xml", "svg", "env"]);
+
+/** How PreviewModal should render this file inline. */
+export function previewMode(mimeType: string, name: string): PreviewMode {
+  const e = ext(name);
+  if (mimeType.startsWith("image/")) return "image";
+  if (mimeType === "application/pdf" || e === "pdf") return "pdf";
+  if (TEXT_MIME.test(mimeType) || CODE_EXT.has(e) || TEXT_EXT.has(e)) return "text";
+  return "none";
+}
+
 /** Compact relative time, e.g. "just now", "3h ago", "5d ago", else a date. */
 export function relativeTime(ms: number): string {
   if (!ms) return "";

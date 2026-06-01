@@ -57,7 +57,7 @@ export function App() {
               <p className="py-16 text-center text-sm text-ink-subtle">
                 {query
                   ? `No files match “${query}”.`
-                  : "No files yet — drag one above to store it on Walrus."}
+                  : "No files yet. Drag one above to store it on Walrus."}
               </p>
             ) : (
               <>

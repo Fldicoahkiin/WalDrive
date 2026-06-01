@@ -104,7 +104,7 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
                         strokeWidth={1.5}
                       />
                     </span>
-                    No inline preview — open to view.
+                    No inline preview. Open to view.
                   </div>
                 )}
               </div>

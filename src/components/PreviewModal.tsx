@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, ExternalLink, Loader2, Pencil, Share2, X } from "lucide-react";
+import { Check, ExternalLink, Loader2, Pencil, Share2, Trash2, X } from "lucide-react";
 import type { BlobFile } from "@waldrive/shared";
 import { Button } from "@/components/ui/Button";
 import { useRename } from "@/hooks/useRename";
+import { useDelete } from "@/hooks/useDelete";
 import { blobUrl } from "@/lib/constants";
 import { formatBytes } from "@/lib/utils";
 import { fileKind, previewMode, type FileKind } from "@/lib/fileKind";
@@ -30,14 +31,18 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
   const [copied, setCopied] = useState(false);
   const [name, setName] = useState(file?.name ?? "");
   const [draft, setDraft] = useState<string | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const { rename, status: renameStatus, error: renameError } = useRename();
+  const { remove, status: deleteStatus, error: deleteError } = useDelete();
   const editing = draft !== null;
   const saving = renameStatus === "saving";
+  const deleting = deleteStatus === "deleting";
 
   useEffect(() => {
     setName(file?.name ?? "");
     setDraft(null);
+    setConfirmingDelete(false);
   }, [file]);
 
   useEffect(() => {
@@ -74,6 +79,15 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
     await navigator.clipboard.writeText(blobUrl(file.blobId));
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
+  }
+
+  async function confirmDelete() {
+    if (!file) return;
+    const ok = await remove(file.objectId);
+    if (ok) {
+      setConfirmingDelete(false);
+      onClose();
+    }
   }
 
   const kind = file ? fileKind(file.mimeType, file.name) : null;
@@ -217,26 +231,71 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
               </div>
 
               <div className="flex items-center justify-between gap-3 border-t border-hairline px-4 py-3 text-xs text-ink-subtle">
-                <span
-                  className={renameError ? "truncate text-danger" : "truncate"}
-                  title={renameError ?? undefined}
-                >
-                  {renameError ?? `${file.mimeType} · ${formatBytes(file.size)}`}
-                </span>
-                <div className="flex shrink-0 items-center gap-2">
-                  <Button size="sm" variant="secondary" onPress={copyLink}>
-                    {copied ? <Check className="size-3.5" /> : <Share2 className="size-3.5" />}
-                    {copied ? "Copied" : "Share link"}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    onPress={() => window.open(blobUrl(file.blobId), "_blank")}
-                  >
-                    <ExternalLink className="size-3.5" />
-                    Open
-                  </Button>
-                </div>
+                {confirmingDelete ? (
+                  <>
+                    <span
+                      className={deleteError ? "truncate text-danger" : "truncate"}
+                      title={deleteError ?? undefined}
+                    >
+                      {deleteError ?? "Delete this file's on-chain record? This can't be undone."}
+                    </span>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <Button
+                        isDisabled={deleting}
+                        size="sm"
+                        variant="ghost"
+                        onPress={() => setConfirmingDelete(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        isDisabled={deleting}
+                        size="sm"
+                        variant="danger"
+                        onPress={confirmDelete}
+                      >
+                        {deleting ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : (
+                          <Trash2 className="size-3.5" />
+                        )}
+                        Delete
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <span
+                      className={renameError ? "truncate text-danger" : "truncate"}
+                      title={renameError ?? undefined}
+                    >
+                      {renameError ?? `${file.mimeType} · ${formatBytes(file.size)}`}
+                    </span>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <Button
+                        isIconOnly
+                        aria-label="Delete"
+                        size="sm"
+                        variant="ghost"
+                        onPress={() => setConfirmingDelete(true)}
+                      >
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                      <Button size="sm" variant="secondary" onPress={copyLink}>
+                        {copied ? <Check className="size-3.5" /> : <Share2 className="size-3.5" />}
+                        {copied ? "Copied" : "Share link"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onPress={() => window.open(blobUrl(file.blobId), "_blank")}
+                      >
+                        <ExternalLink className="size-3.5" />
+                        Open
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             </motion.div>
           </motion.div>

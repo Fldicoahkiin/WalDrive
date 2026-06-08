@@ -2,14 +2,21 @@ import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 
 /**
  * Local desktop wallet — no browser extension. This app signs Sui transactions
- * with an Ed25519 keypair held in-process.
- *
- * Stub: loads a keypair from a bech32 `suiprivkey1...` secret string. Secure
- * storage of that string (OS keychain via a Tauri command, encrypted file, etc.)
- * is wired up later — this only turns the string into a usable keypair.
+ * with an Ed25519 keypair held in-process. The secret (bech32 `suiprivkey1...`)
+ * is persisted in localStorage by walletStore; OS-keychain storage is Roadmap.
  */
+
+/** Turn a bech32 `suiprivkey1...` secret into a usable keypair. Throws if malformed. */
 export function loadKeypairFromSuiPrivkey(suiPrivkey: string): Ed25519Keypair {
-  // Ed25519Keypair.fromSecretKey accepts the bech32 `suiprivkey1...` form directly
-  // (and a raw 32-byte Uint8Array). It throws on a malformed/wrong-scheme key.
-  return Ed25519Keypair.fromSecretKey(suiPrivkey);
+  return Ed25519Keypair.fromSecretKey(suiPrivkey.trim());
+}
+
+/** Generate a brand-new Ed25519 wallet. */
+export function generateKeypair(): Ed25519Keypair {
+  return Ed25519Keypair.generate();
+}
+
+/** The bech32 `suiprivkey1...` secret for a keypair — for export and persistence. */
+export function exportSuiPrivkey(keypair: Ed25519Keypair): string {
+  return keypair.getSecretKey();
 }

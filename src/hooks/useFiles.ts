@@ -1,11 +1,10 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SuiClient, getFullnodeUrl, type SuiObjectResponse } from "@mysten/sui/client";
 import { useWallet } from "@/stores/walletStore";
-import { CONTRACT, SUI_NETWORK } from "@/lib/constants";
+import { useSettings } from "@/stores/settingsStore";
+import { CONTRACT } from "@/lib/constants";
 import type { BlobFile } from "@waldrive/shared";
-
-const suiClient = new SuiClient({ url: getFullnodeUrl(SUI_NETWORK) });
-const FILE_RECORD_TYPE = `${CONTRACT.PACKAGE_ID}::${CONTRACT.FILE_RECORD}::FileRecord`;
 
 /** u64 move fields arrive as strings — Number() them. */
 function parseFileRecord(res: SuiObjectResponse): BlobFile | null {
@@ -31,16 +30,21 @@ function parseFileRecord(res: SuiObjectResponse): BlobFile | null {
 /** Files owned by the local wallet, newest first, cursor-paginated. */
 export function useFiles() {
   const address = useWallet((s) => s.address);
+  const network = useSettings((s) => s.network);
+  const packageId = useSettings((s) => s.packageId);
+  const suiClient = useMemo(() => new SuiClient({ url: getFullnodeUrl(network) }), [network]);
+
   return useQuery({
-    queryKey: ["files", address],
-    enabled: Boolean(address && CONTRACT.PACKAGE_ID),
+    queryKey: ["files", address, network, packageId],
+    enabled: Boolean(address && packageId),
     queryFn: async (): Promise<BlobFile[]> => {
+      const type = `${packageId}::${CONTRACT.FILE_RECORD}::FileRecord`;
       const files: BlobFile[] = [];
       let cursor: string | null | undefined = null;
       do {
         const page = await suiClient.getOwnedObjects({
           owner: address as string,
-          filter: { StructType: FILE_RECORD_TYPE },
+          filter: { StructType: type },
           options: { showContent: true },
           cursor,
         });

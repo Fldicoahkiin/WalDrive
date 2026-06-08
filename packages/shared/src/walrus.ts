@@ -4,6 +4,8 @@ export interface UploadBlobOptions {
   epochs?: number;
   /** Sui address that receives the on-chain Blob object the publisher mints. */
   sendObjectTo?: string;
+  /** Override the Walrus publisher base URL (defaults to the env/constant). */
+  publisher?: string;
   /** Abort the PUT after this many ms. */
   timeoutMs?: number;
 }
@@ -33,13 +35,14 @@ function extractBlobId(payload: unknown): string {
  */
 export async function uploadBlob(bytes: Uint8Array, options: UploadBlobOptions = {}): Promise<string> {
   const epochs = options.epochs ?? WALRUS.EPOCHS_DEFAULT;
+  const base = options.publisher || WALRUS.PUBLISHER;
   const params = new URLSearchParams({ epochs: String(epochs), deletable: "true" });
   if (options.sendObjectTo) params.set("send_object_to", options.sendObjectTo);
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 60_000);
   try {
-    const res = await fetch(`${WALRUS.PUBLISHER}/v1/blobs?${params.toString()}`, {
+    const res = await fetch(`${base}/v1/blobs?${params.toString()}`, {
       method: "PUT",
       body: bytes as BodyInit,
       signal: controller.signal,

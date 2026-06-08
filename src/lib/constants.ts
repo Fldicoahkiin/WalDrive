@@ -21,5 +21,12 @@ export const SUI_NETWORK = (import.meta.env.VITE_SUI_NETWORK ?? "testnet") as Su
 /** Local desktop wallet secret (suiprivkey1...). Test wallet for the hackathon. */
 export const WALDRIVE_KEYPAIR = import.meta.env.VITE_WALDRIVE_KEYPAIR ?? "";
 
-/** Public read URL for a Walrus blob via the aggregator. */
-export const blobUrl = (blobId: string): string => `${WALRUS.AGGREGATOR}/v1/blobs/${blobId}`;
+// Runtime aggregator base. settingsStore overrides this so blobUrl() reflects the
+// user's configured aggregator without threading the URL through every caller.
+let aggregatorBase = WALRUS.AGGREGATOR;
+export const setAggregatorBase = (url: string): void => {
+  aggregatorBase = url || WALRUS.AGGREGATOR;
+};
+
+/** Public read URL for a Walrus blob via the (runtime-configured) aggregator. */
+export const blobUrl = (blobId: string): string => `${aggregatorBase}/v1/blobs/${blobId}`;

@@ -37,6 +37,7 @@
   --ink-subtle: #8a8f98;
   --ink-tertiary: #62666d;
   --hairline-strong: #34343a;
+  --scrim: rgb(1 1 2 / 0.66); /* modal backdrop — darkens content behind */
   /* Linear depth: a faint white highlight on a lifted panel's top edge — the
      "pixel rendered" feel (DESIGN "Decorative Depth"). Dark resists drop shadow. */
   --lift-1: inset 0 1px 0 0 rgb(255 255 255 / 0.045);
@@ -68,6 +69,7 @@
   --ink-subtle: #6b7280;
   --ink-tertiary: #9aa0a8;
   --hairline-strong: #d2d6db;
+  --scrim: rgb(15 17 17 / 0.32); /* modal backdrop — dims the white page */
   /* Light has no top-edge highlight (white on white is invisible); depth comes
      from a hairline-soft drop shadow instead. */
   --lift-1: 0 1px 2px 0 rgb(15 17 17 / 0.05), inset 0 1px 0 0 rgb(255 255 255 / 0.7);

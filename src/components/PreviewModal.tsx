@@ -85,7 +85,7 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
           className="fixed inset-0 z-50 flex items-center justify-center p-6"
           exit={{ opacity: 0 }}
           initial={{ opacity: 0 }}
-          style={{ background: "color-mix(in oklab, var(--background) 72%, transparent)" }}
+          style={{ background: "var(--scrim)" }}
           transition={{ duration: 0.18 }}
           onClick={onClose}
         >

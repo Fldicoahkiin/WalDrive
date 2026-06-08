@@ -4,7 +4,7 @@
 
 WalDrive is a **cross-platform desktop app** — a Tauri 2.0 shell wrapping a Vite + React SPA. File **metadata lives on Sui** (Move objects), **blob bytes live on Walrus**, and there is **no backend in between**. The app signs Sui transactions in-process with a local keypair (no browser, no wallet extension); the same Walrus data is also reachable from any AI client / CLI through the MCP server.
 
-- **Desktop console** — drag-to-upload, browse, preview, search, and share files, signed by a local keypair.
+- **Desktop console** — drag-to-upload, browse, preview, rename, delete, search, and share; manage the local wallet (generate / import / balance / faucet) and endpoints from the sidebar.
 - **MCP server** — `upload_file` / `list_files` for AI clients and scripts over the same Walrus data.
 - **Move contracts** — `FileRecord` and `ShareLink` objects make file metadata verifiable on-chain.
 
@@ -84,8 +84,10 @@ VITE_CONTRACT_PACKAGE_ID=0x4374…2771d
 VITE_WALRUS_AGGREGATOR=https://aggregator.walrus-testnet.walrus.space
 VITE_WALRUS_PUBLISHER=https://publisher.walrus-testnet.walrus.space
 VITE_SUI_NETWORK=testnet
-VITE_WALDRIVE_KEYPAIR=suiprivkey1…   # local desktop wallet — fund it via faucet
+VITE_WALDRIVE_KEYPAIR=suiprivkey1…   # optional — seeds the wallet on first run
 ```
+
+> These are just **defaults** — network, Walrus endpoints, epochs and the contract package are all editable at runtime in **Settings** (left sidebar). `VITE_WALDRIVE_KEYPAIR` only *seeds* the wallet on first run: leave it empty and the app opens an onboarding screen to **generate or import** a wallet, after which the active key lives in `localStorage`.
 
 ### Run
 ```bash
@@ -158,7 +160,7 @@ Deferred past the hackathon MVP (kept by design):
 - Versioning, soft-delete + trash, tags, nested folders + breadcrumb
 - Sort / type filter / virtual scrolling; share-link expiry
 - Web share surface + short share codes (`share_link.move` exists but the desktop MVP just copies the aggregator URL)
-- Secure keypair storage (OS keychain via a Tauri command — currently loaded from `VITE_WALDRIVE_KEYPAIR`)
+- Secure keypair storage (OS keychain via a Tauri command — the key is currently kept in `localStorage`, seeded from `VITE_WALDRIVE_KEYPAIR` on first run)
 - More MCP tools: download, folders, share links
 
 ## Notes
@@ -166,5 +168,5 @@ Deferred past the hackathon MVP (kept by design):
 - Aggregator read path is `/v1/blobs/{blobId}`.
 - The publisher fronts WAL (storage); you still pay SUI gas for `register`.
 - Walrus erasure-codes to a ~66 MB minimum billed size, so tiny files cost about the same.
-- The app signs in-process with a **local Ed25519 keypair** — no browser wallet, no popup. Use a **dedicated testnet keypair** (`VITE_WALDRIVE_KEYPAIR`), never one holding real assets.
+- The app signs in-process with a **local Ed25519 keypair** you generate or import in-app (seeded from `VITE_WALDRIVE_KEYPAIR` on first run, then kept in `localStorage`) — no browser wallet, no popup. Use a **dedicated testnet keypair**, never one holding real assets.
 - Move objects are the source of truth; the UI reconciles against chain on load.

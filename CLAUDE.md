@@ -137,28 +137,38 @@ waldrive/                               # bun workspaces monorepo
 │
 ├── src/                                # Vite/React desktop frontend (the console)
 │   ├── main.tsx                        # React root + QueryClientProvider
-│   ├── App.tsx                         # single-window shell: TitleBar + Sidebar + grid + PreviewModal
+│   ├── App.tsx                         # shell: TitleBar + Sidebar + grid/list + Preview/Settings, Onboarding when no wallet
 │   ├── globals.css                     # Tailwind + HeroUI styles, DESIGN.md palette, dark/light tokens
 │   ├── vite-env.d.ts
 │   │
 │   ├── components/
-│   │   ├── ui/Button.tsx               # custom primitive — prefer HeroUI first
-│   │   ├── TitleBar.tsx                # tauri-drag-region header, wallet address, theme toggle
-│   │   ├── Sidebar.tsx
-│   │   ├── UploadZone.tsx              # drag-to-upload
+│   │   ├── ui/Button.tsx               # HeroUI v3 Button passthrough — prefer HeroUI first
+│   │   ├── TitleBar.tsx                # tauri-drag-region bar + theme toggle (minimal, macOS)
+│   │   ├── Sidebar.tsx                 # branding + Wallet/Storage/Settings buttons (open Settings)
+│   │   ├── SettingsModal.tsx           # editable network/endpoints/epochs/contract + WalletPanel
+│   │   ├── WalletPanel.tsx             # balance, testnet faucet, reveal/import/generate/remove
+│   │   ├── Onboarding.tsx              # no-wallet first run — generate or import a wallet
+│   │   ├── EmptyState.tsx              # icon + message for no-files / no-match
+│   │   ├── UploadZone.tsx              # drag-to-upload (ProgressBar stages)
 │   │   ├── FileGrid.tsx                # motion grid (virtual scrolling = Roadmap)
-│   │   └── PreviewModal.tsx            # inline preview + "copy share link" (blobUrl)
+│   │   ├── FileList.tsx                # list view
+│   │   ├── PreviewBody.tsx             # image / pdf / text preview body
+│   │   └── PreviewModal.tsx            # preview chrome + rename / delete / "copy share link"
 │   │
 │   ├── hooks/
 │   │   ├── useUpload.ts                # uploadBlob() → blobId, then in-process register
-│   │   └── useFiles.ts                 # React Query: getOwnedObjects (FileRecord), cursor-paginated
+│   │   ├── useFiles.ts                 # React Query: getOwnedObjects (FileRecord), cursor-paginated
+│   │   ├── useBalance.ts               # React Query: SUI balance for the active wallet
+│   │   ├── useRename.ts                # file_record::rename tx
+│   │   └── useDelete.ts                # file_record::delete tx
 │   │
 │   ├── stores/
-│   │   └── walletStore.ts              # Zustand: local Ed25519 keypair + address
+│   │   ├── walletStore.ts              # Zustand: keypair + address; generate/import/remove/reveal (localStorage, env-seeded)
+│   │   └── settingsStore.ts            # Zustand + persist: network, Walrus endpoints, epochs, contract
 │   │
 │   ├── lib/
 │   │   ├── wallet.ts                   # loadKeypairFromSuiPrivkey() — in-process signer
-│   │   ├── theme.ts                    # useTheme() — dark/light via data-theme
+│   │   ├── theme.ts                    # useTheme() Zustand store — dark/light via class + data-theme
 │   │   ├── walrus.ts                   # re-export from @waldrive/shared
 │   │   ├── sui.ts                      # re-export from @waldrive/shared
 │   │   ├── constants.ts                # Vite constants (read import.meta.env.VITE_*)
@@ -194,7 +204,7 @@ VITE_CONTRACT_PACKAGE_ID=0x...
 VITE_WALRUS_AGGREGATOR=https://aggregator.walrus-testnet.walrus.space
 VITE_WALRUS_PUBLISHER=https://publisher.walrus-testnet.walrus.space
 VITE_SUI_NETWORK=testnet
-VITE_WALDRIVE_KEYPAIR=suiprivkey1...   # local desktop wallet secret (dedicated testnet keypair)
+VITE_WALDRIVE_KEYPAIR=suiprivkey1...   # optional — seeds the wallet on first run, then localStorage (else generate/import in-app)
 
 # mcp-server/.env
 SUI_NETWORK=testnet

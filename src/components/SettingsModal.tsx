@@ -1,64 +1,87 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Check, Copy, Moon, Sun, X } from "lucide-react";
+import { Minus, Moon, Plus, RotateCcw, Sun, X, type LucideIcon } from "lucide-react";
+import { Input } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
+import { WalletPanel } from "@/components/WalletPanel";
 import { useTheme, type Theme } from "@/lib/theme";
-import { useWallet } from "@/stores/walletStore";
-import { CONTRACT, WALRUS, SUI_NETWORK } from "@/lib/constants";
+import { useSettings } from "@/stores/settingsStore";
+import type { SuiNetwork } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const VERSION = "0.1.0";
+const NETWORKS: SuiNetwork[] = ["testnet", "mainnet", "devnet", "localnet"];
 
-const THEMES: { key: Theme; label: string; Icon: typeof Sun }[] = [
-  { key: "light", label: "Light", Icon: Sun },
-  { key: "dark", label: "Dark", Icon: Moon },
-];
+function Segmented<T extends string>({
+  value,
+  options,
+  onChange,
+}: {
+  value: T;
+  options: { key: T; label: string; Icon?: LucideIcon }[];
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-0.5 self-start rounded-lg border border-hairline bg-surface-1 p-0.5">
+      {options.map((o) => (
+        <button
+          key={o.key}
+          aria-pressed={value === o.key}
+          className={cn(
+            "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs transition-colors",
+            value === o.key ? "bg-surface-2 text-ink" : "text-ink-subtle hover:text-ink",
+          )}
+          type="button"
+          onClick={() => onChange(o.key)}
+        >
+          {o.Icon && <o.Icon aria-hidden className="size-3.5" strokeWidth={1.75} />}
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
-function Row({
+function TextField({
   label,
   value,
-  copyKey,
-  copiedKey,
-  onCopy,
+  onCommit,
 }: {
   label: string;
   value: string;
-  copyKey?: string;
-  copiedKey?: string | null;
-  onCopy?: (key: string, value: string) => void;
+  onCommit: (v: string) => void;
 }) {
+  const [draft, setDraft] = useState(value);
+  useEffect(() => setDraft(value), [value]);
   return (
-    <div className="flex items-center justify-between gap-3 py-1.5">
-      <span className="shrink-0 text-xs text-ink-subtle">{label}</span>
-      <div className="flex min-w-0 items-center gap-1.5">
-        <span className="selectable truncate font-mono text-xs text-ink-muted" title={value}>
-          {value}
-        </span>
-        {copyKey && onCopy && (
-          <button
-            aria-label={`Copy ${label}`}
-            className="shrink-0 rounded p-1 text-ink-tertiary transition-colors hover:text-ink"
-            type="button"
-            onClick={() => onCopy(copyKey, value)}
-          >
-            {copiedKey === copyKey ? (
-              <Check className="size-3.5 text-success" />
-            ) : (
-              <Copy className="size-3.5" />
-            )}
-          </button>
-        )}
-      </div>
-    </div>
+    <label className="flex flex-col gap-1">
+      <span className="text-xs text-ink-subtle">{label}</span>
+      <Input
+        className="selectable font-mono text-xs"
+        value={draft}
+        variant="secondary"
+        onBlur={() => draft.trim() !== value && onCommit(draft.trim())}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+      />
+    </label>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="flex flex-col gap-2">
+      <span className="text-xs font-medium text-ink-subtle">{title}</span>
+      {children}
+    </section>
   );
 }
 
 export function SettingsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const theme = useTheme((s) => s.theme);
   const setTheme = useTheme((s) => s.set);
-  const address = useWallet((s) => s.address);
-  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const s = useSettings();
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -74,12 +97,6 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
       restoreTo?.focus();
     };
   }, [open, onClose]);
-
-  async function copy(key: string, value: string) {
-    await navigator.clipboard.writeText(value);
-    setCopiedKey(key);
-    setTimeout(() => setCopiedKey((k) => (k === key ? null : k)), 1500);
-  }
 
   return (
     <AnimatePresence>
@@ -98,7 +115,7 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
             aria-label="Settings"
             aria-modal="true"
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="lift-2 flex w-full max-w-md flex-col overflow-hidden rounded-xl border border-hairline-strong bg-surface-1 outline-none"
+            className="lift-2 flex max-h-[82vh] w-full max-w-md flex-col overflow-hidden rounded-xl border border-hairline-strong bg-surface-1 outline-none"
             exit={{ opacity: 0, scale: 0.97, y: 8 }}
             initial={{ opacity: 0, scale: 0.97, y: 8 }}
             role="dialog"
@@ -106,69 +123,75 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
             transition={{ duration: 0.22, ease: EASE }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-hairline px-4 py-3">
+            <div className="flex shrink-0 items-center justify-between border-b border-hairline px-4 py-3">
               <span className="text-sm font-medium text-ink">Settings</span>
               <Button isIconOnly aria-label="Close" size="sm" variant="ghost" onPress={onClose}>
                 <X className="size-4" />
               </Button>
             </div>
 
-            <div className="flex flex-col gap-5 p-4">
-              <section className="flex flex-col gap-2">
-                <span className="text-xs font-medium text-ink-subtle">Appearance</span>
-                <div className="flex items-center gap-0.5 self-start rounded-lg border border-hairline bg-surface-1 p-0.5">
-                  {THEMES.map((t) => (
+            <div className="flex flex-col gap-5 overflow-auto p-4">
+              <Section title="Wallet">
+                <WalletPanel />
+              </Section>
+
+              <Section title="Appearance">
+                <Segmented<Theme>
+                  onChange={setTheme}
+                  options={[
+                    { key: "light", label: "Light", Icon: Sun },
+                    { key: "dark", label: "Dark", Icon: Moon },
+                  ]}
+                  value={theme}
+                />
+              </Section>
+
+              <Section title="Network">
+                <Segmented<SuiNetwork>
+                  onChange={s.setNetwork}
+                  options={NETWORKS.map((n) => ({ key: n, label: n }))}
+                  value={s.network}
+                />
+              </Section>
+
+              <Section title="Walrus storage">
+                <TextField label="Aggregator" onCommit={s.setAggregator} value={s.aggregator} />
+                <TextField label="Publisher" onCommit={s.setPublisher} value={s.publisher} />
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-ink-subtle">Default epochs</span>
+                  <div className="flex items-center gap-0.5 rounded-lg border border-hairline bg-surface-1 p-0.5">
                     <button
-                      key={t.key}
-                      aria-pressed={theme === t.key}
-                      className={cn(
-                        "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs transition-colors",
-                        theme === t.key ? "bg-surface-2 text-ink" : "text-ink-subtle hover:text-ink",
-                      )}
+                      aria-label="Fewer epochs"
+                      className="rounded-md px-2 py-1 text-ink-subtle transition-colors hover:text-ink disabled:opacity-40"
+                      disabled={s.epochs <= 1}
                       type="button"
-                      onClick={() => setTheme(t.key)}
+                      onClick={() => s.setEpochs(Math.max(1, s.epochs - 1))}
                     >
-                      <t.Icon aria-hidden className="size-3.5" strokeWidth={1.75} />
-                      {t.label}
+                      <Minus className="size-3.5" />
                     </button>
-                  ))}
+                    <span className="w-8 text-center font-mono text-xs text-ink">{s.epochs}</span>
+                    <button
+                      aria-label="More epochs"
+                      className="rounded-md px-2 py-1 text-ink-subtle transition-colors hover:text-ink"
+                      type="button"
+                      onClick={() => s.setEpochs(s.epochs + 1)}
+                    >
+                      <Plus className="size-3.5" />
+                    </button>
+                  </div>
                 </div>
-              </section>
+              </Section>
 
-              <section className="flex flex-col">
-                <span className="mb-1 text-xs font-medium text-ink-subtle">Wallet</span>
-                <Row
-                  copiedKey={copiedKey}
-                  copyKey="addr"
-                  label="Address"
-                  onCopy={copy}
-                  value={address ?? "—"}
-                />
-                <Row label="Network" value={SUI_NETWORK} />
-              </section>
-
-              <section className="flex flex-col">
-                <span className="mb-1 text-xs font-medium text-ink-subtle">Walrus storage</span>
-                <Row label="Aggregator" value={WALRUS.AGGREGATOR.replace(/^https?:\/\//, "")} />
-                <Row label="Publisher" value={WALRUS.PUBLISHER.replace(/^https?:\/\//, "")} />
-                <Row label="Default epochs" value={String(WALRUS.EPOCHS_DEFAULT)} />
-              </section>
-
-              <section className="flex flex-col">
-                <span className="mb-1 text-xs font-medium text-ink-subtle">Contract</span>
-                <Row
-                  copiedKey={copiedKey}
-                  copyKey="pkg"
-                  label="Package"
-                  onCopy={copy}
-                  value={CONTRACT.PACKAGE_ID || "—"}
-                />
-              </section>
+              <Section title="Contract">
+                <TextField label="Package ID" onCommit={s.setPackageId} value={s.packageId} />
+              </Section>
             </div>
 
-            <div className="flex items-center justify-between border-t border-hairline px-4 py-2.5 text-xs text-ink-tertiary">
-              <span>WalDrive v{VERSION}</span>
-              <span>Sui · Walrus testnet</span>
+            <div className="flex shrink-0 items-center justify-between border-t border-hairline px-4 py-2.5">
+              <span className="text-xs text-ink-tertiary">WalDrive v{VERSION}</span>
+              <Button size="sm" variant="ghost" onPress={s.reset}>
+                <RotateCcw className="size-3.5" /> Reset defaults
+              </Button>
             </div>
           </motion.div>
         </motion.div>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { LayoutGrid, List, Search } from "lucide-react";
+import { FolderOpen, LayoutGrid, List, Search, SearchX } from "lucide-react";
 import { Input } from "@heroui/react";
 import type { BlobFile } from "@waldrive/shared";
 import { TitleBar } from "@/components/TitleBar";
@@ -9,6 +9,7 @@ import { FileGrid, FileGridSkeleton } from "@/components/FileGrid";
 import { FileList, FileListSkeleton } from "@/components/FileList";
 import { PreviewModal } from "@/components/PreviewModal";
 import { Onboarding } from "@/components/Onboarding";
+import { EmptyState } from "@/components/EmptyState";
 import { useFiles } from "@/hooks/useFiles";
 import { useWallet } from "@/stores/walletStore";
 import { cn } from "@/lib/cn";
@@ -87,11 +88,19 @@ export function App() {
                 <FileListSkeleton />
               )
             ) : visible.length === 0 ? (
-              <p className="py-16 text-center text-sm text-ink-subtle">
-                {query
-                  ? `No files match “${query}”.`
-                  : "No files yet. Drag one above to store it on Walrus."}
-              </p>
+              query ? (
+                <EmptyState
+                  Icon={SearchX}
+                  description={`Nothing matches “${query}”.`}
+                  title="No matches"
+                />
+              ) : (
+                <EmptyState
+                  Icon={FolderOpen}
+                  description="Drag a file above or choose one to store it on Walrus."
+                  title="No files yet"
+                />
+              )
             ) : (
               <>
                 <div className="flex items-center justify-between gap-2">

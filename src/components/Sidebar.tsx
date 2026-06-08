@@ -1,11 +1,15 @@
 import { Card } from "@heroui/react";
 import { Database, Wallet } from "lucide-react";
 import { useFiles } from "@/hooks/useFiles";
+import { useBalance } from "@/hooks/useBalance";
 import { useWallet } from "@/stores/walletStore";
+import { useSettings } from "@/stores/settingsStore";
 import { shortenAddress, formatBytes } from "@/lib/utils";
 
 export function Sidebar() {
   const address = useWallet((s) => s.address);
+  const { data: balance } = useBalance();
+  const network = useSettings((s) => s.network);
   const { data: files, isLoading } = useFiles();
   const count = files?.length ?? 0;
   const totalBytes = files?.reduce((sum, f) => sum + f.size, 0) ?? 0;
@@ -21,7 +25,11 @@ export function Sidebar() {
           <p className="selectable font-mono text-xs text-ink">
             {address ? shortenAddress(address, 6) : "—"}
           </p>
-          <p className="text-[11px] text-ink-tertiary">Local test wallet</p>
+          <p className="text-[11px] text-ink-tertiary">
+            {balance != null
+              ? `${balance.toLocaleString(undefined, { maximumFractionDigits: 3 })} SUI · ${network}`
+              : `Local wallet · ${network}`}
+          </p>
         </Card.Content>
       </Card>
 

@@ -8,6 +8,7 @@ import { UploadZone } from "@/components/UploadZone";
 import { FileGrid, FileGridSkeleton } from "@/components/FileGrid";
 import { FileList, FileListSkeleton } from "@/components/FileList";
 import { PreviewModal } from "@/components/PreviewModal";
+import { Onboarding } from "@/components/Onboarding";
 import { useFiles } from "@/hooks/useFiles";
 import { useWallet } from "@/stores/walletStore";
 import { cn } from "@/lib/cn";
@@ -27,6 +28,7 @@ const VIEWS: { key: ViewMode; label: string; Icon: typeof LayoutGrid }[] = [
 
 export function App() {
   const initWallet = useWallet((s) => s.init);
+  const address = useWallet((s) => s.address);
   useEffect(() => {
     initWallet();
   }, [initWallet]);
@@ -53,7 +55,10 @@ export function App() {
   return (
     <div className="flex h-dvh flex-col bg-canvas text-ink">
       <TitleBar />
-      <div className="flex flex-1 overflow-hidden">
+      {!address ? (
+        <Onboarding />
+      ) : (
+        <div className="flex flex-1 overflow-hidden">
         <Sidebar />
         <main className="flex-1 overflow-auto">
           <div className="mx-auto flex max-w-5xl flex-col gap-5 px-6 py-6">
@@ -150,7 +155,8 @@ export function App() {
             )}
           </div>
         </main>
-      </div>
+        </div>
+      )}
       <PreviewModal file={selected} onClose={() => setSelected(null)} />
     </div>
   );

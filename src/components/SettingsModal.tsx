@@ -132,7 +132,7 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
 
             <div className="flex flex-col gap-5 overflow-auto p-4">
               <Section title="Wallet">
-                <WalletPanel />
+                <WalletPanel onClose={onClose} />
               </Section>
 
               <Section title="Appearance">

@@ -11,7 +11,7 @@ import { useBalance } from "@/hooks/useBalance";
 type Mode = "view" | "reveal" | "import" | "confirm-new" | "confirm-remove";
 type Faucet = "idle" | "loading" | "ok" | "error";
 
-export function WalletPanel() {
+export function WalletPanel({ onClose }: { onClose?: () => void }) {
   const address = useWallet((s) => s.address);
   const generate = useWallet((s) => s.generate);
   const importKey = useWallet((s) => s.importKey);
@@ -122,7 +122,15 @@ export function WalletPanel() {
           <Button
             size="sm"
             variant={removing ? "danger" : "primary"}
-            onPress={() => { removing ? remove() : generate(); setMode("view"); }}
+            onPress={() => {
+              if (removing) {
+                remove();
+                onClose?.();
+              } else {
+                generate();
+              }
+              setMode("view");
+            }}
           >
             {removing ? "Remove" : "Generate"}
           </Button>

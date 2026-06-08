@@ -10,6 +10,7 @@ import { FileList, FileListSkeleton } from "@/components/FileList";
 import { PreviewModal } from "@/components/PreviewModal";
 import { Onboarding } from "@/components/Onboarding";
 import { EmptyState } from "@/components/EmptyState";
+import { SettingsModal } from "@/components/SettingsModal";
 import { useFiles } from "@/hooks/useFiles";
 import { useWallet } from "@/stores/walletStore";
 import { cn } from "@/lib/cn";
@@ -39,6 +40,7 @@ export function App() {
   const [sort, setSort] = useState<SortKey>("date");
   const [view, setView] = useState<ViewMode>("grid");
   const [selected, setSelected] = useState<BlobFile | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const visible = useMemo(() => {
     if (!files) return [];
@@ -60,7 +62,7 @@ export function App() {
         <Onboarding />
       ) : (
         <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
+        <Sidebar onOpenSettings={() => setSettingsOpen(true)} />
         <main className="flex-1 overflow-auto">
           <div className="mx-auto flex max-w-5xl flex-col gap-5 px-6 py-6">
             <div className="relative">
@@ -167,6 +169,7 @@ export function App() {
         </div>
       )}
       <PreviewModal file={selected} onClose={() => setSelected(null)} />
+      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
 }

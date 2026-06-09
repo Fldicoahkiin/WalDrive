@@ -137,23 +137,23 @@ waldrive/                               # bun workspaces monorepo
 │
 ├── src/                                # Vite/React desktop frontend (the console)
 │   ├── main.tsx                        # React root + QueryClientProvider
-│   ├── App.tsx                         # shell: TitleBar + Sidebar + grid/list + Preview/Settings, Onboarding when no wallet
+│   ├── App.tsx                         # source-list shell: Sidebar + content toolbar (search/sort/view/theme) + grid/list, Onboarding when no wallet
 │   ├── globals.css                     # Tailwind + HeroUI styles, DESIGN.md palette, dark/light tokens
 │   ├── vite-env.d.ts
 │   │
 │   ├── components/
 │   │   ├── ui/Button.tsx               # HeroUI v3 Button passthrough — prefer HeroUI first
-│   │   ├── TitleBar.tsx                # tauri-drag-region bar + theme toggle (minimal, macOS)
-│   │   ├── Sidebar.tsx                 # branding + Wallet/Storage/Settings buttons (open Settings)
-│   │   ├── SettingsModal.tsx           # editable network/endpoints/epochs/contract + WalletPanel
-│   │   ├── WalletPanel.tsx             # balance, testnet faucet, reveal/import/generate/remove
+│   │   ├── ThemeToggle.tsx             # animated dark/light toggle (lives in the content toolbar)
+│   │   ├── Sidebar.tsx                 # source list: type-filter nav (HeroUI ListBox) + wallet/storage footer + Settings
+│   │   ├── SettingsModal.tsx           # HeroUI Modal: appearance/network (ToggleButtonGroup), endpoints, epochs (NumberField), contract + WalletPanel
+│   │   ├── WalletPanel.tsx             # balance, testnet faucet, reveal/import; generate/remove via AlertDialog
 │   │   ├── Onboarding.tsx              # no-wallet first run — generate or import a wallet
 │   │   ├── EmptyState.tsx              # icon + message for no-files / no-match
 │   │   ├── UploadZone.tsx              # drag-to-upload (ProgressBar stages)
 │   │   ├── FileGrid.tsx                # motion grid (virtual scrolling = Roadmap)
 │   │   ├── FileList.tsx                # list view
 │   │   ├── PreviewBody.tsx             # image / pdf / text preview body
-│   │   └── PreviewModal.tsx            # preview chrome + rename / delete / "copy share link"
+│   │   └── PreviewModal.tsx            # HeroUI Modal: inline preview + rename + delete (AlertDialog) + copy share link
 │   │
 │   ├── hooks/
 │   │   ├── useUpload.ts                # uploadBlob() → blobId, then in-process register
@@ -807,15 +807,16 @@ import { Card, Button } from '@heroui/react';
 <Button color="primary" onPress={upload}>Upload</Button>
 ```
 
-Component mapping:
-- Upload button → `<Button color="primary" onPress>`
-- Status labels → `<Chip color="warning|primary|success|danger">`
-- File cards → `<Card isPressable isHoverable>` (compound)
-- Loading → `<Spinner>`
-- Blob ID copy → `<Tooltip content="Copied!">`
-- Context menu → `<Dropdown>` + `<Dropdown.Menu>`
-- Upload progress → `<Modal>`
-- Grid / List toggle → `<Tabs>`
+Component mapping (as built):
+- Buttons → `<Button variant onPress>` (ui/Button wraps HeroUI)
+- Settings / file preview → `<Modal>` (controlled via `isOpen` / `onOpenChange`)
+- Confirmations (delete file, generate / remove wallet) → `<AlertDialog>` (status icon + danger action)
+- Sidebar type-filter nav → `<ListBox selectionMode="single">`
+- Segmented (sort / view / appearance / network) → `<ToggleButtonGroup selectionMode="single">`
+- Search → `<SearchField>`; epochs stepper → `<NumberField>`
+- Upload progress → `<ProgressBar>` (compound Track/Fill); status labels → `<Chip>`
+- Tooltips → `<Tooltip>` + `<Tooltip.Content>`
+- File cards / list rows → `motion.button` over a styled surface (HeroUI Card has no `isPressable` in v3)
 
 Always fetch v3 docs before implementing (heroui-react skill / `https://heroui.com/docs/react/components/{name}.mdx`).
 

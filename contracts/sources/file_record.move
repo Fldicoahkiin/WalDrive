@@ -154,4 +154,28 @@ module waldrive::file_record {
         } = record;
         object::delete(id);
     }
+
+    // === test-only accessors ===
+    // Struct fields are module-private; expose read-only views for unit tests.
+
+    #[test_only]
+    public fun name(record: &FileRecord): String { record.name }
+
+    #[test_only]
+    public fun version(record: &FileRecord): u64 { record.version }
+
+    #[test_only]
+    public fun is_deleted(record: &FileRecord): bool { record.is_deleted }
+
+    #[test_only]
+    public fun is_public(record: &FileRecord): bool { record.is_public }
+
+    #[test_only]
+    public fun tags(record: &FileRecord): vector<String> { record.tags }
+
+    #[test_only]
+    public fun folder_id(record: &FileRecord): Option<ID> { record.folder_id }
+
+    #[test_only]
+    public fun parent_version_id(record: &FileRecord): Option<ID> { record.parent_version_id }
 }

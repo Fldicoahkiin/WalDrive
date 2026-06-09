@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { Check, ExternalLink, Loader2, Pencil, Share2, Trash2, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check, ExternalLink, Loader2, Pencil, Share2, Trash2 } from "lucide-react";
+import { AlertDialog, Input, Modal } from "@heroui/react";
 import type { BlobFile } from "@waldrive/shared";
 import { Button } from "@/components/ui/Button";
 import { PreviewBody } from "@/components/PreviewBody";
@@ -10,14 +10,17 @@ import { blobUrl } from "@/lib/constants";
 import { formatBytes } from "@/lib/utils";
 import { fileKind } from "@/lib/fileKind";
 
-const EASE = [0.16, 1, 0.3, 1] as const;
-
 export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose: () => void }) {
-  const [copied, setCopied] = useState(false);
-  const [name, setName] = useState(file?.name ?? "");
+  // Retain the last file through the close animation so content doesn't vanish.
+  const [shown, setShown] = useState<BlobFile | null>(file);
+  useEffect(() => {
+    if (file) setShown(file);
+  }, [file]);
+  const f = file ?? shown;
+
+  const [name, setName] = useState(f?.name ?? "");
   const [draft, setDraft] = useState<string | null>(null);
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const [copied, setCopied] = useState(false);
   const { rename, status: renameStatus, error: renameError } = useRename();
   const { remove, status: deleteStatus, error: deleteError } = useDelete();
   const editing = draft !== null;
@@ -25,89 +28,44 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
   const deleting = deleteStatus === "deleting";
 
   useEffect(() => {
-    setName(file?.name ?? "");
+    setName(f?.name ?? "");
     setDraft(null);
-    setConfirmingDelete(false);
-  }, [file]);
+  }, [f?.objectId]);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
-  useEffect(() => {
-    if (!file) return;
-    const restoreTo = document.activeElement as HTMLElement | null;
-    panelRef.current?.focus();
-    return () => restoreTo?.focus();
-  }, [file]);
+  const kind = f ? fileKind(f.mimeType, f.name) : null;
 
   async function submitRename() {
-    if (!file || draft === null) return;
+    if (!f || draft === null) return;
     const next = draft.trim();
     if (!next || next === name) {
       setDraft(null);
       return;
     }
-    const ok = await rename(file.objectId, next);
-    if (ok) {
+    if (await rename(f.objectId, next)) {
       setName(next);
       setDraft(null);
     }
   }
 
   async function copyLink() {
-    if (!file) return;
-    await navigator.clipboard.writeText(blobUrl(file.blobId));
+    if (!f) return;
+    await navigator.clipboard.writeText(blobUrl(f.blobId));
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }
 
   async function confirmDelete() {
-    if (!file) return;
-    const ok = await remove(file.objectId);
-    if (ok) {
-      setConfirmingDelete(false);
-      onClose();
-    }
+    if (f && (await remove(f.objectId))) onClose();
   }
 
-  const kind = file ? fileKind(file.mimeType, file.name) : null;
-
   return (
-    <AnimatePresence>
-      {file && kind && (
-        <motion.div
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-6"
-          exit={{ opacity: 0 }}
-          initial={{ opacity: 0 }}
-          style={{ background: "var(--scrim)" }}
-          transition={{ duration: 0.18 }}
-          onClick={onClose}
-        >
-          <motion.div
-            ref={panelRef}
-            aria-label={name}
-            aria-modal="true"
-            layoutId={`file-${file.objectId}`}
-            className="lift-2 flex max-h-[80vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-hairline-strong bg-surface-1 outline-none"
-            role="dialog"
-            tabIndex={-1}
-            transition={{ layout: { duration: 0.32, ease: EASE } }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <motion.div
-              animate={{ opacity: 1 }}
-              className="flex min-h-0 flex-1 flex-col"
-              initial={{ opacity: 0 }}
-              transition={{ duration: 0.2, delay: 0.12 }}
-            >
-              <div className="flex items-center justify-between gap-3 border-b border-hairline px-4 py-3">
-                <div className="flex min-w-0 flex-1 items-center gap-2">
+    <Modal isOpen={!!file} onOpenChange={(v) => !v && onClose()}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog className="w-full max-w-2xl">
+            {f && kind && (
+              <>
+                <Modal.Header className="flex items-center gap-2">
                   <kind.Icon
                     aria-hidden
                     className="size-4 shrink-0"
@@ -115,133 +73,108 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
                     strokeWidth={1.75}
                   />
                   {editing ? (
-                    <input
+                    <Input
                       autoFocus
                       aria-label="New file name"
-                      className="selectable min-w-0 flex-1 rounded border border-hairline-strong bg-canvas px-2 py-1 text-sm text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent-focus/50"
+                      className="selectable min-w-0 flex-1 text-sm"
                       disabled={saving}
                       value={draft}
+                      variant="secondary"
                       onChange={(e) => setDraft(e.target.value)}
                       onKeyDown={(e) => {
-                        e.stopPropagation();
                         if (e.key === "Enter") void submitRename();
                         else if (e.key === "Escape") setDraft(null);
                       }}
                     />
                   ) : (
-                    <span className="truncate text-sm font-medium text-ink" title={name}>
+                    <Modal.Heading className="min-w-0 flex-1 truncate" title={name}>
                       {name}
-                    </span>
+                    </Modal.Heading>
                   )}
-                </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  {editing ? (
-                    <Button
-                      isIconOnly
-                      aria-label="Save name"
-                      isDisabled={saving}
-                      size="sm"
-                      variant="ghost"
-                      onPress={submitRename}
-                    >
-                      {saving ? (
-                        <Loader2 className="size-4 animate-spin" />
-                      ) : (
-                        <Check className="size-4" />
-                      )}
-                    </Button>
-                  ) : (
-                    <Button
-                      isIconOnly
-                      aria-label="Rename"
-                      size="sm"
-                      variant="ghost"
-                      onPress={() => setDraft(name)}
-                    >
+                  <Button
+                    isIconOnly
+                    aria-label={editing ? "Save name" : "Rename"}
+                    isDisabled={saving}
+                    size="sm"
+                    variant="ghost"
+                    onPress={() => (editing ? submitRename() : setDraft(name))}
+                  >
+                    {saving ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : editing ? (
+                      <Check className="size-4" />
+                    ) : (
                       <Pencil className="size-4" />
-                    </Button>
-                  )}
-                  <Button isIconOnly aria-label="Close" size="sm" variant="ghost" onPress={onClose}>
-                    <X className="size-4" />
+                    )}
                   </Button>
-                </div>
-              </div>
+                  <Modal.CloseTrigger />
+                </Modal.Header>
 
-              <div className="flex-1 overflow-auto p-4">
-                <PreviewBody file={file} kind={kind} />
-              </div>
+                <Modal.Body className="max-h-[62vh] overflow-auto">
+                  <PreviewBody file={f} kind={kind} />
+                </Modal.Body>
 
-              <div className="flex items-center justify-between gap-3 border-t border-hairline px-4 py-3 text-xs text-ink-subtle">
-                {confirmingDelete ? (
-                  <>
-                    <span
-                      className={deleteError ? "truncate text-danger" : "truncate"}
-                      title={deleteError ?? undefined}
-                    >
-                      {deleteError ?? "Delete this file's on-chain record? This can't be undone."}
-                    </span>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <Button
-                        isDisabled={deleting}
-                        size="sm"
-                        variant="ghost"
-                        onPress={() => setConfirmingDelete(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        isDisabled={deleting}
-                        size="sm"
-                        variant="danger"
-                        onPress={confirmDelete}
-                      >
-                        {deleting ? (
-                          <Loader2 className="size-3.5 animate-spin" />
-                        ) : (
-                          <Trash2 className="size-3.5" />
-                        )}
-                        Delete
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <span
-                      className={renameError ? "truncate text-danger" : "truncate"}
-                      title={renameError ?? undefined}
-                    >
-                      {renameError ?? `${file.mimeType} · ${formatBytes(file.size)}`}
-                    </span>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <Button
-                        isIconOnly
-                        aria-label="Delete"
-                        size="sm"
-                        variant="ghost"
-                        onPress={() => setConfirmingDelete(true)}
-                      >
+                <Modal.Footer className="items-center justify-between gap-3 text-xs text-ink-subtle">
+                  <span
+                    className={renameError ? "min-w-0 truncate text-danger" : "min-w-0 truncate"}
+                    title={renameError ?? undefined}
+                  >
+                    {renameError ?? `${f.mimeType} · ${formatBytes(f.size)}`}
+                  </span>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <AlertDialog>
+                      <Button isIconOnly aria-label="Delete" size="sm" variant="ghost">
                         <Trash2 className="size-3.5" />
                       </Button>
-                      <Button size="sm" variant="secondary" onPress={copyLink}>
-                        {copied ? <Check className="size-3.5" /> : <Share2 className="size-3.5" />}
-                        {copied ? "Copied" : "Share link"}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="primary"
-                        onPress={() => window.open(blobUrl(file.blobId), "_blank")}
-                      >
-                        <ExternalLink className="size-3.5" />
-                        Open
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+                      <AlertDialog.Backdrop>
+                        <AlertDialog.Container>
+                          <AlertDialog.Dialog className="max-w-sm">
+                            <AlertDialog.Header>
+                              <AlertDialog.Icon status="danger" />
+                              <AlertDialog.Heading>Delete this file?</AlertDialog.Heading>
+                            </AlertDialog.Header>
+                            <AlertDialog.Body>
+                              <p className={deleteError ? "text-sm text-danger" : "text-sm text-ink-subtle"}>
+                                {deleteError ??
+                                  "This removes the file's on-chain record. It can't be undone."}
+                              </p>
+                            </AlertDialog.Body>
+                            <AlertDialog.Footer>
+                              <Button slot="close" variant="ghost">
+                                Cancel
+                              </Button>
+                              <Button isDisabled={deleting} variant="danger" onPress={confirmDelete}>
+                                {deleting ? (
+                                  <Loader2 className="size-3.5 animate-spin" />
+                                ) : (
+                                  <Trash2 className="size-3.5" />
+                                )}
+                                Delete
+                              </Button>
+                            </AlertDialog.Footer>
+                          </AlertDialog.Dialog>
+                        </AlertDialog.Container>
+                      </AlertDialog.Backdrop>
+                    </AlertDialog>
+                    <Button size="sm" variant="secondary" onPress={copyLink}>
+                      {copied ? <Check className="size-3.5" /> : <Share2 className="size-3.5" />}
+                      {copied ? "Copied" : "Share link"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      onPress={() => window.open(blobUrl(f.blobId), "_blank")}
+                    >
+                      <ExternalLink className="size-3.5" />
+                      Open
+                    </Button>
+                  </div>
+                </Modal.Footer>
+              </>
+            )}
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
+    </Modal>
   );
 }

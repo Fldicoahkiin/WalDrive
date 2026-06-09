@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { FolderOpen, LayoutGrid, List, Search, SearchX } from "lucide-react";
-import { Input } from "@heroui/react";
+import { FolderOpen, LayoutGrid, List, SearchX } from "lucide-react";
+import { SearchField, ToggleButton, ToggleButtonGroup } from "@heroui/react";
 import type { BlobFile } from "@waldrive/shared";
 import { Sidebar, type NavKey } from "@/components/Sidebar";
 import { UploadZone } from "@/components/UploadZone";
@@ -14,7 +14,6 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useFiles } from "@/hooks/useFiles";
 import { useWallet } from "@/stores/walletStore";
 import { fileCategory } from "@/lib/fileKind";
-import { cn } from "@/lib/cn";
 
 type SortKey = "date" | "name" | "size";
 const SORTS: { key: SortKey; label: string }[] = [
@@ -86,54 +85,51 @@ export function App() {
               data-tauri-drag-region
               className="flex h-12 shrink-0 items-center gap-2 border-b border-hairline px-3"
             >
-              <div className="relative flex max-w-sm flex-1 items-center">
-                <Search
-                  aria-hidden
-                  className="pointer-events-none absolute left-3 z-10 size-4 text-ink-tertiary"
-                />
-                <Input
-                  fullWidth
-                  aria-label="Search files"
-                  className="selectable pl-9"
-                  placeholder="Search files…"
-                  value={query}
-                  variant="secondary"
-                  onChange={(e) => setQuery(e.target.value)}
-                />
-              </div>
+              <SearchField
+                aria-label="Search files"
+                className="max-w-sm flex-1"
+                value={query}
+                onChange={setQuery}
+              >
+                <SearchField.Group>
+                  <SearchField.SearchIcon />
+                  <SearchField.Input className="selectable" placeholder="Search files…" />
+                  <SearchField.ClearButton />
+                </SearchField.Group>
+              </SearchField>
               <div className="ml-auto flex shrink-0 items-center gap-2">
-                <div className="flex items-center gap-0.5 rounded-lg border border-hairline bg-surface-1 p-0.5">
-                  {SORTS.map((s) => (
-                    <button
-                      key={s.key}
-                      className={cn(
-                        "rounded-md px-2.5 py-1 text-xs transition-colors",
-                        sort === s.key ? "bg-surface-2 text-ink" : "text-ink-subtle hover:text-ink",
-                      )}
-                      type="button"
-                      onClick={() => setSort(s.key)}
-                    >
-                      {s.label}
-                    </button>
+                <ToggleButtonGroup
+                  aria-label="Sort by"
+                  disallowEmptySelection
+                  selectedKeys={new Set([sort])}
+                  selectionMode="single"
+                  onSelectionChange={(keys) => {
+                    const k = [...(keys as Set<string>)][0];
+                    if (k) setSort(k as SortKey);
+                  }}
+                >
+                  {SORTS.map((sb) => (
+                    <ToggleButton key={sb.key} id={sb.key}>
+                      {sb.label}
+                    </ToggleButton>
                   ))}
-                </div>
-                <div className="flex items-center gap-0.5 rounded-lg border border-hairline bg-surface-1 p-0.5">
+                </ToggleButtonGroup>
+                <ToggleButtonGroup
+                  aria-label="View"
+                  disallowEmptySelection
+                  selectedKeys={new Set([view])}
+                  selectionMode="single"
+                  onSelectionChange={(keys) => {
+                    const k = [...(keys as Set<string>)][0];
+                    if (k) setView(k as ViewMode);
+                  }}
+                >
                   {VIEWS.map((v) => (
-                    <button
-                      key={v.key}
-                      aria-label={v.label}
-                      aria-pressed={view === v.key}
-                      className={cn(
-                        "rounded-md p-1.5 transition-colors",
-                        view === v.key ? "bg-surface-2 text-ink" : "text-ink-subtle hover:text-ink",
-                      )}
-                      type="button"
-                      onClick={() => setView(v.key)}
-                    >
+                    <ToggleButton key={v.key} isIconOnly aria-label={v.label} id={v.key}>
                       <v.Icon aria-hidden className="size-3.5" strokeWidth={1.75} />
-                    </button>
+                    </ToggleButton>
                   ))}
-                </div>
+                </ToggleButtonGroup>
                 <ThemeToggle />
               </div>
             </div>

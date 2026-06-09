@@ -49,10 +49,8 @@ export function Sidebar({
 
   return (
     <aside className="flex w-60 shrink-0 flex-col bg-surface-1">
-      <div
-        data-tauri-drag-region
-        className="flex h-12 shrink-0 items-center gap-2 pr-4 pl-20"
-      >
+      <div data-tauri-drag-region className="h-12 shrink-0" />
+      <div className="flex items-center gap-2 px-4 pb-2">
         <HardDrive aria-hidden className="size-4 shrink-0 text-accent" />
         <span className="text-sm font-semibold tracking-tight text-ink">WalDrive</span>
       </div>

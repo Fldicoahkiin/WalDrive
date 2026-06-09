@@ -2,14 +2,55 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { getFaucetHost, requestSuiFromFaucetV2 } from "@mysten/sui/faucet";
 import { Check, Copy, Droplet, Eye, EyeOff, Loader2, Plus, Trash2, Upload } from "lucide-react";
-import { Input } from "@heroui/react";
+import { AlertDialog, Input } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
 import { useWallet } from "@/stores/walletStore";
 import { useSettings } from "@/stores/settingsStore";
 import { useBalance } from "@/hooks/useBalance";
 
-type Mode = "view" | "reveal" | "import" | "confirm-new" | "confirm-remove";
+type Mode = "view" | "reveal" | "import";
 type Faucet = "idle" | "loading" | "ok" | "error";
+
+function Confirm({
+  trigger,
+  heading,
+  body,
+  confirmLabel,
+  onConfirm,
+}: {
+  trigger: React.ReactNode;
+  heading: string;
+  body: string;
+  confirmLabel: string;
+  onConfirm: () => void;
+}) {
+  return (
+    <AlertDialog>
+      {trigger}
+      <AlertDialog.Backdrop>
+        <AlertDialog.Container>
+          <AlertDialog.Dialog className="max-w-sm">
+            <AlertDialog.Header>
+              <AlertDialog.Icon status="warning" />
+              <AlertDialog.Heading>{heading}</AlertDialog.Heading>
+            </AlertDialog.Header>
+            <AlertDialog.Body>
+              <p className="text-sm text-ink-subtle">{body}</p>
+            </AlertDialog.Body>
+            <AlertDialog.Footer>
+              <Button slot="close" variant="ghost">
+                Cancel
+              </Button>
+              <Button slot="close" variant="primary" onPress={onConfirm}>
+                {confirmLabel}
+              </Button>
+            </AlertDialog.Footer>
+          </AlertDialog.Dialog>
+        </AlertDialog.Container>
+      </AlertDialog.Backdrop>
+    </AlertDialog>
+  );
+}
 
 export function WalletPanel({ onClose }: { onClose?: () => void }) {
   const address = useWallet((s) => s.address);
@@ -110,35 +151,6 @@ export function WalletPanel({ onClose }: { onClose?: () => void }) {
     );
   }
 
-  if (mode === "confirm-new" || mode === "confirm-remove") {
-    const removing = mode === "confirm-remove";
-    return (
-      <div className="flex items-center justify-between gap-3 rounded-lg border border-hairline bg-surface-2 p-3">
-        <span className="text-xs text-ink-subtle">
-          {removing ? "Remove this wallet from the app?" : "Replace the current wallet with a new one?"}
-        </span>
-        <div className="flex shrink-0 items-center gap-2">
-          <Button size="sm" variant="ghost" onPress={() => setMode("view")}>Cancel</Button>
-          <Button
-            size="sm"
-            variant={removing ? "danger" : "primary"}
-            onPress={() => {
-              if (removing) {
-                remove();
-                onClose?.();
-              } else {
-                generate();
-              }
-              setMode("view");
-            }}
-          >
-            {removing ? "Remove" : "Generate"}
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-2.5">
       <div className="flex items-center justify-between gap-3">
@@ -191,12 +203,31 @@ export function WalletPanel({ onClose }: { onClose?: () => void }) {
         <Button size="sm" variant="ghost" onPress={() => setMode("import")}>
           <Upload className="size-3.5" /> Import
         </Button>
-        <Button size="sm" variant="ghost" onPress={() => setMode("confirm-new")}>
-          <Plus className="size-3.5" /> New
-        </Button>
-        <Button size="sm" variant="ghost" onPress={() => setMode("confirm-remove")}>
-          <Trash2 className="size-3.5" /> Remove
-        </Button>
+        <Confirm
+          body="This replaces the current wallet with a brand-new one."
+          confirmLabel="Generate"
+          heading="Generate a new wallet?"
+          onConfirm={generate}
+          trigger={
+            <Button size="sm" variant="ghost">
+              <Plus className="size-3.5" /> New
+            </Button>
+          }
+        />
+        <Confirm
+          body="This removes the wallet from the app and returns to the welcome screen."
+          confirmLabel="Remove"
+          heading="Remove this wallet?"
+          onConfirm={() => {
+            remove();
+            onClose?.();
+          }}
+          trigger={
+            <Button size="sm" variant="ghost">
+              <Trash2 className="size-3.5" /> Remove
+            </Button>
+          }
+        />
       </div>
     </div>
   );

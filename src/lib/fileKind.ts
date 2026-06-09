@@ -45,6 +45,33 @@ export function fileKind(mimeType: string, name: string): FileKind {
   return { Icon: File, color: "#8a8f98", label };
 }
 
+export type FileCategory = "image" | "media" | "document" | "code" | "other";
+
+/** Coarse category for the sidebar's type filter. */
+export function fileCategory(mimeType: string, name: string): FileCategory {
+  const e = ext(name);
+  if (mimeType.startsWith("image/")) return "image";
+  if (mimeType.startsWith("video/") || mimeType.startsWith("audio/")) return "media";
+  if (mimeType === "application/json" || e === "json" || CODE_EXT.has(e)) return "code";
+  if (
+    mimeType === "application/pdf" ||
+    e === "pdf" ||
+    e === "md" ||
+    e === "markdown" ||
+    mimeType.startsWith("text/")
+  )
+    return "document";
+  return "other";
+}
+
+export const CATEGORY_META: Record<FileCategory, { label: string; Icon: LucideIcon }> = {
+  image: { label: "Images", Icon: FileImage },
+  media: { label: "Media", Icon: FileVideo },
+  document: { label: "Documents", Icon: FileText },
+  code: { label: "Code", Icon: FileCode },
+  other: { label: "Other", Icon: File },
+};
+
 export type PreviewMode = "image" | "pdf" | "text" | "none";
 
 const TEXT_MIME = /^(text\/|application\/(json|xml|javascript|x-sh|toml|x-yaml|x-toml))/;

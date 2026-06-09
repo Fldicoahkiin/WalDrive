@@ -7,42 +7,36 @@ import { Button } from "@/components/ui/Button";
 import { useWallet } from "@/stores/walletStore";
 import { useSettings } from "@/stores/settingsStore";
 import { useBalance } from "@/hooks/useBalance";
+import { shortenAddress } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 
 type Mode = "view" | "reveal" | "import";
 type Faucet = "idle" | "loading" | "ok" | "error";
 
-function Confirm({
-  trigger,
-  heading,
-  body,
-  confirmLabel,
-  onConfirm,
-}: {
-  trigger: React.ReactNode;
-  heading: string;
-  body: string;
-  confirmLabel: string;
-  onConfirm: () => void;
-}) {
+function RemoveConfirm({ onConfirm }: { onConfirm: () => void }) {
   return (
     <AlertDialog>
-      {trigger}
+      <Button isIconOnly aria-label="Remove account" size="sm" variant="ghost">
+        <Trash2 className="size-3.5" />
+      </Button>
       <AlertDialog.Backdrop>
         <AlertDialog.Container>
           <AlertDialog.Dialog className="max-w-sm">
             <AlertDialog.Header>
               <AlertDialog.Icon status="warning" />
-              <AlertDialog.Heading>{heading}</AlertDialog.Heading>
+              <AlertDialog.Heading>Remove this account?</AlertDialog.Heading>
             </AlertDialog.Header>
             <AlertDialog.Body>
-              <p className="text-sm text-ink-subtle">{body}</p>
+              <p className="text-sm text-ink-subtle">
+                Reveal and back up its key first — removing it here erases it from this device.
+              </p>
             </AlertDialog.Body>
             <AlertDialog.Footer>
               <Button slot="close" variant="ghost">
                 Cancel
               </Button>
-              <Button slot="close" variant="primary" onPress={onConfirm}>
-                {confirmLabel}
+              <Button slot="close" variant="danger" onPress={onConfirm}>
+                Remove
               </Button>
             </AlertDialog.Footer>
           </AlertDialog.Dialog>
@@ -53,10 +47,12 @@ function Confirm({
 }
 
 export function WalletPanel({ onClose }: { onClose?: () => void }) {
+  const accounts = useWallet((s) => s.accounts);
   const address = useWallet((s) => s.address);
   const generate = useWallet((s) => s.generate);
   const importKey = useWallet((s) => s.importKey);
   const remove = useWallet((s) => s.remove);
+  const switchTo = useWallet((s) => s.switchTo);
   const reveal = useWallet((s) => s.reveal);
   const network = useSettings((s) => s.network);
   const { data: balance, isLoading: balanceLoading } = useBalance();
@@ -103,13 +99,11 @@ export function WalletPanel({ onClose }: { onClose?: () => void }) {
     }
   }
 
-  if (!address) return null;
-
   if (mode === "reveal") {
     const secret = reveal() ?? "";
     return (
       <div className="flex flex-col gap-2 rounded-lg border border-danger/40 bg-danger/5 p-3">
-        <p className="text-xs text-danger">Anyone with this key controls the wallet. Never share it.</p>
+        <p className="text-xs text-danger">Anyone with this key controls the account. Never share it.</p>
         <div className="flex items-center gap-1.5">
           <code className="selectable min-w-0 flex-1 truncate rounded bg-canvas px-2 py-1.5 font-mono text-xs text-ink-muted">
             {secret}
@@ -153,24 +147,59 @@ export function WalletPanel({ onClose }: { onClose?: () => void }) {
 
   return (
     <div className="flex flex-col gap-2.5">
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-xs text-ink-subtle">Address</span>
-        <div className="flex min-w-0 items-center gap-1.5">
-          <span className="selectable truncate font-mono text-xs text-ink-muted" title={address}>
-            {address}
-          </span>
-          <button
-            aria-label="Copy address"
-            className="shrink-0 rounded p-1 text-ink-tertiary transition-colors hover:text-ink"
-            type="button"
-            onClick={() => copy("addr", address)}
-          >
-            {copied === "addr" ? <Check className="size-3.5 text-success" /> : <Copy className="size-3.5" />}
-          </button>
-        </div>
+      <div className="flex flex-col gap-0.5">
+        {accounts.map((acc) => {
+          const isActive = acc.address === address;
+          return (
+            <div
+              key={acc.address}
+              className={cn(
+                "flex items-center gap-1.5 rounded-md px-2 py-1.5 transition-colors",
+                isActive ? "bg-surface-2" : "hover:bg-surface-2",
+              )}
+            >
+              <button
+                aria-label={`Switch to ${acc.address}`}
+                aria-pressed={isActive}
+                className="flex min-w-0 flex-1 items-center gap-2 text-left outline-none"
+                type="button"
+                onClick={() => switchTo(acc.address)}
+              >
+                <span
+                  aria-hidden
+                  className={cn(
+                    "size-1.5 shrink-0 rounded-full",
+                    isActive ? "bg-accent" : "bg-transparent",
+                  )}
+                />
+                <span className="truncate font-mono text-xs text-ink">
+                  {shortenAddress(acc.address, 6)}
+                </span>
+              </button>
+              <button
+                aria-label="Copy address"
+                className="shrink-0 rounded p-1 text-ink-tertiary transition-colors hover:text-ink"
+                type="button"
+                onClick={() => copy(acc.address, acc.address)}
+              >
+                {copied === acc.address ? (
+                  <Check className="size-3.5 text-success" />
+                ) : (
+                  <Copy className="size-3.5" />
+                )}
+              </button>
+              <RemoveConfirm
+                onConfirm={() => {
+                  remove(acc.address);
+                  if (isActive && accounts.length === 1) onClose?.();
+                }}
+              />
+            </div>
+          );
+        })}
       </div>
 
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3 px-2">
         <span className="text-xs text-ink-subtle">Balance</span>
         <div className="flex items-center gap-2">
           <span className="font-mono text-xs text-ink-muted">
@@ -196,38 +225,16 @@ export function WalletPanel({ onClose }: { onClose?: () => void }) {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+      <div className="flex flex-wrap items-center gap-1.5">
         <Button size="sm" variant="ghost" onPress={() => setMode("reveal")}>
           <Eye className="size-3.5" /> Reveal key
         </Button>
         <Button size="sm" variant="ghost" onPress={() => setMode("import")}>
           <Upload className="size-3.5" /> Import
         </Button>
-        <Confirm
-          body="This replaces the current wallet with a brand-new one."
-          confirmLabel="Generate"
-          heading="Generate a new wallet?"
-          onConfirm={generate}
-          trigger={
-            <Button size="sm" variant="ghost">
-              <Plus className="size-3.5" /> New
-            </Button>
-          }
-        />
-        <Confirm
-          body="This removes the wallet from the app and returns to the welcome screen."
-          confirmLabel="Remove"
-          heading="Remove this wallet?"
-          onConfirm={() => {
-            remove();
-            onClose?.();
-          }}
-          trigger={
-            <Button size="sm" variant="ghost">
-              <Trash2 className="size-3.5" /> Remove
-            </Button>
-          }
-        />
+        <Button size="sm" variant="ghost" onPress={generate}>
+          <Plus className="size-3.5" /> New account
+        </Button>
       </div>
     </div>
   );

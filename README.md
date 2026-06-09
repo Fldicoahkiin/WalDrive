@@ -4,8 +4,8 @@
 
 WalDrive is a **cross-platform desktop app** — a Tauri 2.0 shell wrapping a Vite + React SPA. File **metadata lives on Sui** (Move objects), **blob bytes live on Walrus**, and there is **no backend in between**. The app signs Sui transactions in-process with a local keypair (no browser, no wallet extension); the same Walrus data is also reachable from any AI client / CLI through the MCP server.
 
-- **Desktop console** — drag-to-upload, browse, preview, rename, delete, search, and share; manage the local wallet (generate / import / balance / faucet) and endpoints from the sidebar.
-- **MCP server** — `upload_file` / `list_files` for AI clients and scripts over the same Walrus data.
+- **Desktop console** — drag-to-upload, browse, preview, rename, tag, version, organise into folders, trash / restore, search, and share; a multi-account local wallet (generate / import / switch / balance / faucet) and endpoints from the sidebar.
+- **MCP server** — `upload_file` / `list_files` / `download_file` / `get_file_info` for AI clients and scripts over the same Walrus data.
 - **Move contracts** — `FileRecord` and `ShareLink` objects make file metadata verifiable on-chain.
 
 ---
@@ -106,6 +106,8 @@ Lets AI clients (Claude, Cursor, …) and scripts operate the same Walrus data f
 |---|---|
 | `upload_file` | Upload a local file to Walrus and register its metadata on Sui |
 | `list_files` | List FileRecord objects owned by the configured keypair |
+| `download_file` | Download a blob from Walrus by blob ID to a local path |
+| `get_file_info` | Get a file's on-chain metadata + public read URL by object ID |
 
 Client config (e.g. `~/.claude/claude_desktop_config.json`):
 ```json
@@ -153,15 +155,14 @@ sui move build --path contracts   # build contracts
 
 ## Roadmap
 
-Deferred past the hackathon MVP (kept by design):
+Deferred past the hackathon MVP (kept by design). Shipped since the original cut: multi-account wallet, trash, tags, versioning, nested folders + breadcrumb, sort + type filter, the mainnet publisher-auth header, and the `download_file` / `get_file_info` MCP tools.
 
 - SDK `writeFilesFlow` upload (user-paid WAL, fully on-chain) for mainnet
-- Blob renewal before expiry; mainnet publisher auth
-- Versioning, soft-delete + trash, tags, nested folders + breadcrumb
-- Sort / type filter / virtual scrolling; share-link expiry
-- Web share surface + short share codes (`share_link.move` exists but the desktop MVP just copies the aggregator URL)
-- Secure keypair storage (OS keychain via a Tauri command — the key is currently kept in `localStorage`, seeded from `VITE_WALDRIVE_KEYPAIR` on first run)
-- More MCP tools: download, folders, share links
+- Blob renewal before expiry; mainnet end-to-end test
+- Virtual scrolling; share-link expiry / `is_public` toggle
+- Web share surface + short share codes (`share_link.move` exists but the desktop copies the aggregator URL)
+- Secure keypair storage (OS keychain via a Tauri command — the key is currently in `localStorage`, seeded from `VITE_WALDRIVE_KEYPAIR`)
+- More MCP tools: `create_folder`, `list_folders`, `create_share_link`
 
 ## Notes
 - **Testnet only.** Mainnet needs new contract/Walrus URLs and a different upload path (mainnet publishers require auth).

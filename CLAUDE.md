@@ -144,23 +144,28 @@ waldrive/                               # bun workspaces monorepo
 │   ├── components/
 │   │   ├── ui/Button.tsx               # HeroUI v3 Button passthrough — prefer HeroUI first
 │   │   ├── ThemeToggle.tsx             # animated dark/light toggle (lives in the content toolbar)
-│   │   ├── Sidebar.tsx                 # source list: type-filter nav (HeroUI ListBox) + wallet/storage footer + Settings
-│   │   ├── SettingsModal.tsx           # HeroUI Modal: appearance/network (ToggleButtonGroup), endpoints, epochs (NumberField), contract + WalletPanel
-│   │   ├── WalletPanel.tsx             # balance, testnet faucet, reveal/import; generate/remove via AlertDialog
+│   │   ├── Sidebar.tsx                 # source list: type-filter + Trash nav (HeroUI ListBox) + wallet/storage footer + Settings
+│   │   ├── SettingsModal.tsx           # HeroUI Modal: appearance/network (ToggleButtonGroup), endpoints, epochs (NumberField), publisher token, contract + WalletPanel
+│   │   ├── WalletPanel.tsx             # multi-account list + switch; balance, faucet, reveal/import; generate/remove via AlertDialog
 │   │   ├── Onboarding.tsx              # no-wallet first run — generate or import a wallet
 │   │   ├── EmptyState.tsx              # icon + message for no-files / no-match
 │   │   ├── UploadZone.tsx              # drag-to-upload (ProgressBar stages)
 │   │   ├── FileGrid.tsx                # motion grid (virtual scrolling = Roadmap)
 │   │   ├── FileList.tsx                # list view
+│   │   ├── FolderNav.tsx               # breadcrumb + create-folder + subfolder tiles (All Files view)
 │   │   ├── PreviewBody.tsx             # image / pdf / text preview body
-│   │   └── PreviewModal.tsx            # HeroUI Modal: inline preview + rename + delete (AlertDialog) + copy share link
+│   │   └── PreviewModal.tsx            # HeroUI Modal: preview + rename + tags + version + move-to-folder + trash (AlertDialog) + share
 │   │
 │   ├── hooks/
 │   │   ├── useUpload.ts                # uploadBlob() → blobId, then in-process register
 │   │   ├── useFiles.ts                 # React Query: getOwnedObjects (FileRecord), cursor-paginated
 │   │   ├── useBalance.ts               # React Query: SUI balance for the active wallet
 │   │   ├── useRename.ts                # file_record::rename tx
-│   │   └── useDelete.ts                # file_record::delete tx
+│   │   ├── useDelete.ts                # trash / restore / purge (soft_delete / restore / delete)
+│   │   ├── useTags.ts                  # file_record::add_tag / remove_tag
+│   │   ├── useVersion.ts               # create_version (upload new bytes as the next version)
+│   │   ├── useFolders.ts               # React Query: Folder objects
+│   │   └── useFolder.ts                # create / rename / delete folder + move_to_folder / remove_from_folder
 │   │
 │   ├── stores/
 │   │   ├── walletStore.ts              # Zustand: keypair + address; generate/import/remove/reveal (localStorage, env-seeded)
@@ -701,10 +706,10 @@ MCP Server enables AI clients (Claude, Cursor, ChatGPT, Gemini, etc.) to operate
 |------|------|-------------|------------|
 | `upload_file` | **MVP** | Upload a file to Walrus and register metadata on Sui | `path: string`, `name?: string`, `folder_id?: string` |
 | `list_files` | **MVP** | List all files owned by the wallet | `folder_id?: string`, `limit?: number` |
-| `download_file` | Roadmap | Download a file from Walrus by blob ID | `blob_id: string`, `output_path?: string` |
+| `download_file` | **MVP** | Download a blob from Walrus by blob ID to a local path | `blob_id: string`, `output_path?: string` |
+| `get_file_info` | **MVP** | Get a file's on-chain metadata + public read URL | `object_id: string` |
 | `list_folders` | Roadmap | List all folders owned by the wallet | `parent_id?: string` |
 | `create_folder` | Roadmap | Create a new folder on Sui | `name: string`, `parent_id?: string` |
-| `get_file_info` | Roadmap | Get detailed file metadata from Sui | `object_id: string` |
 | `create_share_link` | Roadmap | Create a share link for a file | `file_id: string`, `share_code?: string` |
 
 ### MCP Server Implementation
@@ -874,27 +879,26 @@ bun run dev       # Development mode with watch
 
 ## Roadmap
 
-Deferred past the hackathon MVP — kept by design, not dropped:
+Deferred past the hackathon MVP — kept by design, not dropped.
+
+> **Shipped since the original cut**: multi-account wallet; trash (soft-delete / restore / purge); tags (`add_tag` / `remove_tag`); versioning (`create_version`, latest-only list); nested folders + breadcrumb + move-to-folder; sort + type filter; client-side filtering of soft-deleted / old versions; MCP `download_file` / `get_file_info`; mainnet publisher auth header (`publisherToken`).
 
 **Upload / Walrus**
-- SDK `writeFilesFlow` (B): user-signed, self-paid WAL, fully on-chain (mainnet path); browser needs an upload relay
-- Blob renewal before `expiry_epoch` (otherwise data is dropped while the FileRecord lingers)
-- Mainnet publisher auth (the testnet direct-publisher path won't work as-is on mainnet)
+- SDK `writeFilesFlow`: user-signed, self-paid WAL, fully on-chain (mainnet path); browser needs an upload relay
+- Blob renewal before `expiry_epoch`: find the user's Walrus `Blob` object, call extend (otherwise data is dropped while the FileRecord lingers)
+- Mainnet end-to-end test (the auth header is wired via `publisherToken`, but untested on mainnet)
 
 **Contracts / on-chain model**
-- Versioning: `create_version` + mark the superseded record (else both versions show in the list)
-- Soft delete + trash: `is_deleted` / `restore`
-- Tags: `add_tag` + a missing `remove_tag`; `move_to_folder` should validate the target is a Folder of the same owner
 - Folder cascade: pick a strategy for the orphan issue (see `folder::delete`)
+- `move_to_folder` should validate the target is a Folder of the same owner
 - ShareRegistry contention / collision: see the share_link known issue
 
 **Frontend**
-- Nested folders + breadcrumb, sort, type filter, virtual scrolling (`react-window`), drag-to-pan (`react-grab`)
-- Share-link expiry / `is_public` toggle
-- `getOwnedObjects` pagination; client-side filtering of soft-deleted / old versions
+- Virtual scrolling (`react-window`), drag-to-pan (`react-grab`)
+- Web share surface + share-link expiry / `is_public` toggle (the desktop copies the aggregator URL; `share_link.move` is kept for this)
 
 **MCP**
-- `download_file`, `create_folder`, `list_folders`, `get_file_info`, `create_share_link`
+- `create_folder`, `list_folders`, `create_share_link` (`download_file` / `get_file_info` are built)
 
 **Design**
 - Map DESIGN.md `#5e6ad2` → oklch CSS variable for HeroUI v3

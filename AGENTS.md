@@ -14,8 +14,8 @@ waldrive/                # bun workspaces monorepo
 ├── contracts/           # Move smart contracts (file_record, folder, share_link)
 ├── src/                 # Vite/React desktop frontend (the console)
 │   ├── main.tsx App.tsx # React root + single-window shell (no router)
-│   ├── components/      # Sidebar (source list), ThemeToggle, UploadZone, FileGrid/FileList, PreviewModal+SettingsModal (HeroUI Modal), WalletPanel, Onboarding, EmptyState, ui/
-│   ├── hooks/           # useUpload, useFiles, useBalance, useRename, useDelete
+│   ├── components/      # Sidebar (source list), ThemeToggle, UploadZone, FileGrid/FileList, FolderNav, PreviewModal+SettingsModal (HeroUI Modal), WalletPanel, Onboarding, EmptyState, ui/
+│   ├── hooks/           # useUpload, useFiles, useBalance, useRename, useDelete (trash), useTags, useVersion, useFolders, useFolder
 │   ├── stores/          # Zustand: walletStore (keypair, generate/import), settingsStore (network/endpoints/epochs/contract, persisted)
 │   └── lib/             # wallet, theme, constants (VITE_*), re-exports from @waldrive/shared
 └── mcp-server/          # MCP Server for devs / CLI / AI clients
@@ -29,15 +29,17 @@ waldrive/                # bun workspaces monorepo
 | Wallet (signer) | `src/stores/walletStore.ts`, `src/lib/wallet.ts` | local Ed25519 keypair; generate/import in-app, kept in localStorage (env `VITE_WALDRIVE_KEYPAIR` seeds first run) |
 | Settings / config | `src/components/SettingsModal.tsx`, `src/stores/settingsStore.ts` | HeroUI Modal: network/endpoints/epochs/contract editable + persisted; embeds WalletPanel |
 | Theme (dark/light) | `src/lib/theme.ts` | Zustand store; `data-theme` + class on `<html>` |
-| File metadata | `contracts/sources/file_record.move` | FileRecord (versioning/soft-delete = Roadmap) |
-| Folder hierarchy | `contracts/sources/folder.move` | Folder (nested = Roadmap; delete has orphan issue) |
+| File metadata | `contracts/sources/file_record.move` | FileRecord: tags, version/parent_version_id, is_deleted; rename/move/tag/soft_delete/create_version |
+| Folder hierarchy | `contracts/sources/folder.move` | Folder create/create_nested/rename/delete (delete leaves orphans — cascade = Roadmap) |
 | Share links (contract) | `contracts/sources/share_link.move` | ShareLink + ShareRegistry — unused by desktop MVP (Roadmap) |
 | Upload flow | `src/hooks/useUpload.ts` | MVP 2-step: PUT publisher → in-process file_record::register |
-| File listing | `src/hooks/useFiles.ts` | React Query: getOwnedObjects (FileRecord), paginate via cursor |
+| File listing | `src/hooks/useFiles.ts` | getOwnedObjects (FileRecord), cursor-paginated; hides trashed + superseded versions |
+| File ops | `src/hooks/{useDelete,useTags,useVersion}.ts` | trash/restore/purge, add/remove tag, create_version |
+| Folders | `src/hooks/{useFolders,useFolder}.ts`, `src/components/FolderNav.tsx` | Folder objects + move_to_folder; breadcrumb in All Files |
 | File grid | `src/components/FileGrid.tsx` | motion grid; virtual scrolling = Roadmap |
-| Preview / share | `src/components/PreviewModal.tsx` | HeroUI Modal: preview + rename + delete (AlertDialog) + copy aggregator `blobUrl` |
+| Preview / share | `src/components/PreviewModal.tsx` | HeroUI Modal: preview + rename + tags + version + move-to-folder + trash + copy `blobUrl` |
 | `blobUrl()` / read URL | `src/lib/constants.ts` | aggregator `/v1/blobs/{blobId}` |
-| MCP tools | `mcp-server/src/tools/` | upload + list (MVP); rest Roadmap |
+| MCP tools | `mcp-server/src/tools/` | upload, list, download, get_file_info; folders/share Roadmap |
 
 ## CONVENTIONS
 

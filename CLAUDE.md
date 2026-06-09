@@ -11,7 +11,7 @@ Three pieces:
 - **MCP Server** — lets developers / CLI / AI clients operate the same Walrus data from the command line
 - **Move contracts** — file metadata on-chain, verifiable
 
-> Positioning: the track theme is AI agent memory; this project **downplays agent logic** and focuses on "file-management tool + console". MCP is the developer/agent entry point but implements no agent behavior.
+> Positioning: the Walrus track is "Walrus as the verifiable data platform for AI agents" (idea #032). WalDrive is the **file-management + verifiable-data console for agent data on Walrus** — "verifiable data" = on-chain Sui metadata over content-addressed Walrus blobs, and the **MCP server is the agent write-path** (agents write artifacts / memory via `upload_file`; humans browse / preview / search / version them here). It still **downplays agent logic**: WalDrive is the data/management layer for agent data, not an agent — MCP is the agent entry point but implements no agent behavior.
 
 ---
 

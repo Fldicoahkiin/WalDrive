@@ -1,10 +1,10 @@
 # WalDrive
 
-> A file-management UI + visual console for **Walrus** decentralized storage, built for the **Sui Overflow 2026 Walrus track**. The pitch is frontend interaction and fluidity.
+> The file-management + verifiable-data console for the data your AI agents store and remember on **Walrus**, built for the **Sui Overflow 2026 Walrus track** (idea #032). The pitch is frontend fluidity over verifiable agent data.
 
-WalDrive is a **cross-platform desktop app** — a Tauri 2.0 shell wrapping a Vite + React SPA. File **metadata lives on Sui** (Move objects), **blob bytes live on Walrus**, and there is **no backend in between**. The app signs Sui transactions in-process with a local keypair (no browser, no wallet extension); the same Walrus data is also reachable from any AI client / CLI through the MCP server.
+WalDrive is a **cross-platform desktop app** — a Tauri 2.0 shell wrapping a Vite + React SPA. File **metadata lives on Sui** (Move objects), **blob bytes live on Walrus**, and there is **no backend in between** — "verifiable data" means on-chain Sui metadata over content-addressed Walrus blobs. The app signs Sui transactions in-process with a local keypair (no browser, no wallet extension); the **MCP server is the agent write-path**, so AI clients / CLIs write artifacts and memory to the same Walrus data you browse here.
 
-- **Desktop console** — drag-to-upload, browse, preview, rename, tag, version, organise into folders, trash / restore, search, and share; a multi-account local wallet (generate / import / switch / balance / faucet) and endpoints from the sidebar.
+- **Desktop console** — the human surface for agent data on Walrus: drag-to-upload, browse, preview, rename, tag, version, organise into folders, trash / restore, search, and share; a multi-account local wallet (generate / import / switch / balance / faucet) and endpoints from the sidebar.
 - **MCP server** — `upload_file` / `list_files` / `download_file` / `get_file_info` for AI clients and scripts over the same Walrus data.
 - **Move contracts** — `FileRecord` and `ShareLink` objects make file metadata verifiable on-chain.
 

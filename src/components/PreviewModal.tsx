@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Check, ExternalLink, Loader2, Pencil, Plus, RotateCcw, Share2, Trash2, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Check, ExternalLink, FileUp, Loader2, Pencil, Plus, RotateCcw, Share2, Trash2, X } from "lucide-react";
 import { AlertDialog, Input, Modal } from "@heroui/react";
 import type { BlobFile } from "@waldrive/shared";
 import { Button } from "@/components/ui/Button";
@@ -7,6 +7,7 @@ import { PreviewBody } from "@/components/PreviewBody";
 import { useRename } from "@/hooks/useRename";
 import { useDelete } from "@/hooks/useDelete";
 import { useTags } from "@/hooks/useTags";
+import { useVersion } from "@/hooks/useVersion";
 import { blobUrl } from "@/lib/constants";
 import { formatBytes } from "@/lib/utils";
 import { fileKind } from "@/lib/fileKind";
@@ -135,9 +136,12 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
   const [copied, setCopied] = useState(false);
   const { rename, status: renameStatus, error: renameError } = useRename();
   const { trash, restore, purge, status: deleteStatus, error: deleteError } = useDelete();
+  const { uploadVersion, status: versionStatus } = useVersion();
+  const versionInputRef = useRef<HTMLInputElement>(null);
   const editing = draft !== null;
   const saving = renameStatus === "saving";
   const deleting = deleteStatus === "deleting";
+  const versioning = versionStatus === "uploading" || versionStatus === "saving_meta";
 
   useEffect(() => {
     setName(f?.name ?? "");
@@ -233,7 +237,8 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
                     className={renameError ? "min-w-0 truncate text-danger" : "min-w-0 truncate"}
                     title={renameError ?? undefined}
                   >
-                    {renameError ?? `${f.mimeType} · ${formatBytes(f.size)}`}
+                    {renameError ??
+                      `${f.mimeType} · ${formatBytes(f.size)}${f.version && f.version > 1 ? ` · v${f.version}` : ""}`}
                   </span>
                   <div className="flex shrink-0 items-center gap-2">
                     {f.isDeleted ? (
@@ -263,6 +268,30 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
                       </>
                     ) : (
                       <>
+                        <input
+                          ref={versionInputRef}
+                          className="hidden"
+                          type="file"
+                          onChange={(e) => {
+                            const next = e.target.files?.[0];
+                            if (next) void uploadVersion(f.objectId, next);
+                            e.currentTarget.value = "";
+                          }}
+                        />
+                        <Button
+                          isIconOnly
+                          aria-label="Upload new version"
+                          isDisabled={versioning}
+                          size="sm"
+                          variant="ghost"
+                          onPress={() => versionInputRef.current?.click()}
+                        >
+                          {versioning ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <FileUp className="size-3.5" />
+                          )}
+                        </Button>
                         <DeleteDialog
                           body={deleteError ?? "You can restore it from Trash later."}
                           confirmLabel="Move"

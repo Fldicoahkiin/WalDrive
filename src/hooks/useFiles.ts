@@ -25,6 +25,7 @@ function parseFileRecord(res: SuiObjectResponse): BlobFile | null {
     isPublic: Boolean(f.is_public ?? false),
     isDeleted: Boolean(f.is_deleted ?? false),
     version: Number(f.version ?? 1),
+    parentVersionId: (f.parent_version_id as string | null) ?? null,
     status: "done",
   };
 }
@@ -56,7 +57,11 @@ export function useFiles() {
         }
         cursor = page.hasNextPage ? page.nextCursor : null;
       } while (cursor);
-      return files.sort((a, b) => b.uploadedAtMs - a.uploadedAtMs);
+      // Hide superseded versions — show only the latest of each version chain.
+      const superseded = new Set(files.map((f) => f.parentVersionId).filter(Boolean));
+      return files
+        .filter((f) => !superseded.has(f.objectId))
+        .sort((a, b) => b.uploadedAtMs - a.uploadedAtMs);
     },
   });
 }

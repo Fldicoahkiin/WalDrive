@@ -22,6 +22,8 @@ export interface BlobFile {
   isDeleted?: boolean;
   /** 1-based version number (bumped by create_version). */
   version?: number;
+  /** Object id of the previous version, if this is a re-upload. */
+  parentVersionId?: string | null;
   /** Local UI state only — never persisted on chain. */
   status: UploadStatus;
 }

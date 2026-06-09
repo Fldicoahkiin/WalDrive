@@ -47,7 +47,7 @@ export const useSettings = create<SettingsState>()(
       },
     }),
     {
-      name: "waldrive-settings",
+      name: "waldrive-settings-v2",
       onRehydrateStorage: () => (state) => {
         if (state) setAggregatorBase(state.aggregator);
       },

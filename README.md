@@ -69,7 +69,7 @@ sui client publish --gas-budget 200000000 contracts
 ```
 A testnet deployment already exists:
 ```
-PACKAGE_ID = 0x43744366f717f6ed40d127a97db357a53a389c6b2a53d1ba1748c4f6ccf2771d
+PACKAGE_ID = 0x2fc345f205e241e8941cc5228ed6dd76f11e82484b6583c4070bc63eb914b5f6
 ```
 
 ### Configure env
@@ -80,7 +80,7 @@ cp .env.local.example .env.local
 ```
 ```bash
 # .env.local — Vite reads import.meta.env.VITE_*
-VITE_CONTRACT_PACKAGE_ID=0x4374…2771d
+VITE_CONTRACT_PACKAGE_ID=0x2fc3…b5f6
 VITE_WALRUS_AGGREGATOR=https://aggregator.walrus-testnet.walrus.space
 VITE_WALRUS_PUBLISHER=https://publisher.walrus-testnet.walrus.space
 VITE_SUI_NETWORK=testnet
@@ -116,7 +116,7 @@ Client config (e.g. `~/.claude/claude_desktop_config.json`):
       "args": ["/abs/path/to/waldrive/mcp-server/src/index.ts"],
       "env": {
         "SUI_NETWORK": "testnet",
-        "CONTRACT_PACKAGE_ID": "0x4374…2771d",
+        "CONTRACT_PACKAGE_ID": "0x2fc3…b5f6",
         "WALRUS_AGGREGATOR": "https://aggregator.walrus-testnet.walrus.space",
         "WALRUS_PUBLISHER": "https://publisher.walrus-testnet.walrus.space",
         "WALDRIVE_KEYPAIR": "suiprivkey1…"

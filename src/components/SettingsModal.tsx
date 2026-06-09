@@ -120,6 +120,11 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
               <Section title="Walrus storage">
                 <EndpointField label="Aggregator" onCommit={s.setAggregator} value={s.aggregator} />
                 <EndpointField label="Publisher" onCommit={s.setPublisher} value={s.publisher} />
+                <EndpointField
+                  label="Publisher token (mainnet, optional)"
+                  onCommit={s.setPublisherToken}
+                  value={s.publisherToken}
+                />
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-ink-subtle">Default epochs</span>
                   <NumberField

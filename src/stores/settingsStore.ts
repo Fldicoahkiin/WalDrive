@@ -8,11 +8,13 @@ interface SettingsState {
   publisher: string;
   epochs: number;
   packageId: string;
+  publisherToken: string;
   setNetwork: (network: SuiNetwork) => void;
   setAggregator: (aggregator: string) => void;
   setPublisher: (publisher: string) => void;
   setEpochs: (epochs: number) => void;
   setPackageId: (packageId: string) => void;
+  setPublisherToken: (token: string) => void;
   reset: () => void;
 }
 
@@ -22,6 +24,7 @@ const DEFAULTS = {
   publisher: WALRUS.PUBLISHER,
   epochs: WALRUS.EPOCHS_DEFAULT,
   packageId: CONTRACT.PACKAGE_ID,
+  publisherToken: "",
 };
 
 /**
@@ -41,6 +44,7 @@ export const useSettings = create<SettingsState>()(
       setPublisher: (publisher) => set({ publisher }),
       setEpochs: (epochs) => set({ epochs }),
       setPackageId: (packageId) => set({ packageId }),
+      setPublisherToken: (publisherToken) => set({ publisherToken }),
       reset: () => {
         setAggregatorBase(DEFAULTS.aggregator);
         set({ ...DEFAULTS });

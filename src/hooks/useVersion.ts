@@ -20,6 +20,7 @@ export function useVersion() {
   const address = useWallet((s) => s.address);
   const network = useSettings((s) => s.network);
   const publisher = useSettings((s) => s.publisher);
+  const publisherToken = useSettings((s) => s.publisherToken);
   const epochs = useSettings((s) => s.epochs);
   const packageId = useSettings((s) => s.packageId);
   const queryClient = useQueryClient();
@@ -38,7 +39,12 @@ export function useVersion() {
       try {
         setStatus("uploading");
         const bytes = new Uint8Array(await file.arrayBuffer());
-        const blobId = await uploadBlob(bytes, { sendObjectTo: address, publisher, epochs });
+        const blobId = await uploadBlob(bytes, {
+          sendObjectTo: address,
+          publisher,
+          epochs,
+          authToken: publisherToken,
+        });
 
         setStatus("saving_meta");
         const tx = new Transaction();
@@ -64,7 +70,7 @@ export function useVersion() {
         return false;
       }
     },
-    [keypair, address, publisher, epochs, packageId, suiClient, queryClient],
+    [keypair, address, publisher, publisherToken, epochs, packageId, suiClient, queryClient],
   );
 
   return { uploadVersion, status, error };

@@ -8,6 +8,8 @@ export interface UploadBlobOptions {
   publisher?: string;
   /** Abort the PUT after this many ms. */
   timeoutMs?: number;
+  /** Bearer token for publishers that require auth (mainnet publishers). */
+  authToken?: string;
 }
 
 /** Walrus publisher `PUT /v1/blobs` response. Exactly one branch is present. */
@@ -45,6 +47,7 @@ export async function uploadBlob(bytes: Uint8Array, options: UploadBlobOptions =
     const res = await fetch(`${base}/v1/blobs?${params.toString()}`, {
       method: "PUT",
       body: bytes as BodyInit,
+      headers: options.authToken ? { Authorization: `Bearer ${options.authToken}` } : undefined,
       signal: controller.signal,
     });
     if (!res.ok) {

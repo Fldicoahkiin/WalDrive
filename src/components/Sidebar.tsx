@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Copy, Files, HardDrive, Settings } from "lucide-react";
+import { Check, Copy, Files, HardDrive, Settings, Trash2 } from "lucide-react";
 import { ListBox } from "@heroui/react";
 import type { BlobFile } from "@waldrive/shared";
 import { useBalance } from "@/hooks/useBalance";
@@ -8,7 +8,7 @@ import { useSettings } from "@/stores/settingsStore";
 import { shortenAddress, formatBytes } from "@/lib/utils";
 import { fileCategory, CATEGORY_META, type FileCategory } from "@/lib/fileKind";
 
-export type NavKey = "all" | FileCategory;
+export type NavKey = "all" | "trash" | FileCategory;
 
 const NAV_ITEM =
   "text-ink outline-none aria-selected:bg-surface-2 data-[hovered=true]:bg-surface-2";
@@ -29,7 +29,9 @@ export function Sidebar({
   const network = useSettings((s) => s.network);
   const [copied, setCopied] = useState(false);
 
-  const counts = files.reduce(
+  const live = files.filter((f) => !f.isDeleted);
+  const trashedCount = files.length - live.length;
+  const counts = live.reduce(
     (acc, f) => {
       const c = fileCategory(f.mimeType, f.name);
       acc[c] = (acc[c] ?? 0) + 1;
@@ -38,7 +40,7 @@ export function Sidebar({
     {} as Record<FileCategory, number>,
   );
   const present = (Object.keys(CATEGORY_META) as FileCategory[]).filter((c) => counts[c]);
-  const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
+  const totalBytes = live.reduce((sum, f) => sum + f.size, 0);
 
   async function copyAddress() {
     if (!address) return;
@@ -69,7 +71,7 @@ export function Sidebar({
         <ListBox.Item className={NAV_ITEM} id="all" textValue="All Files">
           <Files aria-hidden className="size-4 text-ink-subtle" strokeWidth={1.75} />
           <span className="flex-1">All Files</span>
-          <span className="text-xs text-ink-tertiary">{files.length}</span>
+          <span className="text-xs text-ink-tertiary">{live.length}</span>
         </ListBox.Item>
         {present.map((c) => {
           const { label, Icon } = CATEGORY_META[c];
@@ -81,6 +83,13 @@ export function Sidebar({
             </ListBox.Item>
           );
         })}
+        {trashedCount > 0 && (
+          <ListBox.Item className={NAV_ITEM} id="trash" textValue="Trash">
+            <Trash2 aria-hidden className="size-4 text-ink-subtle" strokeWidth={1.75} />
+            <span className="flex-1">Trash</span>
+            <span className="text-xs text-ink-tertiary">{trashedCount}</span>
+          </ListBox.Item>
+        )}
       </ListBox>
 
       <div className="flex-1" />

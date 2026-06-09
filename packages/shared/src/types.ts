@@ -18,6 +18,10 @@ export interface BlobFile {
   /** Walrus expiry epoch number (not a timestamp). */
   expiryEpoch: number;
   isPublic: boolean;
+  /** Soft-delete flag — trashed files are filtered out of the main view. */
+  isDeleted?: boolean;
+  /** 1-based version number (bumped by create_version). */
+  version?: number;
   /** Local UI state only — never persisted on chain. */
   status: UploadStatus;
 }

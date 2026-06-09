@@ -43,9 +43,15 @@ export function App() {
   const [selected, setSelected] = useState<BlobFile | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
-  // Drop back to "all" if the active category no longer has files.
+  // Drop back to "all" if the active category (type or trash) no longer has files.
   useEffect(() => {
-    if (category !== "all" && files && !files.some((f) => fileCategory(f.mimeType, f.name) === category)) {
+    if (!files) return;
+    if (category === "trash") {
+      if (!files.some((f) => f.isDeleted)) setCategory("all");
+    } else if (
+      category !== "all" &&
+      !files.some((f) => !f.isDeleted && fileCategory(f.mimeType, f.name) === category)
+    ) {
       setCategory("all");
     }
   }, [files, category]);
@@ -54,7 +60,10 @@ export function App() {
     if (!files) return [];
     const q = query.trim().toLowerCase();
     return files
-      .filter((f) => category === "all" || fileCategory(f.mimeType, f.name) === category)
+      .filter((f) => (category === "trash" ? f.isDeleted : !f.isDeleted))
+      .filter(
+        (f) => category === "all" || category === "trash" || fileCategory(f.mimeType, f.name) === category,
+      )
       .filter((f) => (q ? f.name.toLowerCase().includes(q) : true))
       .sort((a, b) =>
         sort === "name"

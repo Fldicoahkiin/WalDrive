@@ -1,29 +1,34 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { SuiClient, getFullnodeUrl } from "@mysten/sui/client";
 import { Transaction } from "@mysten/sui/transactions";
 import { useWallet } from "@/stores/walletStore";
-import { CONTRACT, SUI_NETWORK } from "@/lib/constants";
+import { useSettings } from "@/stores/settingsStore";
+import { CONTRACT } from "@/lib/constants";
 
-const suiClient = new SuiClient({ url: getFullnodeUrl(SUI_NETWORK) });
-
+const SUI_CLOCK_ID = "0x6";
 type DeleteStatus = "idle" | "deleting" | "failed";
 
 /**
- * Hard-delete a FileRecord on Sui: file_record::delete(record) consumes the
- * owned object. The Walrus blob itself lingers until its epoch lapses; this
- * only removes the on-chain record. waitForTransaction before invalidate so the
- * refetch no longer returns the deleted record.
+ * FileRecord deletion lifecycle, signed in-process:
+ * - trash   → soft_delete (kept on chain, filtered out of the main view)
+ * - restore → un-delete
+ * - purge   → delete (hard, consumes the object)
+ * The Walrus blob lingers until its epoch lapses regardless. waitForTransaction
+ * before invalidate so the refetch reflects the change.
  */
 export function useDelete() {
   const keypair = useWallet((s) => s.keypair);
   const address = useWallet((s) => s.address);
+  const network = useSettings((s) => s.network);
+  const packageId = useSettings((s) => s.packageId);
   const queryClient = useQueryClient();
+  const suiClient = useMemo(() => new SuiClient({ url: getFullnodeUrl(network) }), [network]);
   const [status, setStatus] = useState<DeleteStatus>("idle");
   const [error, setError] = useState<string | null>(null);
 
-  const remove = useCallback(
-    async (objectId: string) => {
+  const run = useCallback(
+    async (fn: "soft_delete" | "restore" | "delete", objectId: string) => {
       if (!keypair || !address) {
         setError("Wallet not ready.");
         setStatus("failed");
@@ -34,23 +39,31 @@ export function useDelete() {
         setStatus("deleting");
         const tx = new Transaction();
         tx.moveCall({
-          target: `${CONTRACT.PACKAGE_ID}::${CONTRACT.FILE_RECORD}::delete`,
-          arguments: [tx.object(objectId)],
+          target: `${packageId}::${CONTRACT.FILE_RECORD}::${fn}`,
+          arguments:
+            fn === "soft_delete"
+              ? [tx.object(objectId), tx.object(SUI_CLOCK_ID)]
+              : [tx.object(objectId)],
         });
         const { digest } = await suiClient.signAndExecuteTransaction({ signer: keypair, transaction: tx });
         await suiClient.waitForTransaction({ digest });
-
         setStatus("idle");
         await queryClient.invalidateQueries({ queryKey: ["files", address] });
         return true;
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Delete failed.");
+        setError(e instanceof Error ? e.message : "Action failed.");
         setStatus("failed");
         return false;
       }
     },
-    [keypair, address, queryClient],
+    [keypair, address, packageId, suiClient, queryClient],
   );
 
-  return { remove, status, error };
+  return {
+    trash: (id: string) => run("soft_delete", id),
+    restore: (id: string) => run("restore", id),
+    purge: (id: string) => run("delete", id),
+    status,
+    error,
+  };
 }

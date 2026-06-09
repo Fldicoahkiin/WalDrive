@@ -18,11 +18,13 @@ function parseFileRecord(res: SuiObjectResponse): BlobFile | null {
     mimeType: String(f.mime_type ?? ""),
     size: Number(f.size ?? 0),
     folderId: (f.folder_id as string | null) ?? null,
-    tags: [],
+    tags: Array.isArray(f.tags) ? (f.tags as string[]) : [],
     owner: String(f.owner ?? ""),
     uploadedAtMs: Number(f.uploaded_at_ms ?? 0),
     expiryEpoch: Number(f.expiry_epoch ?? 0),
     isPublic: Boolean(f.is_public ?? false),
+    isDeleted: Boolean(f.is_deleted ?? false),
+    version: Number(f.version ?? 1),
     status: "done",
   };
 }

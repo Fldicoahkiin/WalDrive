@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Check, ExternalLink, Loader2, Pencil, Share2, Trash2 } from "lucide-react";
+import { Check, ExternalLink, Loader2, Pencil, RotateCcw, Share2, Trash2 } from "lucide-react";
 import { AlertDialog, Input, Modal } from "@heroui/react";
 import type { BlobFile } from "@waldrive/shared";
 import { Button } from "@/components/ui/Button";
@@ -9,6 +9,53 @@ import { useDelete } from "@/hooks/useDelete";
 import { blobUrl } from "@/lib/constants";
 import { formatBytes } from "@/lib/utils";
 import { fileKind } from "@/lib/fileKind";
+
+function DeleteDialog({
+  triggerLabel,
+  heading,
+  body,
+  confirmLabel,
+  status,
+  disabled,
+  onConfirm,
+}: {
+  triggerLabel: string;
+  heading: string;
+  body: string;
+  confirmLabel: string;
+  status: "danger" | "warning";
+  disabled: boolean;
+  onConfirm: () => void;
+}) {
+  return (
+    <AlertDialog>
+      <Button isIconOnly aria-label={triggerLabel} size="sm" variant="ghost">
+        <Trash2 className="size-3.5" />
+      </Button>
+      <AlertDialog.Backdrop>
+        <AlertDialog.Container>
+          <AlertDialog.Dialog className="max-w-sm">
+            <AlertDialog.Header>
+              <AlertDialog.Icon status={status} />
+              <AlertDialog.Heading>{heading}</AlertDialog.Heading>
+            </AlertDialog.Header>
+            <AlertDialog.Body>
+              <p className="text-sm text-ink-subtle">{body}</p>
+            </AlertDialog.Body>
+            <AlertDialog.Footer>
+              <Button slot="close" variant="ghost">
+                Cancel
+              </Button>
+              <Button slot="close" isDisabled={disabled} variant="danger" onPress={onConfirm}>
+                {confirmLabel}
+              </Button>
+            </AlertDialog.Footer>
+          </AlertDialog.Dialog>
+        </AlertDialog.Container>
+      </AlertDialog.Backdrop>
+    </AlertDialog>
+  );
+}
 
 export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose: () => void }) {
   // Retain the last file through the close animation so content doesn't vanish.
@@ -22,7 +69,7 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
   const [draft, setDraft] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const { rename, status: renameStatus, error: renameError } = useRename();
-  const { remove, status: deleteStatus, error: deleteError } = useDelete();
+  const { trash, restore, purge, status: deleteStatus, error: deleteError } = useDelete();
   const editing = draft !== null;
   const saving = renameStatus === "saving";
   const deleting = deleteStatus === "deleting";
@@ -54,8 +101,8 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
     setTimeout(() => setCopied(false), 1500);
   }
 
-  async function confirmDelete() {
-    if (f && (await remove(f.objectId))) onClose();
+  async function act(fn: (id: string) => Promise<boolean>) {
+    if (f && (await fn(f.objectId))) onClose();
   }
 
   return (
@@ -122,44 +169,48 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
                     {renameError ?? `${f.mimeType} · ${formatBytes(f.size)}`}
                   </span>
                   <div className="flex shrink-0 items-center gap-2">
-                    <AlertDialog>
-                      <Button isIconOnly aria-label="Delete" size="sm" variant="ghost">
-                        <Trash2 className="size-3.5" />
-                      </Button>
-                      <AlertDialog.Backdrop>
-                        <AlertDialog.Container>
-                          <AlertDialog.Dialog className="max-w-sm">
-                            <AlertDialog.Header>
-                              <AlertDialog.Icon status="danger" />
-                              <AlertDialog.Heading>Delete this file?</AlertDialog.Heading>
-                            </AlertDialog.Header>
-                            <AlertDialog.Body>
-                              <p className={deleteError ? "text-sm text-danger" : "text-sm text-ink-subtle"}>
-                                {deleteError ??
-                                  "This removes the file's on-chain record. It can't be undone."}
-                              </p>
-                            </AlertDialog.Body>
-                            <AlertDialog.Footer>
-                              <Button slot="close" variant="ghost">
-                                Cancel
-                              </Button>
-                              <Button isDisabled={deleting} variant="danger" onPress={confirmDelete}>
-                                {deleting ? (
-                                  <Loader2 className="size-3.5 animate-spin" />
-                                ) : (
-                                  <Trash2 className="size-3.5" />
-                                )}
-                                Delete
-                              </Button>
-                            </AlertDialog.Footer>
-                          </AlertDialog.Dialog>
-                        </AlertDialog.Container>
-                      </AlertDialog.Backdrop>
-                    </AlertDialog>
-                    <Button size="sm" variant="secondary" onPress={copyLink}>
-                      {copied ? <Check className="size-3.5" /> : <Share2 className="size-3.5" />}
-                      {copied ? "Copied" : "Share link"}
-                    </Button>
+                    {f.isDeleted ? (
+                      <>
+                        <Button
+                          isDisabled={deleting}
+                          size="sm"
+                          variant="secondary"
+                          onPress={() => act(restore)}
+                        >
+                          {deleting ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <RotateCcw className="size-3.5" />
+                          )}
+                          Restore
+                        </Button>
+                        <DeleteDialog
+                          body={deleteError ?? "This destroys the on-chain record for good."}
+                          confirmLabel="Delete"
+                          disabled={deleting}
+                          heading="Delete permanently?"
+                          status="danger"
+                          triggerLabel="Delete permanently"
+                          onConfirm={() => act(purge)}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <DeleteDialog
+                          body={deleteError ?? "You can restore it from Trash later."}
+                          confirmLabel="Move"
+                          disabled={deleting}
+                          heading="Move to trash?"
+                          status="warning"
+                          triggerLabel="Move to trash"
+                          onConfirm={() => act(trash)}
+                        />
+                        <Button size="sm" variant="secondary" onPress={copyLink}>
+                          {copied ? <Check className="size-3.5" /> : <Share2 className="size-3.5" />}
+                          {copied ? "Copied" : "Share link"}
+                        </Button>
+                      </>
+                    )}
                     <Button
                       size="sm"
                       variant="primary"

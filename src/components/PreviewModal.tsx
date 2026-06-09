@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Check, ExternalLink, Loader2, Pencil, RotateCcw, Share2, Trash2 } from "lucide-react";
+import { Check, ExternalLink, Loader2, Pencil, Plus, RotateCcw, Share2, Trash2, X } from "lucide-react";
 import { AlertDialog, Input, Modal } from "@heroui/react";
 import type { BlobFile } from "@waldrive/shared";
 import { Button } from "@/components/ui/Button";
 import { PreviewBody } from "@/components/PreviewBody";
 import { useRename } from "@/hooks/useRename";
 import { useDelete } from "@/hooks/useDelete";
+import { useTags } from "@/hooks/useTags";
 import { blobUrl } from "@/lib/constants";
 import { formatBytes } from "@/lib/utils";
 import { fileKind } from "@/lib/fileKind";
@@ -54,6 +55,70 @@ function DeleteDialog({
         </AlertDialog.Container>
       </AlertDialog.Backdrop>
     </AlertDialog>
+  );
+}
+
+function TagBar({ file }: { file: BlobFile }) {
+  const { addTag, removeTag, busy } = useTags();
+  const [adding, setAdding] = useState(false);
+  const [draft, setDraft] = useState("");
+
+  async function submit() {
+    if (draft.trim() && (await addTag(file.objectId, draft))) {
+      setDraft("");
+      setAdding(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 px-4 pb-1">
+      {file.tags.map((tag) => (
+        <span
+          key={tag}
+          className="flex items-center gap-1 rounded-md bg-surface-2 py-0.5 pl-2 pr-1 text-xs text-ink-muted"
+        >
+          {tag}
+          <button
+            aria-label={`Remove tag ${tag}`}
+            className="rounded text-ink-tertiary outline-none transition-colors hover:text-ink"
+            type="button"
+            onClick={() => removeTag(file.objectId, tag)}
+          >
+            <X className="size-3" />
+          </button>
+        </span>
+      ))}
+      {adding ? (
+        <Input
+          autoFocus
+          aria-label="New tag"
+          className="selectable h-6 w-24 text-xs"
+          disabled={busy}
+          value={draft}
+          variant="secondary"
+          onBlur={() => {
+            setAdding(false);
+            setDraft("");
+          }}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") void submit();
+            else if (e.key === "Escape") {
+              setAdding(false);
+              setDraft("");
+            }
+          }}
+        />
+      ) : (
+        <button
+          className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs text-ink-tertiary outline-none transition-colors hover:text-ink"
+          type="button"
+          onClick={() => setAdding(true)}
+        >
+          <Plus className="size-3" /> Tag
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -156,6 +221,8 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
                   </Button>
                   <Modal.CloseTrigger />
                 </Modal.Header>
+
+                <TagBar file={f} />
 
                 <Modal.Body className="max-h-[62vh] overflow-auto">
                   <PreviewBody file={f} kind={kind} />

@@ -30,3 +30,7 @@ export const setAggregatorBase = (url: string): void => {
 
 /** Public read URL for a Walrus blob via the (runtime-configured) aggregator. */
 export const blobUrl = (blobId: string): string => `${aggregatorBase}/v1/blobs/${blobId}`;
+
+/** Suiscan explorer URL for an on-chain object or transaction on the given network. */
+export const explorerUrl = (kind: "object" | "tx", id: string, network: SuiNetwork): string =>
+  `https://suiscan.xyz/${network}/${kind}/${id}`;

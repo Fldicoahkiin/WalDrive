@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, ExternalLink, FileUp, Loader2, Pencil, Plus, RotateCcw, Share2, Trash2, X } from "lucide-react";
+import { Check, Copy, ExternalLink, FileUp, Loader2, Pencil, Plus, RotateCcw, Share2, ShieldCheck, Trash2, X } from "lucide-react";
 import { AlertDialog, Input, ListBox, Modal, Select } from "@heroui/react";
 import type { BlobFile } from "@waldrive/shared";
 import { Button } from "@/components/ui/Button";
@@ -10,7 +10,8 @@ import { useTags } from "@/hooks/useTags";
 import { useVersion } from "@/hooks/useVersion";
 import { useFolders } from "@/hooks/useFolders";
 import { useFolder } from "@/hooks/useFolder";
-import { blobUrl } from "@/lib/constants";
+import { useSettings } from "@/stores/settingsStore";
+import { blobUrl, explorerUrl } from "@/lib/constants";
 import { formatBytes } from "@/lib/utils";
 import { fileKind } from "@/lib/fileKind";
 
@@ -167,6 +168,100 @@ function MoveBar({ file }: { file: BlobFile }) {
   );
 }
 
+type VerifyState =
+  | { phase: "idle" }
+  | { phase: "checking" }
+  | { phase: "ok"; bytes: number; hashHex: string }
+  | { phase: "fail" };
+
+function VerifiableStorage({ file }: { file: BlobFile }) {
+  const network = useSettings((s) => s.network);
+  const [verify, setVerify] = useState<VerifyState>({ phase: "idle" });
+  const [copiedId, setCopiedId] = useState(false);
+
+  useEffect(() => {
+    setVerify({ phase: "idle" });
+    setCopiedId(false);
+  }, [file.objectId]);
+
+  async function copyId() {
+    await navigator.clipboard.writeText(file.blobId);
+    setCopiedId(true);
+    setTimeout(() => setCopiedId(false), 1500);
+  }
+
+  async function runVerify() {
+    setVerify({ phase: "checking" });
+    try {
+      const res = await fetch(blobUrl(file.blobId));
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const buf = await res.arrayBuffer();
+      const digest = await crypto.subtle.digest("SHA-256", buf);
+      const hashHex = Array.from(new Uint8Array(digest))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+      setVerify({ phase: "ok", bytes: buf.byteLength, hashHex });
+    } catch {
+      setVerify({ phase: "fail" });
+    }
+  }
+
+  const checking = verify.phase === "checking";
+
+  return (
+    <section className="mb-4 rounded-lg border border-hairline bg-canvas/50 p-3">
+      <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-ink-subtle">
+        <ShieldCheck aria-hidden className="size-3.5 text-accent" strokeWidth={1.75} />
+        Verifiable storage
+      </div>
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="text-[11px] text-ink-tertiary">Walrus content ID (content-addressed)</div>
+            <div className="truncate font-mono text-xs text-ink" title={file.blobId}>
+              {file.blobId}
+            </div>
+          </div>
+          <Button isIconOnly aria-label="Copy content ID" size="sm" variant="ghost" onPress={copyId}>
+            {copiedId ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+          </Button>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button isDisabled={checking} size="sm" variant="secondary" onPress={runVerify}>
+            {checking ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <ShieldCheck className="size-3.5" />
+            )}
+            Verify
+          </Button>
+          <Button size="sm" variant="ghost" onPress={() => window.open(blobUrl(file.blobId), "_blank")}>
+            <ExternalLink className="size-3.5" />
+            Open raw
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onPress={() => window.open(explorerUrl("object", file.objectId, network), "_blank")}
+          >
+            <ExternalLink className="size-3.5" />
+            View on Suiscan
+          </Button>
+        </div>
+        {verify.phase === "ok" && (
+          <div className="font-mono text-[11px] text-success">
+            ✓ Retrieved {verify.bytes} B from Walrus · SHA-256 {verify.hashHex.slice(0, 12)}…
+          </div>
+        )}
+        {verify.phase === "fail" && (
+          <div className="text-[11px] text-danger">✗ couldn't retrieve from aggregator</div>
+        )}
+        <div className="text-[11px] text-ink-tertiary">Walrus expiry: epoch {file.expiryEpoch}</div>
+      </div>
+    </section>
+  );
+}
+
 export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose: () => void }) {
   // Retain the last file through the close animation so content doesn't vanish.
   const [shown, setShown] = useState<BlobFile | null>(file);
@@ -276,6 +371,7 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
                 </div>
 
                 <Modal.Body className="max-h-[62vh] overflow-auto">
+                  <VerifiableStorage file={f} />
                   <PreviewBody file={f} kind={kind} />
                 </Modal.Body>
 

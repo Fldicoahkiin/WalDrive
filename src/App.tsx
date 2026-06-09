@@ -10,8 +10,10 @@ import { PreviewModal } from "@/components/PreviewModal";
 import { SettingsModal } from "@/components/SettingsModal";
 import { Onboarding } from "@/components/Onboarding";
 import { EmptyState } from "@/components/EmptyState";
+import { FolderNav } from "@/components/FolderNav";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useFiles } from "@/hooks/useFiles";
+import { useFolders } from "@/hooks/useFolders";
 import { useWallet } from "@/stores/walletStore";
 import { fileCategory } from "@/lib/fileKind";
 
@@ -36,10 +38,12 @@ export function App() {
   }, [initWallet]);
 
   const { data: files, isLoading } = useFiles();
+  const { data: folders } = useFolders();
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("date");
   const [view, setView] = useState<ViewMode>("grid");
   const [category, setCategory] = useState<NavKey>("all");
+  const [folderId, setFolderId] = useState<string | null>(null);
   const [selected, setSelected] = useState<BlobFile | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -61,9 +65,11 @@ export function App() {
     const q = query.trim().toLowerCase();
     return files
       .filter((f) => (category === "trash" ? f.isDeleted : !f.isDeleted))
-      .filter(
-        (f) => category === "all" || category === "trash" || fileCategory(f.mimeType, f.name) === category,
-      )
+      .filter((f) => {
+        if (category === "trash") return true;
+        if (category === "all") return (f.folderId ?? null) === folderId;
+        return fileCategory(f.mimeType, f.name) === category;
+      })
       .filter((f) => (q ? f.name.toLowerCase().includes(q) : true))
       .sort((a, b) =>
         sort === "name"
@@ -72,7 +78,7 @@ export function App() {
             ? b.size - a.size
             : b.uploadedAtMs - a.uploadedAtMs,
       );
-  }, [files, query, sort, category]);
+  }, [files, query, sort, category, folderId]);
 
   return (
     <div className="flex h-dvh overflow-hidden bg-canvas text-ink">
@@ -146,6 +152,9 @@ export function App() {
             <div className="flex-1 overflow-auto">
               <div className="mx-auto flex max-w-5xl flex-col gap-5 px-6 py-6">
                 <UploadZone />
+                {category === "all" && (
+                  <FolderNav folderId={folderId} folders={folders ?? []} onNavigate={setFolderId} />
+                )}
                 {isLoading ? (
                   view === "grid" ? (
                     <FileGridSkeleton />

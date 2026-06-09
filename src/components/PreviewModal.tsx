@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, ExternalLink, FileUp, Loader2, Pencil, Plus, RotateCcw, Share2, Trash2, X } from "lucide-react";
-import { AlertDialog, Input, Modal } from "@heroui/react";
+import { AlertDialog, Input, ListBox, Modal, Select } from "@heroui/react";
 import type { BlobFile } from "@waldrive/shared";
 import { Button } from "@/components/ui/Button";
 import { PreviewBody } from "@/components/PreviewBody";
@@ -8,6 +8,8 @@ import { useRename } from "@/hooks/useRename";
 import { useDelete } from "@/hooks/useDelete";
 import { useTags } from "@/hooks/useTags";
 import { useVersion } from "@/hooks/useVersion";
+import { useFolders } from "@/hooks/useFolders";
+import { useFolder } from "@/hooks/useFolder";
 import { blobUrl } from "@/lib/constants";
 import { formatBytes } from "@/lib/utils";
 import { fileKind } from "@/lib/fileKind";
@@ -72,7 +74,7 @@ function TagBar({ file }: { file: BlobFile }) {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5 px-4 pb-1">
+    <div className="flex flex-1 flex-wrap items-center gap-1.5">
       {file.tags.map((tag) => (
         <span
           key={tag}
@@ -120,6 +122,48 @@ function TagBar({ file }: { file: BlobFile }) {
         </button>
       )}
     </div>
+  );
+}
+
+function MoveBar({ file }: { file: BlobFile }) {
+  const { data: folders } = useFolders();
+  const { moveToFolder, removeFromFolder, busy } = useFolder();
+  if (!folders || folders.length === 0) return null;
+  const current = file.folderId ?? "root";
+
+  return (
+    <Select
+      aria-label="Move to folder"
+      className="w-36 shrink-0"
+      isDisabled={busy}
+      placeholder="Move to…"
+      selectedKey={current}
+      onSelectionChange={(key) => {
+        const k = String(key);
+        if (k === current) return;
+        if (k === "root") void removeFromFolder(file.objectId);
+        else void moveToFolder(file.objectId, k);
+      }}
+    >
+      <Select.Trigger className="h-7 text-xs">
+        <Select.Value />
+        <Select.Indicator />
+      </Select.Trigger>
+      <Select.Popover>
+        <ListBox>
+          <ListBox.Item id="root" textValue="All Files">
+            All Files
+            <ListBox.ItemIndicator />
+          </ListBox.Item>
+          {folders.map((fo) => (
+            <ListBox.Item key={fo.objectId} id={fo.objectId} textValue={fo.name}>
+              {fo.name}
+              <ListBox.ItemIndicator />
+            </ListBox.Item>
+          ))}
+        </ListBox>
+      </Select.Popover>
+    </Select>
   );
 }
 
@@ -226,7 +270,10 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
                   <Modal.CloseTrigger />
                 </Modal.Header>
 
-                <TagBar file={f} />
+                <div className="flex items-start justify-between gap-2 px-4 pb-1">
+                  <TagBar file={f} />
+                  {!f.isDeleted && <MoveBar file={f} />}
+                </div>
 
                 <Modal.Body className="max-h-[62vh] overflow-auto">
                   <PreviewBody file={f} kind={kind} />

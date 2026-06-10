@@ -10,6 +10,7 @@ import { PreviewModal } from "@/components/PreviewModal";
 import { SettingsModal } from "@/components/SettingsModal";
 import { Onboarding } from "@/components/Onboarding";
 import { EmptyState } from "@/components/EmptyState";
+import { FaucetBanner } from "@/components/FaucetBanner";
 import { FolderNav } from "@/components/FolderNav";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useFiles } from "@/hooks/useFiles";
@@ -151,6 +152,7 @@ export function App() {
 
             <div className="flex-1 overflow-auto">
               <div className="mx-auto flex max-w-5xl flex-col gap-5 px-6 py-6">
+                <FaucetBanner />
                 <UploadZone />
                 {category === "all" && (
                   <FolderNav folderId={folderId} folders={folders ?? []} onNavigate={setFolderId} />

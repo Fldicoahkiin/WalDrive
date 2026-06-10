@@ -1,10 +1,11 @@
 import { useRef, useState, type DragEvent } from "react";
 import { motion } from "motion/react";
-import { Upload } from "lucide-react";
+import { Check, Droplet, Loader2, Upload } from "lucide-react";
 import { ProgressBar } from "@heroui/react";
 import type { UploadStatus } from "@waldrive/shared";
 import { Button } from "@/components/ui/Button";
 import { useUpload } from "@/hooks/useUpload";
+import { useFaucet } from "@/hooks/useFaucet";
 import { cn } from "@/lib/cn";
 
 type Stage = Extract<UploadStatus, "uploading" | "saving_meta" | "done">;
@@ -15,7 +16,8 @@ const STAGE: Record<Stage, { value: number; color: "warning" | "accent" | "succe
 };
 
 export function UploadZone() {
-  const { upload, status, error, reset } = useUpload();
+  const { upload, status, error, needsGas, reset } = useUpload();
+  const faucet = useFaucet();
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const busy = status === "uploading" || status === "saving_meta";
@@ -78,13 +80,32 @@ export function UploadZone() {
       )}
 
       {!busy && !dragging && (
-        <Button
-          size="sm"
-          variant={status === "failed" ? "secondary" : "primary"}
-          onPress={() => (status === "failed" ? reset() : inputRef.current?.click())}
-        >
-          {status === "failed" ? "Retry" : "Choose file"}
-        </Button>
+        <div className="flex shrink-0 items-center gap-2">
+          {status === "failed" && needsGas && faucet.available && (
+            <Button
+              isDisabled={faucet.status === "loading"}
+              size="sm"
+              variant="primary"
+              onPress={faucet.request}
+            >
+              {faucet.status === "loading" ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : faucet.status === "ok" ? (
+                <Check className="size-3.5" />
+              ) : (
+                <Droplet className="size-3.5" />
+              )}
+              {faucet.status === "ok" ? "SUI on its way" : "Get test SUI"}
+            </Button>
+          )}
+          <Button
+            size="sm"
+            variant={status === "failed" ? "secondary" : "primary"}
+            onPress={() => (status === "failed" ? reset() : inputRef.current?.click())}
+          >
+            {status === "failed" ? "Retry" : "Choose file"}
+          </Button>
+        </div>
       )}
     </div>
   );

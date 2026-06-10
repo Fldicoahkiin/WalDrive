@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Check, Copy, Files, HardDrive, Settings, Trash2 } from "lucide-react";
+import { Check, Copy, Droplet, Files, HardDrive, Loader2, Settings, Trash2 } from "lucide-react";
 import { ListBox } from "@heroui/react";
 import type { BlobFile } from "@waldrive/shared";
 import { useBalance } from "@/hooks/useBalance";
+import { useFaucet } from "@/hooks/useFaucet";
 import { useWallet } from "@/stores/walletStore";
 import { useSettings } from "@/stores/settingsStore";
 import { shortenAddress, formatBytes } from "@/lib/utils";
@@ -27,6 +28,7 @@ export function Sidebar({
   const address = useWallet((s) => s.address);
   const { data: balance } = useBalance();
   const network = useSettings((s) => s.network);
+  const faucet = useFaucet();
   const [copied, setCopied] = useState(false);
 
   const live = files.filter((f) => !f.isDeleted);
@@ -111,12 +113,29 @@ export function Sidebar({
               </button>
             )}
           </div>
-          <span className="text-[11px] text-ink-tertiary">
+          <span className="flex items-center gap-1 text-[11px] text-ink-tertiary">
             {balance != null
               ? `${balance.toLocaleString(undefined, { maximumFractionDigits: 3 })} SUI · ${network}`
               : network}
             {" · "}
             {formatBytes(totalBytes)}
+            {balance === 0 && faucet.available && (
+              <button
+                aria-label="Get free test SUI"
+                className="ml-0.5 rounded p-0.5 text-accent outline-none transition-colors hover:text-accent-hover focus-visible:text-accent-hover"
+                title="Get free test SUI"
+                type="button"
+                onClick={faucet.request}
+              >
+                {faucet.status === "loading" ? (
+                  <Loader2 className="size-3 animate-spin" />
+                ) : faucet.status === "ok" ? (
+                  <Check className="size-3 text-success" />
+                ) : (
+                  <Droplet className="size-3" />
+                )}
+              </button>
+            )}
           </span>
         </div>
 

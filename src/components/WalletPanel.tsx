@@ -1,17 +1,14 @@
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { getFaucetHost, requestSuiFromFaucetV2 } from "@mysten/sui/faucet";
 import { Check, Copy, Droplet, Eye, EyeOff, Loader2, Plus, Trash2, Upload } from "lucide-react";
 import { AlertDialog, Input } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
 import { useWallet } from "@/stores/walletStore";
-import { useSettings } from "@/stores/settingsStore";
 import { useBalance } from "@/hooks/useBalance";
+import { useFaucet } from "@/hooks/useFaucet";
 import { shortenAddress } from "@/lib/utils";
 import { cn } from "@/lib/cn";
 
 type Mode = "view" | "reveal" | "import";
-type Faucet = "idle" | "loading" | "ok" | "error";
 
 function RemoveConfirm({ onConfirm }: { onConfirm: () => void }) {
   return (
@@ -54,39 +51,18 @@ export function WalletPanel({ onClose }: { onClose?: () => void }) {
   const remove = useWallet((s) => s.remove);
   const switchTo = useWallet((s) => s.switchTo);
   const reveal = useWallet((s) => s.reveal);
-  const network = useSettings((s) => s.network);
   const { data: balance, isLoading: balanceLoading } = useBalance();
-  const queryClient = useQueryClient();
+  const faucet = useFaucet();
 
   const [mode, setMode] = useState<Mode>("view");
   const [draft, setDraft] = useState("");
   const [importError, setImportError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
-  const [faucet, setFaucet] = useState<Faucet>("idle");
-
-  const canFaucet = network !== "mainnet";
 
   async function copy(key: string, value: string) {
     await navigator.clipboard.writeText(value);
     setCopied(key);
     setTimeout(() => setCopied((k) => (k === key ? null : k)), 1500);
-  }
-
-  async function requestFaucet() {
-    if (!address || !canFaucet) return;
-    setFaucet("loading");
-    try {
-      await requestSuiFromFaucetV2({
-        host: getFaucetHost(network as "testnet" | "devnet" | "localnet"),
-        recipient: address,
-      });
-      setFaucet("ok");
-      setTimeout(() => queryClient.invalidateQueries({ queryKey: ["balance"] }), 2000);
-      setTimeout(() => setFaucet("idle"), 3000);
-    } catch {
-      setFaucet("error");
-      setTimeout(() => setFaucet("idle"), 3000);
-    }
   }
 
   function submitImport() {
@@ -205,21 +181,21 @@ export function WalletPanel({ onClose }: { onClose?: () => void }) {
           <span className="font-mono text-xs text-ink-muted">
             {balanceLoading ? "…" : `${(balance ?? 0).toLocaleString(undefined, { maximumFractionDigits: 4 })} SUI`}
           </span>
-          {canFaucet && (
+          {faucet.available && (
             <Button
-              isDisabled={faucet === "loading"}
+              isDisabled={faucet.status === "loading"}
               size="sm"
-              variant={faucet === "error" ? "danger" : "secondary"}
-              onPress={requestFaucet}
+              variant={faucet.status === "error" ? "danger" : "secondary"}
+              onPress={faucet.request}
             >
-              {faucet === "loading" ? (
+              {faucet.status === "loading" ? (
                 <Loader2 className="size-3.5 animate-spin" />
-              ) : faucet === "ok" ? (
+              ) : faucet.status === "ok" ? (
                 <Check className="size-3.5 text-success" />
               ) : (
                 <Droplet className="size-3.5" />
               )}
-              {faucet === "ok" ? "Requested" : faucet === "error" ? "Failed" : "Faucet"}
+              {faucet.status === "ok" ? "Requested" : faucet.status === "error" ? "Failed" : "Faucet"}
             </Button>
           )}
         </div>

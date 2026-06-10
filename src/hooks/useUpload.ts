@@ -27,6 +27,7 @@ export function useUpload() {
   const suiClient = useMemo(() => new SuiClient({ url: getFullnodeUrl(network) }), [network]);
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [needsGas, setNeedsGas] = useState(false);
 
   const upload = useCallback(
     async (file: File) => {
@@ -41,6 +42,7 @@ export function useUpload() {
         return;
       }
       setError(null);
+      setNeedsGas(false);
       try {
         setStatus("uploading");
         const bytes = new Uint8Array(await file.arrayBuffer());
@@ -73,12 +75,29 @@ export function useUpload() {
         await queryClient.invalidateQueries({ queryKey: ["files", address] });
         setTimeout(() => setStatus("idle"), 1200);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Upload failed.");
+        const message = e instanceof Error ? e.message : "Upload failed.";
+        // The blob is on Walrus; only the on-chain record failed for lack of gas.
+        if (/gas|insufficient/i.test(message)) {
+          setNeedsGas(true);
+          setError("Stored on Walrus, but recording it on Sui needs a little SUI for gas.");
+        } else {
+          setError(message);
+        }
         setStatus("failed");
       }
     },
     [keypair, address, publisher, publisherToken, epochs, packageId, suiClient, queryClient],
   );
 
-  return { upload, status, error, reset: () => { setStatus("idle"); setError(null); } };
+  return {
+    upload,
+    status,
+    error,
+    needsGas,
+    reset: () => {
+      setStatus("idle");
+      setError(null);
+      setNeedsGas(false);
+    },
+  };
 }

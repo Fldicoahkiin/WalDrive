@@ -1,23 +1,57 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
   <defs>
     <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#1d1e2a"/>
+      <stop offset="0" stop-color="#1f2030"/>
       <stop offset="1" stop-color="#121319"/>
     </linearGradient>
-    <linearGradient id="tusk" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffffff"/>
-      <stop offset="1" stop-color="#d9dcff"/>
+    <linearGradient id="folder" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7d87f4"/>
+      <stop offset="1" stop-color="#5560c9"/>
+    </linearGradient>
+    <linearGradient id="tab" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8f98f7"/>
+      <stop offset="1" stop-color="#6b76e0"/>
     </linearGradient>
   </defs>
-  <!-- macOS icon grid: 824x824 rounded tile centered in a 1024 canvas (100px safe-area margin) -->
+
+  <!-- macOS icon grid: 824x824 rounded tile centered in 1024 (100px safe margin) -->
   <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#tile)"/>
-  <rect x="111" y="111" width="802" height="802" rx="176" fill="none" stroke="#ffffff" stroke-opacity="0.07" stroke-width="7"/>
-  <!-- walrus tusks drawn as a W; two accent eyes make the face -->
-  <g transform="translate(512,512) scale(0.805) translate(-512,-512)">
-    <path d="M 270 420 L 405 740 L 512 500 L 619 740 L 754 420"
-          fill="none" stroke="url(#tusk)" stroke-width="96"
-          stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="405" cy="330" r="34" fill="#7c86f2"/>
-    <circle cx="619" cy="330" r="34" fill="#7c86f2"/>
+  <rect x="111" y="111" width="802" height="802" rx="176" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="7"/>
+
+  <!-- folder tab (behind the head) -->
+  <rect x="252" y="460" width="240" height="90" rx="30" fill="url(#tab)"/>
+
+  <!-- walrus head peeking out -->
+  <g>
+    <rect x="342" y="240" width="340" height="310" rx="150" fill="#f3f2fb"/>
+    <!-- eyes + highlights -->
+    <circle cx="442" cy="372" r="25" fill="#23243a"/>
+    <circle cx="582" cy="372" r="25" fill="#23243a"/>
+    <circle cx="435" cy="364" r="8" fill="#ffffff"/>
+    <circle cx="575" cy="364" r="8" fill="#ffffff"/>
+    <!-- muzzle: two lobes -->
+    <circle cx="470" cy="462" r="76" fill="#ffffff"/>
+    <circle cx="554" cy="462" r="76" fill="#ffffff"/>
+    <!-- nose -->
+    <ellipse cx="512" cy="420" rx="23" ry="16" fill="#23243a"/>
+    <!-- whisker dots -->
+    <circle cx="432" cy="446" r="7" fill="#aeb3d6"/>
+    <circle cx="418" cy="470" r="7" fill="#aeb3d6"/>
+    <circle cx="432" cy="494" r="7" fill="#aeb3d6"/>
+    <circle cx="592" cy="446" r="7" fill="#aeb3d6"/>
+    <circle cx="606" cy="470" r="7" fill="#aeb3d6"/>
+    <circle cx="592" cy="494" r="7" fill="#aeb3d6"/>
   </g>
+
+  <!-- folder body (in front of the chin) -->
+  <rect x="232" y="520" width="560" height="290" rx="52" fill="url(#folder)"/>
+  <rect x="252" y="532" width="520" height="5" rx="2.5" fill="#ffffff" fill-opacity="0.28"/>
+
+  <!-- tusks hanging in front of the folder -->
+  <rect x="449" y="512" width="42" height="142" rx="21" fill="#ffffff" transform="rotate(3 470 583)"/>
+  <rect x="533" y="512" width="42" height="142" rx="21" fill="#ffffff" transform="rotate(-3 554 583)"/>
+
+  <!-- flippers resting on the rim -->
+  <circle cx="328" cy="524" r="31" fill="#f3f2fb"/>
+  <circle cx="696" cy="524" r="31" fill="#f3f2fb"/>
 </svg>

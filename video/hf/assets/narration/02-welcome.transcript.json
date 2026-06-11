@@ -1,0 +1,97 @@
+[
+  {
+    "text": "Open",
+    "start": 0.04,
+    "end": 0.27
+  },
+  {
+    "text": "while",
+    "start": 0.27,
+    "end": 0.57
+  },
+  {
+    "text": "drive",
+    "start": 0.63,
+    "end": 0.95
+  },
+  {
+    "text": "and",
+    "start": 0.95,
+    "end": 1.15
+  },
+  {
+    "text": "generate",
+    "start": 1.15,
+    "end": 1.61
+  },
+  {
+    "text": "a",
+    "start": 1.69,
+    "end": 1.75
+  },
+  {
+    "text": "local",
+    "start": 1.75,
+    "end": 2.12
+  },
+  {
+    "text": "wallet.",
+    "start": 2.12,
+    "end": 2.8
+  },
+  {
+    "text": "It",
+    "start": 2.84,
+    "end": 2.95
+  },
+  {
+    "text": "signs",
+    "start": 3.04,
+    "end": 3.36
+  },
+  {
+    "text": "every",
+    "start": 3.36,
+    "end": 3.76
+  },
+  {
+    "text": "transaction",
+    "start": 3.76,
+    "end": 4.63
+  },
+  {
+    "text": "and",
+    "start": 4.63,
+    "end": 4.87
+  },
+  {
+    "text": "process.",
+    "start": 4.87,
+    "end": 5.44
+  },
+  {
+    "text": "No",
+    "start": 5.5,
+    "end": 5.61
+  },
+  {
+    "text": "browser",
+    "start": 5.61,
+    "end": 6.14
+  },
+  {
+    "text": "extension,",
+    "start": 6.14,
+    "end": 6.98
+  },
+  {
+    "text": "no",
+    "start": 6.98,
+    "end": 7.07
+  },
+  {
+    "text": "pop-up.",
+    "start": 7.14,
+    "end": 7.84
+  }
+]

@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <!-- Caption groups (auto-generated from the narration transcripts). Loaded
+         synchronously so the data is ready when the timeline is built. -->
+    <script src="captions.js"></script>
+    <style>
+      :root {
+        --canvas: #010102;
+        --surface-1: #0f1011;
+        --surface-2: #141516;
+        --hairline: #23252a;
+        --hairline-strong: #34343a;
+        --ink: #f7f8f8;
+        --ink-muted: #d0d6e0;
+        --ink-subtle: #8a8f98;
+        --accent: #5e6ad2;
+        --accent-hover: #828fff;
+        --success: #27a644;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--canvas);
+      }
+      body {
+        font-family: "Inter", system-ui, sans-serif;
+        color: var(--ink);
+        -webkit-font-smoothing: antialiased;
+      }
+      code,
+      .mono {
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      /* ---- scene scaffolding (wrappers are NON-timed; GSAP drives opacity) -- */
+      .scene {
+        position: absolute;
+        inset: 0;
+        width: 1920px;
+        height: 1080px;
+        background: var(--canvas);
+        opacity: 0;
+      }
+      .clip-scene {
+        background: var(--canvas);
+      }
+      .clip-scene video {
+        position: absolute;
+        inset: 0;
+        width: 1920px;
+        height: 1080px;
+        object-fit: cover;
+        display: block;
+      }
+      .clip-frame {
+        position: absolute;
+        inset: 0;
+        z-index: 6;
+        pointer-events: none;
+        box-shadow: inset 0 0 0 2px var(--hairline-strong);
+      }
+
+      /* ---- decorative ----------------------------------------------------- */
+      .glow {
+        position: absolute;
+        border-radius: 999px;
+        filter: blur(120px);
+        opacity: 0.5;
+        pointer-events: none;
+      }
+      .grid-bg {
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(var(--hairline) 1px, transparent 1px),
+          linear-gradient(90deg, var(--hairline) 1px, transparent 1px);
+        background-size: 96px 96px;
+        opacity: 0.35;
+        pointer-events: none;
+      }
+      .ghost {
+        position: absolute;
+        font-weight: 800;
+        letter-spacing: -6px;
+        color: #ffffff;
+        opacity: 0.045;
+        white-space: nowrap;
+        pointer-events: none;
+      }
+      .rule {
+        position: absolute;
+        height: 2px;
+        background: var(--accent);
+        transform-origin: left center;
+      }
+
+      /* ---- title ---------------------------------------------------------- */
+      #title .wrap {
+        position: absolute;
+        left: 160px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 1600px;
+      }
+      .eyebrow {
+        font-size: 26px;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        color: var(--ink-subtle);
+        font-weight: 600;
+      }
+      #title .wordmark {
+        font-size: 188px;
+        font-weight: 800;
+        letter-spacing: -7px;
+        line-height: 1;
+        margin: 22px 0 0;
+      }
+      #title .wordmark .drive {
+        color: var(--accent);
+      }
+      #title .tagline {
+        font-size: 46px;
+        font-weight: 400;
+        letter-spacing: -1px;
+        color: var(--ink-muted);
+        margin-top: 30px;
+      }
+      .badge {
+        position: absolute;
+        left: 160px;
+        bottom: 120px;
+        display: inline-flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 26px;
+        border: 2px solid var(--hairline-strong);
+        border-radius: 12px;
+        background: var(--surface-1);
+        font-size: 24px;
+        color: var(--ink-muted);
+        font-weight: 500;
+      }
+      .badge .pip {
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        background: var(--accent);
+      }
+
+      /* ---- problem -------------------------------------------------------- */
+      #problem .wrap {
+        position: absolute;
+        left: 160px;
+        top: 150px;
+        width: 1600px;
+      }
+      .kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 16px;
+        font-size: 24px;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        color: var(--accent-hover);
+        font-weight: 600;
+      }
+      .kicker .bar {
+        width: 56px;
+        height: 3px;
+        background: var(--accent);
+      }
+      #problem h1 {
+        font-size: 88px;
+        font-weight: 700;
+        letter-spacing: -3px;
+        line-height: 1.05;
+        margin-top: 28px;
+        max-width: 1500px;
+      }
+      #problem h1 .mut {
+        color: var(--ink-subtle);
+      }
+      .pills {
+        position: absolute;
+        left: 160px;
+        top: 548px;
+        display: flex;
+        gap: 20px;
+      }
+      .pill {
+        padding: 18px 30px;
+        border: 2px solid var(--hairline-strong);
+        border-radius: 12px;
+        background: var(--surface-1);
+        font-size: 30px;
+        font-weight: 500;
+        color: var(--ink-muted);
+      }
+      .pill .x {
+        color: var(--ink-subtle);
+        margin-right: 12px;
+      }
+      .answer {
+        position: absolute;
+        left: 160px;
+        bottom: 150px;
+        width: 1600px;
+        font-size: 40px;
+        font-weight: 400;
+        letter-spacing: -0.5px;
+        color: var(--ink-muted);
+        line-height: 1.4;
+      }
+      .answer b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .answer .accent {
+        color: var(--accent-hover);
+        font-weight: 600;
+      }
+
+      /* ---- lower-third label on demo clips -------------------------------- */
+      /* bottom-left, clear of the app's own top toolbar in every recording */
+      .demo-label {
+        position: absolute;
+        left: 64px;
+        bottom: 168px;
+        z-index: 7;
+        display: inline-flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 26px 16px 22px;
+        background: rgba(15, 16, 17, 0.92);
+        border: 2px solid var(--hairline-strong);
+        border-radius: 12px;
+      }
+      .demo-label .num {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--accent-hover);
+        font-variant-numeric: tabular-nums;
+      }
+      .demo-label .txt {
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: -0.4px;
+        color: var(--ink);
+      }
+      .demo-label .div {
+        width: 2px;
+        height: 26px;
+        background: var(--hairline-strong);
+      }
+
+      /* ---- caption track -------------------------------------------------- */
+      #captions {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 78px;
+        z-index: 9;
+        pointer-events: none;
+      }
+      .cap {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        opacity: 0;
+        display: flex;
+        justify-content: center;
+      }
+      .cap span {
+        display: inline-block;
+        max-width: 1500px;
+        padding: 14px 34px;
+        background: rgba(1, 1, 2, 0.74);
+        border: 1px solid var(--hairline);
+        border-radius: 12px;
+        font-size: 40px;
+        font-weight: 500;
+        letter-spacing: -0.4px;
+        line-height: 1.25;
+        color: var(--ink);
+      }
+
+      /* ---- conclusion ----------------------------------------------------- */
+      #outro .wrap {
+        position: absolute;
+        left: 160px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 1600px;
+      }
+      #outro .wordmark {
+        font-size: 150px;
+        font-weight: 800;
+        letter-spacing: -6px;
+        line-height: 1;
+      }
+      #outro .wordmark .drive {
+        color: var(--accent);
+      }
+      #outro .line {
+        font-size: 42px;
+        font-weight: 400;
+        letter-spacing: -0.6px;
+        color: var(--ink-muted);
+        margin-top: 28px;
+        max-width: 1400px;
+        line-height: 1.35;
+      }
+      #outro .line b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .props {
+        position: absolute;
+        left: 160px;
+        bottom: 150px;
+        display: flex;
+        gap: 18px;
+      }
+      .prop {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 26px;
+        border: 2px solid var(--hairline-strong);
+        border-radius: 12px;
+        background: var(--surface-1);
+        font-size: 27px;
+        font-weight: 500;
+        color: var(--ink-muted);
+      }
+      .prop .ck {
+        color: var(--success);
+        font-weight: 700;
+      }
+      #outro .repo {
+        position: absolute;
+        right: 160px;
+        bottom: 158px;
+        font-size: 28px;
+        color: var(--ink-subtle);
+        letter-spacing: -0.3px;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="143"
+      data-width="1920"
+      data-height="1080"
+    >
+      <!-- ============================================================
+           Videos are the TIMED elements (class="clip"). Scene wrappers
+           are NON-timed; GSAP drives their opacity for crossfades.
+           Adjacent clips sit on alternating track-indices (2/3) and
+           overlap ~0.6s so a real crossfade can play. Text scenes carry
+           no track — purely GSAP-gated DOM.
+           ============================================================ -->
+
+      <!-- TITLE (0–5.4) -->
+      <div id="title" class="scene">
+        <div class="grid-bg" id="t-grid"></div>
+        <div class="glow" id="t-glow" style="width: 760px; height: 760px; left: 1080px; top: -160px; background: var(--accent);"></div>
+        <div class="ghost" id="t-ghost" style="right: -40px; bottom: 40px; font-size: 300px;">WALRUS</div>
+        <div class="wrap">
+          <div class="eyebrow" id="t-eyebrow">Verifiable data console</div>
+          <h1 class="wordmark"><span id="t-wal">Wal</span><span class="drive" id="t-drive">Drive</span></h1>
+          <div class="tagline" id="t-tag">A desktop drive for Walrus — files you actually own.</div>
+        </div>
+        <div class="rule" id="t-rule" style="left: 160px; top: 50%; margin-top: 200px; width: 360px;"></div>
+        <div class="badge" id="t-badge"><span class="pip"></span>Sui Overflow 2026 · Walrus track</div>
+      </div>
+
+      <!-- PROBLEM (5–27.4) -->
+      <div id="problem" class="scene">
+        <div class="grid-bg" id="p-grid"></div>
+        <div class="glow" id="p-glow" style="width: 640px; height: 640px; right: -120px; top: 380px; background: var(--accent);"></div>
+        <div class="ghost" id="p-ghost" style="left: -30px; top: 30px; font-size: 230px;">DATA</div>
+        <div class="wrap">
+          <div class="kicker" id="p-kicker"><span class="bar"></span>The problem</div>
+          <h1 id="p-head">Your agents make real data.<br /><span class="mut">Where does it actually live?</span></h1>
+        </div>
+        <div class="pills">
+          <div class="pill" id="p-pill1"><span class="x">×</span>someone's server</div>
+          <div class="pill" id="p-pill2"><span class="x">×</span>behind a login</div>
+          <div class="pill" id="p-pill3"><span class="x">×</span>deletable by someone else</div>
+        </div>
+        <div class="answer" id="p-answer">
+          <b>WalDrive</b> stores your files on a <span class="accent">decentralized network</span> —
+          owned by you, and verifiable by anyone.
+        </div>
+      </div>
+
+      <!-- CLIP 1 · WELCOME -->
+      <div id="s-welcome" class="scene clip-scene">
+        <video id="v-welcome" class="clip" src="assets/clips/01-welcome.mp4" data-start="26.8" data-duration="10.2" data-media-start="0.3" data-track-index="2" muted playsinline crossorigin="anonymous"></video>
+        <div class="clip-frame"></div>
+        <div class="demo-label" id="l-welcome"><span class="num">01</span><span class="div"></span><span class="txt">Generate a local wallet</span></div>
+      </div>
+
+      <!-- CLIP 2 · FUND -->
+      <div id="s-fund" class="scene clip-scene">
+        <video id="v-fund" class="clip" src="assets/clips/02-fund.mp4" data-start="36.4" data-duration="10.1" data-media-start="0.5" data-track-index="3" muted playsinline crossorigin="anonymous"></video>
+        <div class="clip-frame"></div>
+        <div class="demo-label" id="l-fund"><span class="num">02</span><span class="div"></span><span class="txt">Fund with free testnet gas</span></div>
+      </div>
+
+      <!-- CLIP 3 · UPLOAD -->
+      <div id="s-upload" class="scene clip-scene">
+        <video id="v-upload" class="clip" src="assets/clips/03-first-upload.mp4" data-start="45.9" data-duration="17.6" data-media-start="0.3" data-track-index="2" muted playsinline crossorigin="anonymous"></video>
+        <div class="clip-frame"></div>
+        <div class="demo-label" id="l-upload"><span class="num">03</span><span class="div"></span><span class="txt">Drag to upload → Walrus + Sui</span></div>
+      </div>
+
+      <!-- CLIP 4 · VERIFY (slow zoom on the proof) -->
+      <div id="s-verify" class="scene clip-scene">
+        <div class="zoomwrap" id="verify-zoom" style="position: absolute; inset: 0; transform-origin: 62% 52%;">
+          <video id="v-verify" class="clip" src="assets/clips/04-verify.mp4" data-start="62.9" data-duration="15.6" data-media-start="0.2" data-track-index="3" muted playsinline crossorigin="anonymous"></video>
+        </div>
+        <div class="clip-frame"></div>
+        <div class="demo-label" id="l-verify"><span class="num">04</span><span class="div"></span><span class="txt">Verify — re-fetch &amp; hash on screen</span></div>
+      </div>
+
+      <!-- CLIP 5 · ORGANIZE -->
+      <div id="s-organize" class="scene clip-scene">
+        <video id="v-organize" class="clip" src="assets/clips/05-organize.mp4" data-start="77.9" data-duration="34.6" data-media-start="0.5" data-track-index="2" muted playsinline crossorigin="anonymous"></video>
+        <div class="clip-frame"></div>
+        <div class="demo-label" id="l-organize"><span class="num">05</span><span class="div"></span><span class="txt">Tag · folder · search — on-chain</span></div>
+      </div>
+
+      <!-- CLIP 6 · RESTORE -->
+      <div id="s-restore" class="scene clip-scene">
+        <video id="v-restore" class="clip" src="assets/clips/06-restore.mp4" data-start="111.9" data-duration="13.1" data-media-start="0.3" data-track-index="3" muted playsinline crossorigin="anonymous"></video>
+        <div class="clip-frame"></div>
+        <div class="demo-label" id="l-restore"><span class="num">06</span><span class="div"></span><span class="txt">Import a key — instant restore</span></div>
+      </div>
+
+      <!-- CONCLUSION (125–143) -->
+      <div id="outro" class="scene">
+        <div class="grid-bg" id="o-grid"></div>
+        <div class="glow" id="o-glow" style="width: 820px; height: 820px; left: 980px; top: 280px; background: var(--accent);"></div>
+        <div class="ghost" id="o-ghost" style="right: 40px; top: 30px; font-size: 220px;">SUI</div>
+        <div class="wrap">
+          <h1 class="wordmark"><span id="o-wal">Wal</span><span class="drive" id="o-drive">Drive</span></h1>
+          <div class="line" id="o-line">
+            The file-management &amp; <b>verifiable-data console</b> for everything your agents store on Walrus.
+          </div>
+        </div>
+        <div class="props">
+          <div class="prop" id="o-p1"><span class="ck">✓</span>Real bytes</div>
+          <div class="prop" id="o-p2"><span class="ck">✓</span>Real ownership</div>
+          <div class="prop" id="o-p3"><span class="ck">✓</span>Verifiable by anyone</div>
+        </div>
+        <div class="repo" id="o-repo">github.com/Fldicoahkiin/WalDrive</div>
+      </div>
+
+      <!-- CAPTION TRACK (overlay, non-timed; GSAP-gated) -->
+      <div id="captions"></div>
+
+      <!-- NARRATION (one timed audio per scene) -->
+      <audio id="n-problem"    class="clip" src="assets/narration/01-problem.wav"    data-start="6.2"   data-duration="17.6" data-track-index="10" data-volume="1"></audio>
+      <audio id="n-welcome"    class="clip" src="assets/narration/02-welcome.wav"    data-start="27.8"  data-duration="8.1"  data-track-index="10" data-volume="1"></audio>
+      <audio id="n-fund"       class="clip" src="assets/narration/03-fund.wav"       data-start="38"    data-duration="6.4"  data-track-index="10" data-volume="1"></audio>
+      <audio id="n-upload"     class="clip" src="assets/narration/04-upload.wav"     data-start="47.3"  data-duration="8.6"  data-track-index="10" data-volume="1"></audio>
+      <audio id="n-verify"     class="clip" src="assets/narration/05-verify.wav"     data-start="64.3"  data-duration="13"   data-track-index="10" data-volume="1"></audio>
+      <audio id="n-organize"   class="clip" src="assets/narration/06-organize.wav"   data-start="79.5"  data-duration="8.8"  data-track-index="10" data-volume="1"></audio>
+      <audio id="n-restore"    class="clip" src="assets/narration/07-restore.wav"    data-start="113.3" data-duration="7.9"  data-track-index="10" data-volume="1"></audio>
+      <audio id="n-conclusion" class="clip" src="assets/narration/08-conclusion.wav" data-start="126.5" data-duration="13.1" data-track-index="10" data-volume="1"></audio>
+
+      <!-- MUSIC BED (quiet, full length) -->
+      <audio id="music" class="clip" src="assets/music/bed.wav" data-start="0" data-duration="143" data-media-start="0" data-track-index="11" data-volume="0.12"></audio>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      /* ----- scene crossfades -----
+         Wrappers are non-timed: GSAP fully owns their opacity. Each scene
+         fades IN at its start, holds, then fades OUT as the next scene fades
+         in (a real crossfade — both layers live for ~0.6s). The video inside
+         is a timed clip the runtime plays only within its own window, which
+         overlaps the neighbour's window so both frames are present. */
+      const XF = 0.6;
+      function sceneIn(sel, at) {
+        tl.fromTo(sel, { opacity: 0 }, { opacity: 1, duration: XF, ease: "power2.inOut" }, at);
+      }
+      function sceneOut(sel, at) {
+        tl.to(sel, { opacity: 0, duration: XF, ease: "power2.inOut" }, at);
+      }
+
+      // title up immediately
+      tl.set("#title", { opacity: 1 }, 0);
+      // crossfade chain (out of prev starts where next fades in)
+      sceneIn("#problem", 5.0);    sceneOut("#title", 5.0);
+      sceneIn("#s-welcome", 27.0); sceneOut("#problem", 27.0);
+      sceneIn("#s-fund", 37.0);    sceneOut("#s-welcome", 37.0);
+      sceneIn("#s-upload", 46.5);  sceneOut("#s-fund", 46.5);
+      sceneIn("#s-verify", 63.5);  sceneOut("#s-upload", 63.5);
+      sceneIn("#s-organize", 78.5);sceneOut("#s-verify", 78.5);
+      sceneIn("#s-restore", 112.5);sceneOut("#s-organize", 112.5);
+      sceneIn("#outro", 125.0);    sceneOut("#s-restore", 125.0);
+      // final fade to black
+      sceneOut("#outro", 142.0);
+
+      /* ----- TITLE entrances ----- */
+      tl.from("#t-eyebrow", { y: 24, opacity: 0, duration: 0.6, ease: "power3.out" }, 0.3);
+      tl.from("#t-wal", { y: 80, opacity: 0, duration: 0.8, ease: "power4.out" }, 0.45);
+      tl.from("#t-drive", { y: 80, opacity: 0, duration: 0.8, ease: "power4.out" }, 0.6);
+      tl.from("#t-tag", { y: 30, opacity: 0, duration: 0.7, ease: "power2.out" }, 0.95);
+      tl.fromTo("#t-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: "expo.out" }, 1.1);
+      tl.from("#t-badge", { y: 28, opacity: 0, duration: 0.6, ease: "back.out(1.5)" }, 1.3);
+      tl.from("#t-ghost", { x: 60, opacity: 0, duration: 1.2, ease: "power2.out" }, 0.3);
+      tl.to("#t-glow", { scale: 1.18, duration: 2.7, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0);
+      tl.to("#t-grid", { x: -48, y: -24, duration: 5.4, ease: "none" }, 0);
+
+      /* ----- PROBLEM entrances ----- */
+      tl.from("#p-kicker", { x: -40, opacity: 0, duration: 0.6, ease: "power3.out" }, 5.6);
+      tl.from("#p-head", { y: 40, opacity: 0, duration: 0.8, ease: "power3.out" }, 5.8);
+      tl.from("#p-pill1", { y: 30, opacity: 0, duration: 0.5, ease: "back.out(1.4)" }, 8.7);
+      tl.from("#p-pill2", { y: 30, opacity: 0, duration: 0.5, ease: "back.out(1.4)" }, 8.9);
+      tl.from("#p-pill3", { y: 30, opacity: 0, duration: 0.5, ease: "back.out(1.4)" }, 9.1);
+      tl.from("#p-answer", { y: 36, opacity: 0, duration: 0.8, ease: "power2.out" }, 13.4);
+      tl.from("#p-ghost", { x: -60, opacity: 0, duration: 1.2, ease: "power2.out" }, 5.5);
+      tl.to("#p-glow", { scale: 1.2, duration: 3.2, ease: "sine.inOut", yoyo: true, repeat: 2 }, 5.2);
+      tl.to("#p-grid", { x: 48, duration: 22, ease: "none" }, 5.2);
+
+      /* ----- demo labels: slide in just after each cut ----- */
+      function labelIn(sel, at) {
+        tl.from(sel, { x: -50, opacity: 0, duration: 0.55, ease: "power3.out" }, at);
+      }
+      labelIn("#l-welcome", 27.6);
+      labelIn("#l-fund", 37.6);
+      labelIn("#l-upload", 47.1);
+      labelIn("#l-verify", 64.1);
+      labelIn("#l-organize", 79.1);
+      labelIn("#l-restore", 113.1);
+
+      /* ----- VERIFY: slow breathing zoom (the differentiator) ----- */
+      tl.fromTo("#verify-zoom", { scale: 1.0 }, { scale: 1.12, duration: 8, ease: "sine.inOut" }, 64.5);
+      tl.to("#verify-zoom", { scale: 1.04, duration: 4, ease: "sine.inOut" }, 73);
+
+      /* ----- CONCLUSION entrances ----- */
+      tl.from("#o-wal", { y: 60, opacity: 0, duration: 0.8, ease: "power4.out" }, 125.5);
+      tl.from("#o-drive", { y: 60, opacity: 0, duration: 0.8, ease: "power4.out" }, 125.65);
+      tl.from("#o-line", { y: 34, opacity: 0, duration: 0.8, ease: "power2.out" }, 126.0);
+      tl.from("#o-p1", { y: 28, opacity: 0, duration: 0.5, ease: "back.out(1.4)" }, 127.5);
+      tl.from("#o-p2", { y: 28, opacity: 0, duration: 0.5, ease: "back.out(1.4)" }, 127.7);
+      tl.from("#o-p3", { y: 28, opacity: 0, duration: 0.5, ease: "back.out(1.4)" }, 127.9);
+      tl.from("#o-repo", { opacity: 0, duration: 0.7, ease: "power2.out" }, 128.3);
+      tl.from("#o-ghost", { x: 60, opacity: 0, duration: 1.2, ease: "power2.out" }, 125.5);
+      tl.to("#o-glow", { scale: 1.16, duration: 3.4, ease: "sine.inOut", yoyo: true, repeat: 1 }, 125.2);
+
+      /* ----- CAPTION TRACK -----
+         One <span> group per phrase from window.__captions, each scene's local
+         timestamps offset by the scene's narration start. One group visible at
+         a time, hard kill at end. */
+      const capRoot = document.getElementById("captions");
+      const SCENE_AT = {
+        "01-problem": 6.2,
+        "02-welcome": 27.8,
+        "03-fund": 38,
+        "04-upload": 47.3,
+        "05-verify": 64.3,
+        "06-organize": 79.5,
+        "07-restore": 113.3,
+        "08-conclusion": 126.5,
+      };
+      const CAPS = window.__captions || {};
+      let ci = 0;
+      Object.keys(SCENE_AT).forEach(function (scene) {
+        const base = SCENE_AT[scene];
+        (CAPS[scene] || []).forEach(function (g) {
+          const start = +(base + g.start).toFixed(3);
+          const end = +(base + g.end + 0.35).toFixed(3);
+          const wrap = document.createElement("div");
+          wrap.className = "cap";
+          wrap.id = "cap-" + ci;
+          const span = document.createElement("span");
+          span.textContent = g.text;
+          wrap.appendChild(span);
+          capRoot.appendChild(wrap);
+          tl.to(wrap, { opacity: 1, duration: 0.18, ease: "power2.out" }, start);
+          tl.to(wrap, { opacity: 0, duration: 0.16, ease: "power2.in" }, end - 0.16);
+          tl.set(wrap, { opacity: 0 }, end);
+          ci++;
+        });
+      });
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

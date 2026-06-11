@@ -1,0 +1,1 @@
+Your AI agents and your apps generate real data now. Files. Artifacts. Memory. But where does it actually live? On someone's server. Behind someone's login. Deletable by someone else. WalDrive is a desktop drive for Walrus. Your files, stored on a decentralized network, owned by you, and verifiable by anyone.

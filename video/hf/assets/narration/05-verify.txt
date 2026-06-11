@@ -1,0 +1,1 @@
+Here's the part that matters. Every file is content addressed. Hit Verify, and WalDrive re-fetches the bytes straight from Walrus and hashes them right on screen. That's real, tamper-evident storage. Not a fake ID, not a promise.

@@ -1,0 +1,152 @@
+[
+  {
+    "text": "While",
+    "start": 0.04,
+    "end": 0.35
+  },
+  {
+    "text": "drive,",
+    "start": 0.35,
+    "end": 0.78
+  },
+  {
+    "text": "the",
+    "start": 0.9,
+    "end": 0.99
+  },
+  {
+    "text": "file",
+    "start": 0.99,
+    "end": 1.19
+  },
+  {
+    "text": "management",
+    "start": 1.19,
+    "end": 1.66
+  },
+  {
+    "text": "and",
+    "start": 1.75,
+    "end": 1.86
+  },
+  {
+    "text": "verifiable",
+    "start": 1.9,
+    "end": 2.51
+  },
+  {
+    "text": "data",
+    "start": 2.51,
+    "end": 2.83
+  },
+  {
+    "text": "console",
+    "start": 2.89,
+    "end": 3.37
+  },
+  {
+    "text": "for",
+    "start": 3.44,
+    "end": 3.62
+  },
+  {
+    "text": "everything",
+    "start": 3.62,
+    "end": 4.37
+  },
+  {
+    "text": "your",
+    "start": 4.37,
+    "end": 4.67
+  },
+  {
+    "text": "agent",
+    "start": 4.67,
+    "end": 5.04
+  },
+  {
+    "text": "store",
+    "start": 5.04,
+    "end": 5.41
+  },
+  {
+    "text": "on",
+    "start": 5.41,
+    "end": 5.48
+  },
+  {
+    "text": "Walrus.",
+    "start": 5.58,
+    "end": 6.04
+  },
+  {
+    "text": "Real",
+    "start": 6.08,
+    "end": 6.27
+  },
+  {
+    "text": "bytes,",
+    "start": 6.32,
+    "end": 6.81
+  },
+  {
+    "text": "real",
+    "start": 6.81,
+    "end": 7.09
+  },
+  {
+    "text": "ownership",
+    "start": 7.09,
+    "end": 7.7
+  },
+  {
+    "text": "verifiable",
+    "start": 7.79,
+    "end": 8.41
+  },
+  {
+    "text": "by",
+    "start": 8.46,
+    "end": 8.7
+  },
+  {
+    "text": "anyone.",
+    "start": 8.7,
+    "end": 9.48
+  },
+  {
+    "text": "Built",
+    "start": 9.52,
+    "end": 9.85
+  },
+  {
+    "text": "for",
+    "start": 9.85,
+    "end": 10.07
+  },
+  {
+    "text": "Sui",
+    "start": 10.07,
+    "end": 10.27
+  },
+  {
+    "text": "Overflow",
+    "start": 10.38,
+    "end": 10.86
+  },
+  {
+    "text": "2026",
+    "start": 10.86,
+    "end": 11.74
+  },
+  {
+    "text": "Walrus",
+    "start": 11.74,
+    "end": 12.18
+  },
+  {
+    "text": "track.",
+    "start": 12.18,
+    "end": 12.82
+  }
+]

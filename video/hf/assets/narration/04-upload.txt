@@ -1,0 +1,1 @@
+Drag a file in. The bytes go straight to Walrus, the metadata onto Sui. There's no backend in between. And the file appears the moment it's stored.

@@ -1,0 +1,10 @@
+# HyperFrames project — ignore build artifacts and regenerable audio.
+node_modules/
+renders/
+.hyperframes/
+
+# Generated audio (regenerate: scripts/tts.sh, scripts/music.sh).
+# Word-level transcripts and the grouped captions ARE committed so the
+# composition renders deterministically without re-running Whisper.
+assets/narration/*.wav
+assets/music/*.wav

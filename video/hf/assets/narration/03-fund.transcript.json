@@ -1,0 +1,97 @@
+[
+  {
+    "text": "A",
+    "start": 0.04,
+    "end": 0.07
+  },
+  {
+    "text": "brand",
+    "start": 0.07,
+    "end": 0.44
+  },
+  {
+    "text": "new",
+    "start": 0.44,
+    "end": 0.65
+  },
+  {
+    "text": "wallet",
+    "start": 0.65,
+    "end": 1.1
+  },
+  {
+    "text": "just",
+    "start": 1.1,
+    "end": 1.4
+  },
+  {
+    "text": "needs",
+    "start": 1.48,
+    "end": 1.78
+  },
+  {
+    "text": "a",
+    "start": 1.78,
+    "end": 1.85
+  },
+  {
+    "text": "little",
+    "start": 1.85,
+    "end": 2.2
+  },
+  {
+    "text": "gas.",
+    "start": 2.2,
+    "end": 2.61
+  },
+  {
+    "text": "OneClick",
+    "start": 2.61,
+    "end": 3.25
+  },
+  {
+    "text": "grabs",
+    "start": 3.25,
+    "end": 3.67
+  },
+  {
+    "text": "free",
+    "start": 3.68,
+    "end": 3.97
+  },
+  {
+    "text": "testnet",
+    "start": 4.04,
+    "end": 4.57
+  },
+  {
+    "text": "SUI",
+    "start": 4.6,
+    "end": 4.79
+  },
+  {
+    "text": "and",
+    "start": 4.79,
+    "end": 5.17
+  },
+  {
+    "text": "you're",
+    "start": 5.17,
+    "end": 5.38
+  },
+  {
+    "text": "ready",
+    "start": 5.38,
+    "end": 5.55
+  },
+  {
+    "text": "to",
+    "start": 5.69,
+    "end": 5.75
+  },
+  {
+    "text": "go.",
+    "start": 5.75,
+    "end": 6.01
+  }
+]

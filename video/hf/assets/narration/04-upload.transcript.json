@@ -1,0 +1,137 @@
+[
+  {
+    "text": "Drag",
+    "start": 0.05,
+    "end": 0.31
+  },
+  {
+    "text": "a",
+    "start": 0.31,
+    "end": 0.33
+  },
+  {
+    "text": "file",
+    "start": 0.44,
+    "end": 0.7
+  },
+  {
+    "text": "in,",
+    "start": 0.7,
+    "end": 0.92
+  },
+  {
+    "text": "the",
+    "start": 1.08,
+    "end": 1.21
+  },
+  {
+    "text": "bytes",
+    "start": 1.21,
+    "end": 1.41
+  },
+  {
+    "text": "go",
+    "start": 1.49,
+    "end": 1.6
+  },
+  {
+    "text": "straight",
+    "start": 1.6,
+    "end": 1.98
+  },
+  {
+    "text": "to",
+    "start": 2.08,
+    "end": 2.24
+  },
+  {
+    "text": "Walrus,",
+    "start": 2.24,
+    "end": 2.86
+  },
+  {
+    "text": "the",
+    "start": 2.86,
+    "end": 2.99
+  },
+  {
+    "text": "metadata",
+    "start": 2.99,
+    "end": 3.36
+  },
+  {
+    "text": "onto",
+    "start": 3.36,
+    "end": 3.85
+  },
+  {
+    "text": "SUI,",
+    "start": 3.85,
+    "end": 4.27
+  },
+  {
+    "text": "there's",
+    "start": 4.3,
+    "end": 4.4
+  },
+  {
+    "text": "no",
+    "start": 4.4,
+    "end": 4.58
+  },
+  {
+    "text": "backhand",
+    "start": 4.58,
+    "end": 5.16
+  },
+  {
+    "text": "in",
+    "start": 5.23,
+    "end": 5.27
+  },
+  {
+    "text": "between,",
+    "start": 5.27,
+    "end": 5.77
+  },
+  {
+    "text": "and",
+    "start": 5.77,
+    "end": 5.93
+  },
+  {
+    "text": "the",
+    "start": 5.93,
+    "end": 6.08
+  },
+  {
+    "text": "file",
+    "start": 6.24,
+    "end": 6.28
+  },
+  {
+    "text": "appears",
+    "start": 6.33,
+    "end": 6.72
+  },
+  {
+    "text": "the",
+    "start": 6.72,
+    "end": 6.89
+  },
+  {
+    "text": "moment",
+    "start": 6.89,
+    "end": 7.14
+  },
+  {
+    "text": "it's",
+    "start": 7.23,
+    "end": 7.45
+  },
+  {
+    "text": "stored.",
+    "start": 7.45,
+    "end": 8
+  }
+]

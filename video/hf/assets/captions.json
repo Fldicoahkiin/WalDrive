@@ -1,0 +1,238 @@
+{
+  "01-problem": [
+    {
+      "text": "Your AI agents and your apps",
+      "start": 0.05,
+      "end": 1.49
+    },
+    {
+      "text": "Generate real data now.",
+      "start": 1.56,
+      "end": 3.32
+    },
+    {
+      "text": "Files, artifacts, memory, but where does",
+      "start": 3.38,
+      "end": 5.53
+    },
+    {
+      "text": "It actually live on someone's server,",
+      "start": 5.53,
+      "end": 7.2
+    },
+    {
+      "text": "Behind someone's login, deletable by someone",
+      "start": 7.25,
+      "end": 9.56
+    },
+    {
+      "text": "Else? WalDrive is a desktop",
+      "start": 9.64,
+      "end": 11.4
+    },
+    {
+      "text": "Drive for Walrus, your files stored",
+      "start": 11.47,
+      "end": 13.48
+    },
+    {
+      "text": "On a decentralized network owned by",
+      "start": 13.48,
+      "end": 15.36
+    },
+    {
+      "text": "You and verifiable by anyone.",
+      "start": 15.36,
+      "end": 17.26
+    }
+  ],
+  "02-welcome": [
+    {
+      "text": "Open WalDrive and generate a",
+      "start": 0.04,
+      "end": 1.75
+    },
+    {
+      "text": "Local wallet.",
+      "start": 1.75,
+      "end": 2.8
+    },
+    {
+      "text": "It signs every transaction and process.",
+      "start": 2.84,
+      "end": 5.44
+    },
+    {
+      "text": "No browser extension, no pop-up.",
+      "start": 5.5,
+      "end": 7.84
+    }
+  ],
+  "03-fund": [
+    {
+      "text": "A brand new wallet just needs",
+      "start": 0.04,
+      "end": 1.78
+    },
+    {
+      "text": "A little gas.",
+      "start": 1.78,
+      "end": 2.61
+    },
+    {
+      "text": "One click grabs free testnet Sui and",
+      "start": 2.61,
+      "end": 5.17
+    },
+    {
+      "text": "You're ready to go.",
+      "start": 5.17,
+      "end": 6.01
+    }
+  ],
+  "04-upload": [
+    {
+      "text": "Drag a file in, the bytes",
+      "start": 0.05,
+      "end": 1.41
+    },
+    {
+      "text": "Go straight to Walrus, the metadata",
+      "start": 1.49,
+      "end": 3.36
+    },
+    {
+      "text": "Onto Sui, there's no backend in",
+      "start": 3.36,
+      "end": 5.27
+    },
+    {
+      "text": "Between, and the file appears the",
+      "start": 5.27,
+      "end": 6.89
+    },
+    {
+      "text": "Moment it's stored.",
+      "start": 6.89,
+      "end": 8
+    }
+  ],
+  "05-verify": [
+    {
+      "text": "Here's the part that matters.",
+      "start": 0.09,
+      "end": 1.36
+    },
+    {
+      "text": "Every file is content addressed.",
+      "start": 1.45,
+      "end": 3.28
+    },
+    {
+      "text": "Hit verify and WalDrive re-fetches",
+      "start": 3.37,
+      "end": 5.32
+    },
+    {
+      "text": "The bytes straight from Walrus and",
+      "start": 5.32,
+      "end": 6.92
+    },
+    {
+      "text": "Hashes them right on screen.",
+      "start": 6.92,
+      "end": 8.66
+    },
+    {
+      "text": "That's real tamper-evident storage, not a",
+      "start": 8.75,
+      "end": 11.01
+    },
+    {
+      "text": "Fake ID, not a promise.",
+      "start": 11.08,
+      "end": 12.72
+    }
+  ],
+  "06-organize": [
+    {
+      "text": "And it's a real drive.",
+      "start": 0.07,
+      "end": 1.4
+    },
+    {
+      "text": "Tag a file, file it into",
+      "start": 1.47,
+      "end": 2.56
+    },
+    {
+      "text": "Folders, search across everything, browse right",
+      "start": 2.83,
+      "end": 5.37
+    },
+    {
+      "text": "In. Every action you take is",
+      "start": 5.52,
+      "end": 7.23
+    },
+    {
+      "text": "Recorded on chain.",
+      "start": 7.23,
+      "end": 8.4
+    }
+  ],
+  "07-restore": [
+    {
+      "text": "And because the truth lives on",
+      "start": 0.05,
+      "end": 1.58
+    },
+    {
+      "text": "Sui and Walrus not inside this",
+      "start": 1.58,
+      "end": 3.4
+    },
+    {
+      "text": "App, import your key on any",
+      "start": 3.4,
+      "end": 5.01
+    },
+    {
+      "text": "Machine, and everything is instantly back.",
+      "start": 5.03,
+      "end": 7.36
+    }
+  ],
+  "08-conclusion": [
+    {
+      "text": "WalDrive, the file management and",
+      "start": 0.04,
+      "end": 1.86
+    },
+    {
+      "text": "Verifiable data console for everything your",
+      "start": 1.9,
+      "end": 4.67
+    },
+    {
+      "text": "Agents store on Walrus.",
+      "start": 4.67,
+      "end": 6.04
+    },
+    {
+      "text": "Real bytes, real ownership verifiable by",
+      "start": 6.08,
+      "end": 8.7
+    },
+    {
+      "text": "Anyone. Built for Sui Overflow 2026",
+      "start": 8.7,
+      "end": 11.74
+    },
+    {
+      "text": "Walrus track.",
+      "start": 11.74,
+      "end": 12.82
+    }
+  ]
+}

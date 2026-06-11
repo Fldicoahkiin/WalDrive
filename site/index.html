@@ -15,12 +15,14 @@
     --surface: #15161c;
     --surface-2: #1c1d25;
     --hairline: rgba(255, 255, 255, 0.08);
+    --hairline-strong: rgba(255, 255, 255, 0.16);
     --ink: #e8e9f1;
     --ink-muted: #a3a6b9;
     --ink-subtle: #767a8f;
     --accent: #5e6ad2;
     --accent-soft: #7c86f2;
     --success: #4cb782;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -39,26 +41,27 @@
   .nav-in img { width: 28px; height: 28px; border-radius: 7px; }
   .nav-in .name { font-weight: 600; letter-spacing: -0.01em; }
   .nav-in .spacer { flex: 1; }
-  .nav-link { color: var(--ink-muted); font-size: 14px; padding: 6px 12px; border-radius: 8px; transition: color .15s, background .15s; }
+  .nav-link { color: var(--ink-muted); font-size: 14px; padding: 6px 12px; border-radius: 8px; transition: color .2s var(--ease), background .2s var(--ease); }
   .nav-link:hover { color: var(--ink); background: var(--surface); }
-  .nav-cta { background: var(--accent); color: #fff; font-size: 14px; padding: 7px 14px; border-radius: 8px; transition: filter .15s; }
-  .nav-cta:hover { filter: brightness(1.1); }
+  .nav-cta { background: var(--accent); color: #fff; font-size: 14px; padding: 7px 14px; border-radius: 8px; transition: filter .2s, transform .2s var(--ease); }
+  .nav-cta:hover { filter: brightness(1.12); transform: translateY(-1px); }
 
-  .hero { padding: 96px 0 48px; text-align: center; position: relative; overflow: hidden; }
+  .hero { padding: 84px 0 48px; text-align: center; position: relative; overflow: hidden; }
   .hero::before { content: ""; position: absolute; inset: -40% -20% auto; height: 130%; background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(94, 106, 210, 0.16), transparent 70%); pointer-events: none; }
-  .badge { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink-muted); border: 1px solid var(--hairline); border-radius: 999px; padding: 5px 14px; margin-bottom: 28px; background: rgba(255,255,255,0.02); }
-  .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-soft); }
-  h1 { font-size: clamp(36px, 6vw, 58px); line-height: 1.08; letter-spacing: -0.025em; font-weight: 700; }
+  .hero-icon { width: 104px; height: 104px; border-radius: 24px; box-shadow: 0 18px 50px rgba(0,0,0,0.55), 0 0 0 1px var(--hairline); animation: pop .7s var(--ease) backwards, float 5.5s ease-in-out 1s infinite; }
+  .badge { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink-muted); border: 1px solid var(--hairline); border-radius: 999px; padding: 5px 14px; margin: 26px 0 28px; background: rgba(255,255,255,0.02); animation: rise .6s var(--ease) .12s backwards; }
+  .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-soft); animation: pulse 2.4s ease-in-out infinite; }
+  h1 { font-size: clamp(36px, 6vw, 58px); line-height: 1.08; letter-spacing: -0.025em; font-weight: 700; animation: rise .7s var(--ease) .2s backwards; }
   h1 .grad { background: linear-gradient(135deg, var(--accent-soft), var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .sub { max-width: 620px; margin: 22px auto 0; color: var(--ink-muted); font-size: 18px; }
-  .cta-row { display: flex; gap: 12px; justify-content: center; margin-top: 34px; flex-wrap: wrap; }
-  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border-radius: 10px; font-size: 15px; font-weight: 500; transition: transform .15s, filter .15s, background .15s; }
-  .btn:active { transform: scale(0.98); }
+  .sub { max-width: 620px; margin: 22px auto 0; color: var(--ink-muted); font-size: 18px; animation: rise .7s var(--ease) .32s backwards; }
+  .cta-row { display: flex; gap: 12px; justify-content: center; margin-top: 34px; flex-wrap: wrap; animation: rise .7s var(--ease) .44s backwards; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border-radius: 10px; font-size: 15px; font-weight: 500; transition: transform .2s var(--ease), filter .2s, background .2s, box-shadow .2s; }
+  .btn:active { transform: scale(0.97); }
   .btn-primary { background: var(--accent); color: #fff; }
-  .btn-primary:hover { filter: brightness(1.12); }
+  .btn-primary:hover { filter: brightness(1.12); transform: translateY(-2px); box-shadow: 0 10px 30px rgba(94,106,210,0.35); }
   .btn-ghost { border: 1px solid var(--hairline); color: var(--ink); background: rgba(255,255,255,0.02); }
-  .btn-ghost:hover { background: var(--surface); }
-  .shot { margin: 64px auto 0; max-width: 920px; border-radius: 14px; border: 1px solid var(--hairline); overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.5); }
+  .btn-ghost:hover { background: var(--surface); transform: translateY(-2px); }
+  .shot { margin: 64px auto 0; max-width: 920px; border-radius: 14px; border: 1px solid var(--hairline); overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.5); animation: shot .9s var(--ease) .55s backwards; }
   .shot img { display: block; width: 100%; }
 
   section { padding: 88px 0; }
@@ -67,15 +70,18 @@
   .lede { color: var(--ink-muted); max-width: 640px; margin-top: 14px; font-size: 16.5px; }
 
   .cards3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 40px; }
-  .card { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 26px; }
+  .card { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 26px; transition: transform .3s var(--ease), border-color .3s, background .3s; }
+  .card:hover { transform: translateY(-4px); border-color: var(--hairline-strong); background: var(--surface-2); }
   .card .num { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--accent-soft); font-size: 13px; }
   .card h3 { font-size: 17px; margin: 10px 0 8px; font-weight: 600; }
   .card p { color: var(--ink-muted); font-size: 14.5px; }
   .card code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; background: var(--surface-2); padding: 2px 6px; border-radius: 5px; color: var(--ink); }
 
   .feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 40px; }
-  .feat { display: flex; gap: 12px; align-items: flex-start; background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 18px; }
-  .feat .ico { flex: none; width: 34px; height: 34px; display: grid; place-items: center; background: rgba(94,106,210,0.14); color: var(--accent-soft); border-radius: 9px; font-size: 16px; }
+  .feat { display: flex; gap: 12px; align-items: flex-start; background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 18px; transition: transform .3s var(--ease), border-color .3s; }
+  .feat:hover { transform: translateY(-3px); border-color: var(--hairline-strong); }
+  .feat .ico { flex: none; width: 34px; height: 34px; display: grid; place-items: center; background: rgba(94,106,210,0.14); color: var(--accent-soft); border-radius: 9px; font-size: 16px; transition: transform .3s var(--ease); }
+  .feat:hover .ico { transform: scale(1.12); }
   .feat b { display: block; font-size: 14.5px; font-weight: 600; }
   .feat span { color: var(--ink-subtle); font-size: 13px; }
 
@@ -89,7 +95,8 @@
   .arch li { color: var(--ink-muted); font-size: 14px; padding: 7px 0; border-top: 1px solid var(--hairline); }
   .arch li:first-child { border-top: 0; }
 
-  .verify-shot { margin-top: 40px; border-radius: 14px; border: 1px solid var(--hairline); overflow: hidden; }
+  .verify-shot { margin-top: 40px; border-radius: 14px; border: 1px solid var(--hairline); overflow: hidden; transition: transform .4s var(--ease), box-shadow .4s; }
+  .verify-shot:hover { transform: scale(1.012); box-shadow: 0 24px 70px rgba(0,0,0,0.45); }
   .verify-shot img { display: block; width: 100%; }
 
   .mcp { background: var(--surface); border: 1px solid var(--hairline); border-radius: 16px; padding: 36px; margin-top: 40px; display: grid; grid-template-columns: 1.1fr 1fr; gap: 32px; align-items: center; }
@@ -97,13 +104,29 @@
   .term { background: #0d0e13; border: 1px solid var(--hairline); border-radius: 12px; padding: 18px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; line-height: 1.8; color: var(--ink-muted); overflow-x: auto; }
   .term .p { color: var(--success); }
   .term .c { color: var(--accent-soft); }
+  .term .cursor { display: inline-block; width: 8px; height: 15px; background: var(--accent-soft); vertical-align: -2px; animation: blink 1.1s steps(1) infinite; }
 
   footer { border-top: 1px solid var(--hairline); padding: 40px 0 56px; color: var(--ink-subtle); font-size: 14px; }
   .foot { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .foot img { width: 22px; height: 22px; border-radius: 6px; }
   .foot .spacer { flex: 1; }
-  .foot a { color: var(--ink-muted); }
+  .foot a { color: var(--ink-muted); transition: color .2s; }
   .foot a:hover { color: var(--ink); }
+
+  .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s var(--ease), transform .7s var(--ease); transition-delay: var(--d, 0s); }
+  .reveal.in { opacity: 1; transform: none; }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  @keyframes pop { from { opacity: 0; transform: scale(0.7); } to { opacity: 1; transform: scale(1); } }
+  @keyframes shot { from { opacity: 0; transform: translateY(30px) scale(0.97); } to { opacity: 1; transform: none; } }
+  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+  @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .reveal { opacity: 1; transform: none; }
+  }
 </style>
 </head>
 <body>
@@ -122,7 +145,8 @@
 
 <header class="hero">
   <div class="wrap">
-    <div class="badge"><span class="dot"></span> Sui Overflow 2026 · Walrus track</div>
+    <img class="hero-icon" src="assets/icon-512.png" alt="WalDrive icon — a walrus peeking out of a folder" />
+    <div><span class="badge"><span class="dot"></span> Sui Overflow 2026 · Walrus track</span></div>
     <h1>A desktop drive for Walrus.<br /><span class="grad">Files you actually own.</span></h1>
     <p class="sub">Drag a file in — the bytes land on the Walrus decentralized network, the metadata on Sui, and nothing in between. No backend, no account, no lock-in. Verifiable by anyone.</p>
     <div class="cta-row">
@@ -135,54 +159,54 @@
 
 <section id="verifiable">
   <div class="wrap">
-    <span class="kicker">Verifiable by design</span>
-    <h2>Trustless storage you can check yourself</h2>
-    <p class="lede">Every file in WalDrive is backed by two public facts — a content-addressed blob on Walrus and a metadata object on Sui. The app just makes them fluid.</p>
+    <span class="kicker reveal">Verifiable by design</span>
+    <h2 class="reveal" style="--d:.06s">Trustless storage you can check yourself</h2>
+    <p class="lede reveal" style="--d:.12s">Every file in WalDrive is backed by two public facts — a content-addressed blob on Walrus and a metadata object on Sui. The app just makes them fluid.</p>
     <div class="cards3">
-      <div class="card">
+      <div class="card reveal" style="--d:.08s">
         <span class="num">01</span>
         <h3>Content-addressed</h3>
         <p>The Walrus blob ID <em>is</em> the cryptographic fingerprint of your bytes. Same content, same ID — tampering is mathematically loud.</p>
       </div>
-      <div class="card">
+      <div class="card reveal" style="--d:.16s">
         <span class="num">02</span>
         <h3>You own the storage</h3>
         <p>Uploads mint an on-chain <code>Blob</code> object sent to your wallet, plus a <code>FileRecord</code> with name, tags, versions and expiry — signed by your local key, in-process, no popup.</p>
       </div>
-      <div class="card">
+      <div class="card reveal" style="--d:.24s">
         <span class="num">03</span>
         <h3>Anyone can verify</h3>
         <p>Hit Verify and WalDrive re-fetches the bytes from a public aggregator and hashes them on screen. No wallet needed — share the link and the recipient can check too.</p>
       </div>
     </div>
-    <div class="verify-shot"><img src="assets/app-verify.png" alt="The Verifiable storage panel: content ID, live verify, open raw and Suiscan links" /></div>
+    <div class="verify-shot reveal" style="--d:.1s"><img src="assets/app-verify.png" alt="The Verifiable storage panel: content ID, live verify, open raw and Suiscan links" /></div>
   </div>
 </section>
 
 <section id="features">
   <div class="wrap">
-    <span class="kicker">A real drive</span>
-    <h2>Everything you expect, all on-chain</h2>
-    <p class="lede">Not a tech demo — a fluid, native-feeling desktop app where every action writes real state to Sui and Walrus.</p>
+    <span class="kicker reveal">A real drive</span>
+    <h2 class="reveal" style="--d:.06s">Everything you expect, all on-chain</h2>
+    <p class="lede reveal" style="--d:.12s">Not a tech demo — a fluid, native-feeling desktop app where every action writes real state to Sui and Walrus.</p>
     <div class="feat-grid">
-      <div class="feat"><div class="ico">↑</div><div><b>Drag-to-upload</b><span>bytes to Walrus, record on Sui, appears live</span></div></div>
-      <div class="feat"><div class="ico">▦</div><div><b>Instant preview</b><span>images, markdown, code, PDF — straight from the aggregator</span></div></div>
-      <div class="feat"><div class="ico">⌕</div><div><b>Instant search</b><span>client-side, zero latency, with type filters and sort</span></div></div>
-      <div class="feat"><div class="ico">#</div><div><b>Tags &amp; folders</b><span>organize on-chain; breadcrumbs and nested folders</span></div></div>
-      <div class="feat"><div class="ico">⧉</div><div><b>Versioning</b><span>upload a new version, history linked on-chain</span></div></div>
-      <div class="feat"><div class="ico">↺</div><div><b>Trash &amp; restore</b><span>soft-delete with on-chain restore — or purge for good</span></div></div>
-      <div class="feat"><div class="ico">⚿</div><div><b>Multi-account wallet</b><span>generate, import, switch — keys never leave the device</span></div></div>
-      <div class="feat"><div class="ico">⇄</div><div><b>One-click share</b><span>a public, wallet-free link anyone can open and verify</span></div></div>
+      <div class="feat reveal" style="--d:.04s"><div class="ico">↑</div><div><b>Drag-to-upload</b><span>bytes to Walrus, record on Sui, appears live</span></div></div>
+      <div class="feat reveal" style="--d:.08s"><div class="ico">▦</div><div><b>Instant preview</b><span>images, markdown, code, PDF — straight from the aggregator</span></div></div>
+      <div class="feat reveal" style="--d:.12s"><div class="ico">⌕</div><div><b>Instant search</b><span>client-side, zero latency, with type filters and sort</span></div></div>
+      <div class="feat reveal" style="--d:.16s"><div class="ico">#</div><div><b>Tags &amp; folders</b><span>organize on-chain; breadcrumbs and nested folders</span></div></div>
+      <div class="feat reveal" style="--d:.2s"><div class="ico">⧉</div><div><b>Versioning</b><span>upload a new version, history linked on-chain</span></div></div>
+      <div class="feat reveal" style="--d:.24s"><div class="ico">↺</div><div><b>Trash &amp; restore</b><span>soft-delete with on-chain restore — or purge for good</span></div></div>
+      <div class="feat reveal" style="--d:.28s"><div class="ico">⚿</div><div><b>Multi-account wallet</b><span>generate, import, switch — keys never leave the device</span></div></div>
+      <div class="feat reveal" style="--d:.32s"><div class="ico">⇄</div><div><b>One-click share</b><span>a public, wallet-free link anyone can open and verify</span></div></div>
     </div>
   </div>
 </section>
 
 <section>
   <div class="wrap">
-    <span class="kicker">Architecture</span>
-    <h2>No backend. Two networks.</h2>
+    <span class="kicker reveal">Architecture</span>
+    <h2 class="reveal" style="--d:.06s">No backend. Two networks.</h2>
     <div class="arch">
-      <div class="card">
+      <div class="card reveal" style="--d:.1s">
         <h3>Metadata on Sui <span class="pill sui">Move objects</span></h3>
         <ul>
           <li><code>FileRecord</code> — name, mime, size, tags, version chain, expiry</li>
@@ -191,7 +215,7 @@
           <li>Browse, rename, tag, trash — every action is a transaction</li>
         </ul>
       </div>
-      <div class="card">
+      <div class="card reveal" style="--d:.18s">
         <h3>Bytes on Walrus <span class="pill wal">erasure-coded</span></h3>
         <ul>
           <li>Files erasure-coded across storage nodes</li>
@@ -206,9 +230,9 @@
 
 <section id="mcp">
   <div class="wrap">
-    <span class="kicker">For agents</span>
-    <h2>Your agents write. You browse.</h2>
-    <div class="mcp">
+    <span class="kicker reveal">For agents</span>
+    <h2 class="reveal" style="--d:.06s">Your agents write. You browse.</h2>
+    <div class="mcp reveal" style="--d:.12s">
       <div>
         <p style="color: var(--ink-muted); font-size: 16px;">WalDrive ships an <b style="color: var(--ink)">MCP server</b> — the agent write-path. AI clients and scripts store artifacts and memory to the same Walrus data you manage in the console: <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13.5px; background: var(--surface-2); padding: 2px 7px; border-radius: 6px;">upload_file</code> <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13.5px; background: var(--surface-2); padding: 2px 7px; border-radius: 6px;">list_files</code> <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13.5px; background: var(--surface-2); padding: 2px 7px; border-radius: 6px;">download_file</code> <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13.5px; background: var(--surface-2); padding: 2px 7px; border-radius: 6px;">get_file_info</code></p>
         <p style="color: var(--ink-subtle); font-size: 14px; margin-top: 14px;">Humans get the fluid console; agents get a clean protocol. Same chain, same blobs, same truth.</p>
@@ -218,7 +242,7 @@
         <div><span class="c">⏺</span> waldrive · upload_file(report.md)</div>
         <div>&nbsp;&nbsp;blobId: tBy4Vp…0l4xc</div>
         <div>&nbsp;&nbsp;FileRecord: 0x48c6…e86f ✓</div>
-        <div><span class="p">›</span> _</div>
+        <div><span class="p">›</span> <span class="cursor"></span></div>
       </div>
     </div>
   </div>
@@ -232,6 +256,15 @@
     <a href="https://github.com/Fldicoahkiin/WalDrive">GitHub</a>
   </div>
 </footer>
+
+<script>
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+    }
+  }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+  document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+</script>
 
 </body>
 </html>

@@ -126,6 +126,8 @@ export const useWallet = create<WalletState>((set, get) => {
     importKey: (suiPrivkey, label) => {
       try {
         const acc = accountFromSecret(suiPrivkey, label);
+        const prev = get().accounts.find((a) => a.address === acc.address);
+        if (!acc.label && prev?.label) acc.label = prev.label;
         apply([...get().accounts.filter((a) => a.address !== acc.address), acc], acc.address);
         return true;
       } catch {

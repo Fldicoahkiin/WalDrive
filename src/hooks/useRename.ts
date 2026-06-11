@@ -17,6 +17,7 @@ export function useRename() {
   const keypair = useWallet((s) => s.keypair);
   const address = useWallet((s) => s.address);
   const network = useSettings((s) => s.network);
+  const packageId = useSettings((s) => s.packageId);
   const suiClient = useMemo(
     () => new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network), network }),
     [network],
@@ -37,7 +38,7 @@ export function useRename() {
         setStatus("saving");
         const tx = new Transaction();
         tx.moveCall({
-          target: `${CONTRACT.PACKAGE_ID}::${CONTRACT.FILE_RECORD}::rename`,
+          target: `${packageId}::${CONTRACT.FILE_RECORD}::rename`,
           arguments: [tx.object(objectId), tx.pure.string(newName)],
         });
         const { digest } = await suiClient.signAndExecuteTransaction({ signer: keypair, transaction: tx });
@@ -53,7 +54,7 @@ export function useRename() {
         return false;
       }
     },
-    [keypair, address, queryClient],
+    [keypair, address, packageId, suiClient, queryClient],
   );
 
   return { rename, status, error };

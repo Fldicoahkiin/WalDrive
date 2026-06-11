@@ -30,6 +30,8 @@ const VENDOR_CHUNKS: Record<string, (pkg: string) => boolean> = {
     p === "tailwind-merge" ||
     p === "input-otp" ||
     p === "clsx",
+  // Dynamically imported — its own chunk so the entry doesn't eagerly evaluate it.
+  walrus: (p) => p.startsWith("@mysten/walrus"),
   sui: (p) =>
     p.startsWith("@mysten/") ||
     p.startsWith("@noble/") ||

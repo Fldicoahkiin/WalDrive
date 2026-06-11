@@ -1,3 +1,4 @@
+import { openExternal } from "@/lib/openExternal";
 import { useRef, useState, type DragEvent } from "react";
 import { motion } from "motion/react";
 import { Check, Droplet, Loader2, Upload } from "lucide-react";
@@ -93,7 +94,7 @@ export function UploadZone() {
               size="sm"
               variant="primary"
               onPress={() =>
-                faucet.status === "error" ? window.open(faucet.webFaucetUrl, "_blank") : faucet.request()
+                faucet.status === "error" ? openExternal(faucet.webFaucetUrl) : faucet.request()
               }
             >
               {faucet.status === "loading" ? (

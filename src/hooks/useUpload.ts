@@ -46,6 +46,7 @@ export function useUpload() {
       }
       setError(null);
       setNeedsGas(false);
+      let phase: "walrus" | "sui" = "walrus";
       try {
         setStatus("uploading");
         const bytes = new Uint8Array(await file.arrayBuffer());
@@ -59,6 +60,7 @@ export function useUpload() {
                 authToken: publisherToken,
               });
 
+        phase = "sui";
         setStatus("saving_meta");
         const tx = new Transaction();
         tx.moveCall({
@@ -82,14 +84,18 @@ export function useUpload() {
         setTimeout(() => setStatus("idle"), 1200);
       } catch (e) {
         const message = e instanceof Error ? e.message : "Upload failed.";
-        if (uploadMethod === "wallet" && /wal\b|balance|coin/i.test(message)) {
+        if (phase === "sui" && /gas|insufficient/i.test(message)) {
+          // The blob IS on Walrus by now; only the on-chain record needs gas.
+          setNeedsGas(true);
+          setError("Stored on Walrus, but recording it on Sui needs a little SUI for gas.");
+        } else if (phase === "walrus" && uploadMethod === "wallet" && /gas/i.test(message)) {
+          // SDK register/certify gas — the wallet is short on SUI, not WAL.
+          setNeedsGas(true);
+          setError("Wallet upload needs a little SUI for gas before it can store anything.");
+        } else if (phase === "walrus" && uploadMethod === "wallet" && /wal\b|balance|coin/i.test(message)) {
           setError(
             "Wallet upload needs WAL in this wallet to pay for storage — swap some, or switch Upload via back to Publisher (free) in Settings.",
           );
-        } else if (/gas|insufficient/i.test(message)) {
-          // The blob is on Walrus; only the on-chain record failed for lack of gas.
-          setNeedsGas(true);
-          setError("Stored on Walrus, but recording it on Sui needs a little SUI for gas.");
         } else {
           setError(message);
         }

@@ -1,3 +1,4 @@
+import { openExternal } from "@/lib/openExternal";
 import { Check, Droplet, ExternalLink, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/Button";
@@ -36,7 +37,7 @@ export function FaucetBanner() {
       </div>
       <div className="flex shrink-0 items-center gap-2">
         {failed && (
-          <Button size="sm" variant="primary" onPress={() => window.open(webFaucetUrl, "_blank")}>
+          <Button size="sm" variant="primary" onPress={() => openExternal(webFaucetUrl)}>
             <ExternalLink className="size-3.5" />
             Open web faucet
           </Button>

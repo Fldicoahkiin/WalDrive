@@ -6,6 +6,7 @@ import { uploadBlob } from "@waldrive/shared";
 import type { UploadStatus } from "@waldrive/shared";
 import { useWallet } from "@/stores/walletStore";
 import { useSettings } from "@/stores/settingsStore";
+import { uploadBlobWithWallet } from "@/lib/walrusSdk";
 import { CONTRACT } from "@/lib/constants";
 
 const SUI_CLOCK_ID = "0x6";
@@ -23,6 +24,7 @@ export function useVersion() {
   const publisherToken = useSettings((s) => s.publisherToken);
   const epochs = useSettings((s) => s.epochs);
   const packageId = useSettings((s) => s.packageId);
+  const uploadMethod = useSettings((s) => s.uploadMethod);
   const queryClient = useQueryClient();
   const suiClient = useMemo(() => new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network), network }), [network]);
   const [status, setStatus] = useState<UploadStatus>("idle");
@@ -39,12 +41,15 @@ export function useVersion() {
       try {
         setStatus("uploading");
         const bytes = new Uint8Array(await file.arrayBuffer());
-        const blobId = await uploadBlob(bytes, {
-          sendObjectTo: address,
-          publisher,
-          epochs,
-          authToken: publisherToken,
-        });
+        const blobId =
+          uploadMethod === "wallet"
+            ? await uploadBlobWithWallet(bytes, { keypair, network, epochs })
+            : await uploadBlob(bytes, {
+                sendObjectTo: address,
+                publisher,
+                epochs,
+                authToken: publisherToken,
+              });
 
         setStatus("saving_meta");
         const tx = new Transaction();
@@ -70,7 +75,7 @@ export function useVersion() {
         return false;
       }
     },
-    [keypair, address, publisher, publisherToken, epochs, packageId, suiClient, queryClient],
+    [keypair, address, network, publisher, publisherToken, epochs, packageId, uploadMethod, suiClient, queryClient],
   );
 
   return { uploadVersion, status, error };

@@ -1,3 +1,4 @@
+import { openExternal } from "@/lib/openExternal";
 import { Check, ChevronsUpDown, Copy, Droplet, Plus } from "lucide-react";
 import { Dropdown, Header, Label, Separator } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
@@ -29,7 +30,7 @@ export function AccountSwitcher({ onOpenSettings }: { onOpenSettings: () => void
     if (k === "add") onOpenSettings();
     else if (k === "copy") void navigator.clipboard.writeText(address ?? "");
     else if (k === "faucet") {
-      if (faucet.status === "error") window.open(faucet.webFaucetUrl, "_blank");
+      if (faucet.status === "error") openExternal(faucet.webFaucetUrl);
       else void faucet.request();
     } else if (accounts.some((a) => a.address === k)) switchTo(k);
   }
@@ -38,7 +39,7 @@ export function AccountSwitcher({ onOpenSettings }: { onOpenSettings: () => void
     <Dropdown>
       <Button
         aria-label="Switch account"
-        className="mx-2 h-auto min-w-0 justify-start gap-2.5 px-2 py-1.5"
+        className="mx-2 h-auto w-[calc(100%-1rem)] min-w-0 justify-start gap-2.5 px-2 py-1.5"
         variant="ghost"
       >
         <BrandMark className="size-7 shrink-0" />

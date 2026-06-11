@@ -1,3 +1,4 @@
+import { openExternal } from "@/lib/openExternal";
 import { useEffect, useRef, useState } from "react";
 import { Check, Copy, ExternalLink, FileUp, Loader2, Pencil, Plus, RotateCcw, Share2, ShieldCheck, Trash2, X } from "lucide-react";
 import { AlertDialog, Input, ListBox, Modal, Select } from "@heroui/react";
@@ -235,14 +236,14 @@ function VerifiableStorage({ file }: { file: BlobFile }) {
             )}
             Verify
           </Button>
-          <Button size="sm" variant="ghost" onPress={() => window.open(blobUrl(file.blobId), "_blank")}>
+          <Button size="sm" variant="ghost" onPress={() => openExternal(blobUrl(file.blobId))}>
             <ExternalLink className="size-3.5" />
             Open raw
           </Button>
           <Button
             size="sm"
             variant="ghost"
-            onPress={() => window.open(explorerUrl("object", file.objectId, network), "_blank")}
+            onPress={() => openExternal(explorerUrl("object", file.objectId, network))}
           >
             <ExternalLink className="size-3.5" />
             View on Suiscan
@@ -453,7 +454,7 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
                     <Button
                       size="sm"
                       variant="primary"
-                      onPress={() => window.open(blobUrl(f.blobId), "_blank")}
+                      onPress={() => openExternal(blobUrl(f.blobId))}
                     >
                       <ExternalLink className="size-3.5" />
                       Open

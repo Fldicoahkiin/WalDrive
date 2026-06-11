@@ -1,3 +1,4 @@
+import { openExternal } from "@/lib/openExternal";
 import { useState } from "react";
 import { Check, Copy, Droplet, ExternalLink, Eye, EyeOff, Loader2, Plus, Trash2 } from "lucide-react";
 import { AlertDialog, Input } from "@heroui/react";
@@ -210,7 +211,7 @@ export function WalletPanel({ onClose }: { onClose?: () => void }) {
           {faucet.available && (
             <>
               {faucet.status === "error" && (
-                <Button size="sm" variant="primary" onPress={() => window.open(faucet.webFaucetUrl, "_blank")}>
+                <Button size="sm" variant="primary" onPress={() => openExternal(faucet.webFaucetUrl)}>
                   <ExternalLink className="size-3.5" />
                   Web faucet
                 </Button>

@@ -24,8 +24,8 @@ function firstKey(keys: Iterable<string | number>): string | undefined {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="flex flex-col gap-2">
-      <span className="text-xs font-medium text-ink-subtle">{title}</span>
+    <section className="flex flex-col gap-2.5">
+      <span className="pb-0.5 text-xs font-medium text-ink-subtle">{title}</span>
       {children}
     </section>
   );
@@ -66,12 +66,12 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
     <Modal isOpen={open} onOpenChange={(next) => !next && onClose()}>
       <Modal.Backdrop>
         <Modal.Container>
-          <Modal.Dialog className="w-full max-w-2xl">
+          <Modal.Dialog className="w-full max-w-3xl">
             <Modal.CloseTrigger />
             <Modal.Header>
               <Modal.Heading>Settings</Modal.Heading>
             </Modal.Header>
-            <Modal.Body className="flex max-h-[64vh] flex-col gap-5 overflow-auto">
+            <Modal.Body className="flex max-h-[68vh] flex-col gap-6 overflow-auto px-1 py-1">
               <Section title="Wallet">
                 <WalletPanel onClose={onClose} />
               </Section>

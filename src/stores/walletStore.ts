@@ -10,11 +10,20 @@ export interface Account {
   address: string;
   secret: string;
   keypair: Ed25519Keypair;
+  label?: string;
+}
+
+interface PersistedAccount {
+  secret: string;
+  label?: string;
 }
 
 interface Persisted {
   active: string | null;
-  secrets: string[];
+  /** Current shape. */
+  accounts?: PersistedAccount[];
+  /** Pre-label shape — migrated on load. */
+  secrets?: string[];
 }
 
 interface WalletState {
@@ -23,20 +32,28 @@ interface WalletState {
   keypair: Ed25519Keypair | null; // active account
   error: string | null;
   init: () => void;
-  generate: () => void;
-  importKey: (suiPrivkey: string) => boolean;
+  generate: (label?: string) => void;
+  importKey: (suiPrivkey: string, label?: string) => boolean;
   remove: (address: string) => void;
   switchTo: (address: string) => void;
   reveal: (address?: string) => string | null;
 }
 
-function accountFromSecret(secret: string): Account {
+function accountFromSecret(secret: string, label?: string): Account {
   const keypair = loadKeypairFromSuiPrivkey(secret.trim());
-  return { address: keypair.getPublicKey().toSuiAddress(), secret: secret.trim(), keypair };
+  return {
+    address: keypair.getPublicKey().toSuiAddress(),
+    secret: secret.trim(),
+    keypair,
+    label: label?.trim() || undefined,
+  };
 }
 
 function persist(accounts: Account[], active: string | null) {
-  const data: Persisted = { active, secrets: accounts.map((a) => a.secret) };
+  const data: Persisted = {
+    active,
+    accounts: accounts.map((a) => ({ secret: a.secret, label: a.label })),
+  };
   localStorage.setItem(STORE_KEY, JSON.stringify(data));
 }
 
@@ -46,9 +63,11 @@ function loadInitial(): { accounts: Account[]; active: string | null } {
   if (raw) {
     try {
       const data = JSON.parse(raw) as Persisted;
-      const accounts = (data.secrets ?? []).flatMap((s) => {
+      const entries: PersistedAccount[] =
+        data.accounts ?? (data.secrets ?? []).map((secret) => ({ secret }));
+      const accounts = entries.flatMap((e) => {
         try {
-          return [accountFromSecret(s)];
+          return [accountFromSecret(e.secret, e.label)];
         } catch {
           return [];
         }
@@ -94,18 +113,19 @@ export const useWallet = create<WalletState>((set, get) => {
       const { accounts, active } = loadInitial();
       apply(accounts, active);
     },
-    generate: () => {
+    generate: (label) => {
       const keypair = generateKeypair();
       const acc: Account = {
         address: keypair.getPublicKey().toSuiAddress(),
         secret: exportSuiPrivkey(keypair),
         keypair,
+        label: label?.trim() || undefined,
       };
       apply([...get().accounts.filter((a) => a.address !== acc.address), acc], acc.address);
     },
-    importKey: (suiPrivkey) => {
+    importKey: (suiPrivkey, label) => {
       try {
-        const acc = accountFromSecret(suiPrivkey);
+        const acc = accountFromSecret(suiPrivkey, label);
         apply([...get().accounts.filter((a) => a.address !== acc.address), acc], acc.address);
         return true;
       } catch {

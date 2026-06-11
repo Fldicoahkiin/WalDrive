@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Copy, Droplet, Files, HardDrive, Loader2, Settings, Trash2 } from "lucide-react";
+import { Check, Copy, Droplet, ExternalLink, Files, HardDrive, Loader2, Settings, Trash2 } from "lucide-react";
 import { ListBox } from "@heroui/react";
 import type { BlobFile } from "@waldrive/shared";
 import { useBalance } from "@/hooks/useBalance";
@@ -123,14 +123,18 @@ export function Sidebar({
               <button
                 aria-label="Get free test SUI"
                 className="ml-0.5 rounded p-0.5 text-accent outline-none transition-colors hover:text-accent-hover focus-visible:text-accent-hover"
-                title="Get free test SUI"
+                title={faucet.status === "error" ? "Faucet rate-limited — open the web faucet" : "Get free test SUI"}
                 type="button"
-                onClick={faucet.request}
+                onClick={() =>
+                  faucet.status === "error" ? window.open(faucet.webFaucetUrl, "_blank") : faucet.request()
+                }
               >
                 {faucet.status === "loading" ? (
                   <Loader2 className="size-3 animate-spin" />
                 ) : faucet.status === "ok" ? (
                   <Check className="size-3 text-success" />
+                ) : faucet.status === "error" ? (
+                  <ExternalLink className="size-3" />
                 ) : (
                   <Droplet className="size-3" />
                 )}

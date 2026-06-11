@@ -86,7 +86,9 @@ export function UploadZone() {
               isDisabled={faucet.status === "loading"}
               size="sm"
               variant="primary"
-              onPress={faucet.request}
+              onPress={() =>
+                faucet.status === "error" ? window.open(faucet.webFaucetUrl, "_blank") : faucet.request()
+              }
             >
               {faucet.status === "loading" ? (
                 <Loader2 className="size-3.5 animate-spin" />
@@ -95,7 +97,11 @@ export function UploadZone() {
               ) : (
                 <Droplet className="size-3.5" />
               )}
-              {faucet.status === "ok" ? "SUI on its way" : "Get test SUI"}
+              {faucet.status === "ok"
+                ? "SUI on its way"
+                : faucet.status === "error"
+                  ? "Web faucet"
+                  : "Get test SUI"}
             </Button>
           )}
           <Button

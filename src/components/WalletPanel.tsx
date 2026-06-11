@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Copy, Droplet, Eye, EyeOff, Loader2, Plus, Trash2, Upload } from "lucide-react";
+import { Check, Copy, Droplet, ExternalLink, Eye, EyeOff, Loader2, Plus, Trash2 } from "lucide-react";
 import { AlertDialog, Input } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
 import { useWallet } from "@/stores/walletStore";
@@ -8,7 +8,7 @@ import { useFaucet } from "@/hooks/useFaucet";
 import { shortenAddress } from "@/lib/utils";
 import { cn } from "@/lib/cn";
 
-type Mode = "view" | "reveal" | "import";
+type Mode = "view" | "reveal" | "add";
 
 function RemoveConfirm({ onConfirm }: { onConfirm: () => void }) {
   return (
@@ -55,8 +55,9 @@ export function WalletPanel({ onClose }: { onClose?: () => void }) {
   const faucet = useFaucet();
 
   const [mode, setMode] = useState<Mode>("view");
-  const [draft, setDraft] = useState("");
-  const [importError, setImportError] = useState<string | null>(null);
+  const [labelDraft, setLabelDraft] = useState("");
+  const [secretDraft, setSecretDraft] = useState("");
+  const [addError, setAddError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
 
   async function copy(key: string, value: string) {
@@ -65,14 +66,22 @@ export function WalletPanel({ onClose }: { onClose?: () => void }) {
     setTimeout(() => setCopied((k) => (k === key ? null : k)), 1500);
   }
 
-  function submitImport() {
-    if (importKey(draft)) {
-      setDraft("");
-      setImportError(null);
-      setMode("view");
-    } else {
-      setImportError("Invalid key — expected a suiprivkey1… secret.");
+  function resetAdd() {
+    setMode("view");
+    setLabelDraft("");
+    setSecretDraft("");
+    setAddError(null);
+  }
+
+  function submitAdd() {
+    const secret = secretDraft.trim();
+    if (!secret) {
+      generate(labelDraft);
+      resetAdd();
+      return;
     }
+    if (importKey(secret, labelDraft)) resetAdd();
+    else setAddError("Invalid key — expected a suiprivkey1… secret. Leave it empty to create a new one.");
   }
 
   if (mode === "reveal") {
@@ -95,25 +104,33 @@ export function WalletPanel({ onClose }: { onClose?: () => void }) {
     );
   }
 
-  if (mode === "import") {
+  if (mode === "add") {
     return (
       <div className="flex flex-col gap-2">
         <Input
           autoFocus
-          aria-label="Private key"
+          aria-label="Account name"
           className="selectable"
-          placeholder="suiprivkey1…"
-          value={draft}
+          placeholder="Account name (optional) — e.g. Work, Demo"
+          value={labelDraft}
           variant="secondary"
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && submitImport()}
+          onChange={(e) => setLabelDraft(e.target.value)}
         />
-        {importError && <p className="text-xs text-danger">{importError}</p>}
+        <Input
+          aria-label="Private key"
+          className="selectable font-mono"
+          placeholder="suiprivkey1… — leave empty to create a new key"
+          value={secretDraft}
+          variant="secondary"
+          onChange={(e) => setSecretDraft(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && submitAdd()}
+        />
+        {addError && <p className="text-xs text-danger">{addError}</p>}
         <div className="flex items-center gap-2">
-          <Button isDisabled={!draft.trim()} size="sm" variant="primary" onPress={submitImport}>
-            Import
+          <Button size="sm" variant="primary" onPress={submitAdd}>
+            {secretDraft.trim() ? "Import account" : "Create account"}
           </Button>
-          <Button size="sm" variant="ghost" onPress={() => { setMode("view"); setDraft(""); setImportError(null); }}>
+          <Button size="sm" variant="ghost" onPress={resetAdd}>
             Cancel
           </Button>
         </div>
@@ -135,7 +152,7 @@ export function WalletPanel({ onClose }: { onClose?: () => void }) {
               )}
             >
               <button
-                aria-label={`Switch to ${acc.address}`}
+                aria-label={`Switch to ${acc.label ?? acc.address}`}
                 aria-pressed={isActive}
                 className="flex min-w-0 flex-1 items-center gap-2 text-left outline-none"
                 type="button"
@@ -148,9 +165,18 @@ export function WalletPanel({ onClose }: { onClose?: () => void }) {
                     isActive ? "bg-accent" : "bg-transparent",
                   )}
                 />
-                <span className="truncate font-mono text-xs text-ink">
-                  {shortenAddress(acc.address, 6)}
-                </span>
+                {acc.label ? (
+                  <span className="flex min-w-0 items-baseline gap-2">
+                    <span className="truncate text-xs font-medium text-ink">{acc.label}</span>
+                    <span className="shrink-0 font-mono text-[11px] text-ink-tertiary">
+                      {shortenAddress(acc.address, 4)}
+                    </span>
+                  </span>
+                ) : (
+                  <span className="truncate font-mono text-xs text-ink">
+                    {shortenAddress(acc.address, 6)}
+                  </span>
+                )}
               </button>
               <button
                 aria-label="Copy address"
@@ -182,21 +208,29 @@ export function WalletPanel({ onClose }: { onClose?: () => void }) {
             {balanceLoading ? "…" : `${(balance ?? 0).toLocaleString(undefined, { maximumFractionDigits: 4 })} SUI`}
           </span>
           {faucet.available && (
-            <Button
-              isDisabled={faucet.status === "loading"}
-              size="sm"
-              variant={faucet.status === "error" ? "danger" : "secondary"}
-              onPress={faucet.request}
-            >
-              {faucet.status === "loading" ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : faucet.status === "ok" ? (
-                <Check className="size-3.5 text-success" />
-              ) : (
-                <Droplet className="size-3.5" />
+            <>
+              {faucet.status === "error" && (
+                <Button size="sm" variant="primary" onPress={() => window.open(faucet.webFaucetUrl, "_blank")}>
+                  <ExternalLink className="size-3.5" />
+                  Web faucet
+                </Button>
               )}
-              {faucet.status === "ok" ? "Requested" : faucet.status === "error" ? "Failed" : "Faucet"}
-            </Button>
+              <Button
+                isDisabled={faucet.status === "loading"}
+                size="sm"
+                variant="secondary"
+                onPress={faucet.request}
+              >
+                {faucet.status === "loading" ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : faucet.status === "ok" ? (
+                  <Check className="size-3.5 text-success" />
+                ) : (
+                  <Droplet className="size-3.5" />
+                )}
+                {faucet.status === "ok" ? "Requested" : faucet.status === "error" ? "Retry" : "Faucet"}
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -205,11 +239,8 @@ export function WalletPanel({ onClose }: { onClose?: () => void }) {
         <Button size="sm" variant="ghost" onPress={() => setMode("reveal")}>
           <Eye className="size-3.5" /> Reveal key
         </Button>
-        <Button size="sm" variant="ghost" onPress={() => setMode("import")}>
-          <Upload className="size-3.5" /> Import
-        </Button>
-        <Button size="sm" variant="ghost" onPress={generate}>
-          <Plus className="size-3.5" /> New account
+        <Button size="sm" variant="ghost" onPress={() => setMode("add")}>
+          <Plus className="size-3.5" /> Add account
         </Button>
       </div>
     </div>

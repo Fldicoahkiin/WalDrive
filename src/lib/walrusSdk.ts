@@ -68,3 +68,86 @@ export async function getWalrusEpoch(network: SuiNetwork): Promise<number> {
 
 /** Rough epoch length for countdown copy. */
 export const EPOCH_DAYS: Record<"testnet" | "mainnet", number> = { testnet: 1, mainnet: 14 };
+
+export interface OwnedBlob {
+  objectId: string;
+  blobId: string;
+  size: number;
+  endEpoch: number;
+  deletable: boolean;
+}
+
+/** Resolve the Walrus package id from the system object's type (works per network). */
+async function walrusPackageId(
+  suiClient: InstanceType<typeof SuiJsonRpcClient>,
+  network: "testnet" | "mainnet",
+): Promise<string> {
+  const { TESTNET_WALRUS_PACKAGE_CONFIG, MAINNET_WALRUS_PACKAGE_CONFIG } = await import("@mysten/walrus");
+  const systemObjectId =
+    network === "mainnet"
+      ? MAINNET_WALRUS_PACKAGE_CONFIG.systemObjectId
+      : TESTNET_WALRUS_PACKAGE_CONFIG.systemObjectId;
+  const res = await suiClient.getObject({ id: systemObjectId, options: { showType: true } });
+  const type = res.data?.type;
+  if (!type) throw new Error("Couldn't resolve the Walrus system object.");
+  return type.split("::")[0];
+}
+
+/** The Walrus `Blob` storage objects owned by an address (what extend/delete operate on). */
+export async function listOwnedBlobs(address: string, network: SuiNetwork): Promise<OwnedBlob[]> {
+  if (network !== "testnet" && network !== "mainnet") return [];
+  const { blobIdFromInt } = await import("@mysten/walrus");
+  const suiClient = new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network), network });
+  const pkg = await walrusPackageId(suiClient, network);
+
+  const blobs: OwnedBlob[] = [];
+  let cursor: string | null | undefined = null;
+  do {
+    const page = await suiClient.getOwnedObjects({
+      owner: address,
+      filter: { StructType: `${pkg}::blob::Blob` },
+      options: { showContent: true },
+      cursor,
+    });
+    for (const item of page.data) {
+      const content = item.data?.content;
+      if (!content || content.dataType !== "moveObject") continue;
+      const f = content.fields as Record<string, unknown>;
+      const storage = (f.storage as { fields?: Record<string, unknown> } | undefined)?.fields ?? {};
+      blobs.push({
+        objectId: item.data!.objectId,
+        blobId: blobIdFromInt(BigInt(String(f.blob_id ?? "0"))),
+        size: Number(f.size ?? 0),
+        endEpoch: Number(storage.end_epoch ?? 0),
+        deletable: Boolean(f.deletable ?? false),
+      });
+    }
+    cursor = page.hasNextPage ? page.nextCursor : null;
+  } while (cursor);
+  return blobs;
+}
+
+/** Extend a Blob object's storage by N epochs (pays WAL from the wallet). */
+export async function extendOwnedBlob(
+  blobObjectId: string,
+  epochs: number,
+  { keypair, network }: { keypair: Ed25519Keypair; network: SuiNetwork },
+): Promise<void> {
+  if (network !== "testnet" && network !== "mainnet") throw new Error(`Not available on ${network}.`);
+  const { WalrusClient } = await import("@mysten/walrus");
+  const suiClient = new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network), network });
+  const walrus = new WalrusClient({ network, suiClient, wasmUrl: walrusWasmUrl });
+  await walrus.executeExtendBlobTransaction({ blobObjectId, epochs, signer: keypair });
+}
+
+/** Burn a deletable Blob object and reclaim its storage. */
+export async function deleteOwnedBlob(
+  blobObjectId: string,
+  { keypair, network }: { keypair: Ed25519Keypair; network: SuiNetwork },
+): Promise<void> {
+  if (network !== "testnet" && network !== "mainnet") throw new Error(`Not available on ${network}.`);
+  const { WalrusClient } = await import("@mysten/walrus");
+  const suiClient = new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network), network });
+  const walrus = new WalrusClient({ network, suiClient, wasmUrl: walrusWasmUrl });
+  await walrus.executeDeleteBlobTransaction({ blobObjectId, signer: keypair });
+}

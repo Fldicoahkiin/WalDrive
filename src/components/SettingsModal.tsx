@@ -9,6 +9,7 @@ import {
 } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
 import { WalletPanel } from "@/components/WalletPanel";
+import { StoragePanel } from "@/components/StoragePanel";
 import { useTheme, type Theme } from "@/lib/theme";
 import { useSettings, type UploadMethod } from "@/stores/settingsStore";
 import type { SuiNetwork } from "@/lib/constants";
@@ -160,6 +161,10 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
                     </NumberField.Group>
                   </NumberField>
                 </div>
+              </Section>
+
+              <Section title="Storage objects">
+                <StoragePanel />
               </Section>
 
               <Section title="Contract">

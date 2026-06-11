@@ -37,12 +37,12 @@ export function useUpload() {
       if (!keypair || !address) {
         setError("Wallet not ready.");
         setStatus("failed");
-        return;
+        return false;
       }
       if (!packageId) {
         setError("No contract package configured (see Settings).");
         setStatus("failed");
-        return;
+        return false;
       }
       setError(null);
       setNeedsGas(false);
@@ -50,7 +50,7 @@ export function useUpload() {
       try {
         setStatus("uploading");
         const bytes = new Uint8Array(await file.arrayBuffer());
-        const blobId =
+        const { blobId, endEpoch } =
           uploadMethod === "wallet"
             ? await uploadBlobWithWallet(bytes, { keypair, network, epochs })
             : await uploadBlob(bytes, {
@@ -70,7 +70,7 @@ export function useUpload() {
             tx.pure.string(file.name),
             tx.pure.string(file.type || "application/octet-stream"),
             tx.pure.u64(BigInt(file.size)),
-            tx.pure.u64(BigInt(epochs)),
+            tx.pure.u64(BigInt(endEpoch ?? 0)),
             tx.object(SUI_CLOCK_ID),
           ],
         });
@@ -82,6 +82,7 @@ export function useUpload() {
         setStatus("done");
         await queryClient.invalidateQueries({ queryKey: ["files", address] });
         setTimeout(() => setStatus("idle"), 1200);
+        return true;
       } catch (e) {
         const message = e instanceof Error ? e.message : "Upload failed.";
         if (phase === "sui" && /gas|insufficient/i.test(message)) {
@@ -100,6 +101,7 @@ export function useUpload() {
           setError(message);
         }
         setStatus("failed");
+        return false;
       }
     },
     [keypair, address, network, publisher, publisherToken, epochs, packageId, uploadMethod, suiClient, queryClient],

@@ -26,7 +26,7 @@ export interface WalletUploadOptions {
 export async function uploadBlobWithWallet(
   bytes: Uint8Array,
   { keypair, network, epochs }: WalletUploadOptions,
-): Promise<string> {
+): Promise<{ blobId: string; endEpoch: number | null }> {
   const relay = RELAYS[network];
   if (!relay) throw new Error(`Wallet upload is not configured for ${network}.`);
 
@@ -44,11 +44,27 @@ export async function uploadBlobWithWallet(
     },
   });
 
-  const { blobId } = await walrus.writeBlob({
+  const { blobId, blobObject } = await walrus.writeBlob({
     blob: bytes,
     deletable: true,
     epochs,
     signer: keypair,
   });
-  return blobId;
+  const end = Number(blobObject?.storage?.end_epoch);
+  return { blobId, endEpoch: Number.isFinite(end) ? end : null };
 }
+
+/** Current Walrus epoch for the network (for expiry countdowns). */
+export async function getWalrusEpoch(network: SuiNetwork): Promise<number> {
+  if (network !== "testnet" && network !== "mainnet") {
+    throw new Error(`Walrus is not available on ${network}.`);
+  }
+  const { WalrusClient } = await import("@mysten/walrus");
+  const suiClient = new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network), network });
+  const walrus = new WalrusClient({ network, suiClient, wasmUrl: walrusWasmUrl });
+  const state = await walrus.systemState();
+  return state.committee.epoch;
+}
+
+/** Rough epoch length for countdown copy. */
+export const EPOCH_DAYS: Record<"testnet" | "mainnet", number> = { testnet: 1, mainnet: 14 };

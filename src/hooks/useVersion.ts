@@ -41,7 +41,7 @@ export function useVersion() {
       try {
         setStatus("uploading");
         const bytes = new Uint8Array(await file.arrayBuffer());
-        const blobId =
+        const { blobId, endEpoch } =
           uploadMethod === "wallet"
             ? await uploadBlobWithWallet(bytes, { keypair, network, epochs })
             : await uploadBlob(bytes, {
@@ -59,7 +59,7 @@ export function useVersion() {
             tx.object(oldObjectId),
             tx.pure.string(blobId),
             tx.pure.u64(BigInt(bytes.length)),
-            tx.pure.u64(BigInt(epochs)),
+            tx.pure.u64(BigInt(endEpoch ?? 0)),
             tx.object(SUI_CLOCK_ID),
           ],
         });

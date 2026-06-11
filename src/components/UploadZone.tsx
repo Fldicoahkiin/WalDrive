@@ -25,19 +25,29 @@ export function UploadZone() {
   const [dragging, setDragging] = useState(false);
   const busy = status === "uploading" || status === "saving_meta";
   const stage = status in STAGE ? STAGE[status as Stage] : null;
-  const stageLabel =
+  const [batch, setBatch] = useState<{ index: number; total: number } | null>(null);
+  const baseLabel =
     stage && status === "uploading" && uploadMethod === "wallet"
       ? "Encoding & storing on Walrus (paid by your wallet)…"
       : stage?.label;
+  const stageLabel =
+    batch && batch.total > 1 ? `${batch.index + 1} of ${batch.total} — ${baseLabel}` : baseLabel;
 
-  function pick(files: FileList | null) {
-    if (files && files.length > 0) void upload(files[0]);
+  async function pick(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    const list = [...files];
+    for (let i = 0; i < list.length; i++) {
+      setBatch({ index: i, total: list.length });
+      const ok = await upload(list[i]);
+      if (!ok) break; // keep the failure visible; remaining files stay untouched
+    }
+    setBatch(null);
   }
 
   function onDrop(e: DragEvent<HTMLDivElement>) {
     e.preventDefault();
     setDragging(false);
-    pick(e.dataTransfer.files);
+    void pick(e.dataTransfer.files);
   }
 
   const idle = !stage && status !== "failed";
@@ -56,7 +66,16 @@ export function UploadZone() {
       }}
       onDrop={onDrop}
     >
-      <input ref={inputRef} hidden type="file" onChange={(e) => pick(e.target.files)} />
+      <input
+        ref={inputRef}
+        hidden
+        multiple
+        type="file"
+        onChange={(e) => {
+          void pick(e.target.files);
+          e.currentTarget.value = "";
+        }}
+      />
 
       {stage ? (
         <ProgressBar

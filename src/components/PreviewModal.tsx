@@ -1,5 +1,6 @@
 import { openExternal } from "@/lib/openExternal";
 import { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Check, Copy, ExternalLink, FileUp, Loader2, Pencil, Plus, RotateCcw, Share2, ShieldCheck, Trash2, X } from "lucide-react";
 import { AlertDialog, Input, ListBox, Modal, Select } from "@heroui/react";
 import type { BlobFile } from "@waldrive/shared";
@@ -12,6 +13,7 @@ import { useVersion } from "@/hooks/useVersion";
 import { useFolders } from "@/hooks/useFolders";
 import { useFolder } from "@/hooks/useFolder";
 import { useSettings } from "@/stores/settingsStore";
+import { getWalrusEpoch, EPOCH_DAYS } from "@/lib/walrusSdk";
 import { blobUrl, explorerUrl } from "@/lib/constants";
 import { formatBytes } from "@/lib/utils";
 import { fileKind } from "@/lib/fileKind";
@@ -179,6 +181,21 @@ function VerifiableStorage({ file }: { file: BlobFile }) {
   const network = useSettings((s) => s.network);
   const [verify, setVerify] = useState<VerifyState>({ phase: "idle" });
   const [copiedId, setCopiedId] = useState(false);
+  const { data: walrusEpoch } = useQuery({
+    queryKey: ["walrus-epoch", network],
+    enabled: network === "testnet" || network === "mainnet",
+    staleTime: 5 * 60_000,
+    queryFn: () => getWalrusEpoch(network),
+  });
+  // Records written before the fix stored the duration (e.g. 3), not the epoch.
+  const expiryIsReal = walrusEpoch != null && file.expiryEpoch > walrusEpoch / 2;
+  const epochsLeft = walrusEpoch != null && expiryIsReal ? file.expiryEpoch - walrusEpoch : null;
+  const daysPerEpoch = network === "mainnet" ? EPOCH_DAYS.mainnet : EPOCH_DAYS.testnet;
+  const expiryLine = !expiryIsReal
+    ? `Walrus expiry: epoch ${file.expiryEpoch}`
+    : epochsLeft != null && epochsLeft <= 0
+      ? `Walrus expiry: epoch ${file.expiryEpoch} — expired`
+      : `Walrus expiry: epoch ${file.expiryEpoch}${epochsLeft != null ? ` · ≈${epochsLeft * daysPerEpoch}d left` : ""}`;
 
   useEffect(() => {
     setVerify({ phase: "idle" });
@@ -257,7 +274,7 @@ function VerifiableStorage({ file }: { file: BlobFile }) {
         {verify.phase === "fail" && (
           <div className="text-[11px] text-danger">✗ couldn't retrieve from aggregator</div>
         )}
-        <div className="text-[11px] text-ink-tertiary">Walrus expiry: epoch {file.expiryEpoch}</div>
+        <div className="text-[11px] text-ink-tertiary">{expiryLine}</div>
       </div>
     </section>
   );

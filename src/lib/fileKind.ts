@@ -72,7 +72,7 @@ export const CATEGORY_META: Record<FileCategory, { label: string; Icon: LucideIc
   other: { label: "Other", Icon: File },
 };
 
-export type PreviewMode = "image" | "pdf" | "text" | "none";
+export type PreviewMode = "image" | "pdf" | "video" | "audio" | "markdown" | "json" | "text" | "none";
 
 const TEXT_MIME = /^(text\/|application\/(json|xml|javascript|x-sh|toml|x-yaml|x-toml))/;
 const TEXT_EXT = new Set(["md", "markdown", "txt", "csv", "log", "json", "xml", "svg", "env"]);
@@ -82,6 +82,10 @@ export function previewMode(mimeType: string, name: string): PreviewMode {
   const e = ext(name);
   if (mimeType.startsWith("image/")) return "image";
   if (mimeType === "application/pdf" || e === "pdf") return "pdf";
+  if (mimeType.startsWith("video/") || ["mp4", "webm", "mov", "m4v"].includes(e)) return "video";
+  if (mimeType.startsWith("audio/") || ["mp3", "wav", "ogg", "m4a", "flac"].includes(e)) return "audio";
+  if (mimeType === "text/markdown" || e === "md" || e === "markdown") return "markdown";
+  if (mimeType === "application/json" || e === "json") return "json";
   if (TEXT_MIME.test(mimeType) || CODE_EXT.has(e) || TEXT_EXT.has(e)) return "text";
   return "none";
 }

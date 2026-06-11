@@ -14,28 +14,42 @@ export interface UploadBlobOptions {
 
 /** Walrus publisher `PUT /v1/blobs` response. Exactly one branch is present. */
 interface PublisherResponse {
-  newlyCreated?: { blobObject?: { blobId?: unknown } };
-  alreadyCertified?: { blobId?: unknown };
+  newlyCreated?: { blobObject?: { blobId?: unknown; storage?: { endEpoch?: unknown } } };
+  alreadyCertified?: { blobId?: unknown; endEpoch?: unknown };
 }
 
-function extractBlobId(payload: unknown): string {
+export interface StoredBlob {
+  blobId: string;
+  /** Walrus epoch after which the blob may be dropped (real epoch number, not a duration). */
+  endEpoch: number | null;
+}
+
+function extractStoredBlob(payload: unknown): StoredBlob {
   if (typeof payload !== "object" || payload === null) {
     throw new Error("Walrus publisher returned a non-object response");
   }
   const res = payload as PublisherResponse;
-  const created = res.newlyCreated?.blobObject?.blobId;
-  if (typeof created === "string") return created;
-  const certified = res.alreadyCertified?.blobId;
-  if (typeof certified === "string") return certified;
+  const created = res.newlyCreated?.blobObject;
+  if (typeof created?.blobId === "string") {
+    const end = created.storage?.endEpoch;
+    return { blobId: created.blobId, endEpoch: typeof end === "number" ? end : null };
+  }
+  const certified = res.alreadyCertified;
+  if (typeof certified?.blobId === "string") {
+    return {
+      blobId: certified.blobId,
+      endEpoch: typeof certified.endEpoch === "number" ? certified.endEpoch : null,
+    };
+  }
   throw new Error("Walrus publisher response missing blobId");
 }
 
 /**
- * Upload raw bytes to the Walrus publisher and return the resulting blobId.
- * Stores the blob as `deletable` and optionally transfers the minted Blob object
- * to `sendObjectTo` so the wallet owner controls it.
+ * Upload raw bytes to the Walrus publisher and return the stored blob's id and
+ * real expiry epoch. Stores the blob as `deletable` and optionally transfers
+ * the minted Blob object to `sendObjectTo` so the wallet owner controls it.
  */
-export async function uploadBlob(bytes: Uint8Array, options: UploadBlobOptions = {}): Promise<string> {
+export async function uploadBlob(bytes: Uint8Array, options: UploadBlobOptions = {}): Promise<StoredBlob> {
   const epochs = options.epochs ?? WALRUS.EPOCHS_DEFAULT;
   const base = options.publisher || WALRUS.PUBLISHER;
   const params = new URLSearchParams({ epochs: String(epochs), deletable: "true" });
@@ -53,7 +67,7 @@ export async function uploadBlob(bytes: Uint8Array, options: UploadBlobOptions =
     if (!res.ok) {
       throw new Error(`Walrus publisher PUT failed: ${res.status} ${res.statusText}`);
     }
-    return extractBlobId(await res.json());
+    return extractStoredBlob(await res.json());
   } finally {
     clearTimeout(timeout);
   }

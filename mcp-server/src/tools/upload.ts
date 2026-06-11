@@ -44,7 +44,7 @@ export function registerUploadTool(server: McpServer): void {
         const mime = mimeFromPath(path);
         const displayName = name ?? basename(path);
 
-        const blobId = await uploadBlob(bytes, { sendObjectTo: address });
+        const { blobId, endEpoch } = await uploadBlob(bytes, { sendObjectTo: address });
 
         const tx = new Transaction();
         tx.moveCall({
@@ -54,7 +54,7 @@ export function registerUploadTool(server: McpServer): void {
             tx.pure.string(displayName),
             tx.pure.string(mime),
             tx.pure.u64(BigInt(size)),
-            tx.pure.u64(BigInt(WALRUS.EPOCHS_DEFAULT)),
+            tx.pure.u64(BigInt(endEpoch ?? 0)),
             tx.object(SUI_CLOCK_ID),
           ],
         });

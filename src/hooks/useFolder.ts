@@ -16,11 +16,13 @@ export function useFolder() {
   const queryClient = useQueryClient();
   const suiClient = useMemo(() => new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network), network }), [network]);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const exec = useCallback(
     async (build: (tx: Transaction) => void) => {
       if (!keypair || !address || !packageId) return false;
       setBusy(true);
+      setError(null);
       try {
         const tx = new Transaction();
         build(tx);
@@ -29,7 +31,8 @@ export function useFolder() {
         await queryClient.invalidateQueries({ queryKey: ["folders", address] });
         await queryClient.invalidateQueries({ queryKey: ["files", address] });
         return true;
-      } catch {
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Folder action failed.");
         return false;
       } finally {
         setBusy(false);
@@ -69,5 +72,6 @@ export function useFolder() {
         tx.moveCall({ target: `${packageId}::file_record::remove_from_folder`, arguments: [tx.object(fileId)] }),
       ),
     busy,
+    error,
   };
 }

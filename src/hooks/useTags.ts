@@ -15,12 +15,14 @@ export function useTags() {
   const queryClient = useQueryClient();
   const suiClient = useMemo(() => new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network), network }), [network]);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const run = useCallback(
     async (fn: "add_tag" | "remove_tag", objectId: string, tag: string) => {
       const t = tag.trim();
       if (!keypair || !address || !t) return false;
       setBusy(true);
+      setError(null);
       try {
         const tx = new Transaction();
         tx.moveCall({
@@ -31,7 +33,8 @@ export function useTags() {
         await suiClient.waitForTransaction({ digest });
         await queryClient.invalidateQueries({ queryKey: ["files", address] });
         return true;
-      } catch {
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Tag update failed.");
         return false;
       } finally {
         setBusy(false);
@@ -44,5 +47,6 @@ export function useTags() {
     addTag: (id: string, tag: string) => run("add_tag", id, tag),
     removeTag: (id: string, tag: string) => run("remove_tag", id, tag),
     busy,
+    error,
   };
 }

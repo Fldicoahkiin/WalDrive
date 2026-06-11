@@ -19,17 +19,21 @@ function parseFileRecord(res: SuiObjectResponse): BlobFile | null {
     mimeType: String(f.mime_type ?? ""),
     size: Number(f.size ?? 0),
     folderId: (f.folder_id as string | null) ?? null,
-    tags: [],
+    tags: Array.isArray(f.tags) ? (f.tags as string[]) : [],
     owner: String(f.owner ?? ""),
     uploadedAtMs: Number(f.uploaded_at_ms ?? 0),
     expiryEpoch: Number(f.expiry_epoch ?? 0),
     isPublic: Boolean(f.is_public ?? false),
+    isDeleted: Boolean(f.is_deleted ?? false),
+    version: Number(f.version ?? 1),
+    parentVersionId: (f.parent_version_id as string | null) ?? null,
     status: "done",
   };
 }
 
 const inputSchema = {
   limit: z.number().int().positive().optional().describe("Max files to return (default 50)"),
+  folder_id: z.string().optional().describe("Only files in this Folder object id"),
 };
 
 export function registerListTool(server: McpServer): void {
@@ -39,13 +43,13 @@ export function registerListTool(server: McpServer): void {
       description: "List FileRecord files owned by the configured wallet, newest first.",
       inputSchema,
     },
-    async ({ limit }) => {
+    async ({ limit, folder_id }) => {
       try {
         const { client, address, packageId } = getContext();
         const cap = limit ?? DEFAULT_LIMIT;
         const structType = `${packageId}::${CONTRACT.FILE_RECORD}::FileRecord`;
 
-        const files: BlobFile[] = [];
+        const all: BlobFile[] = [];
         let cursor: string | null | undefined = null;
         do {
           const page = await client.getOwnedObjects({
@@ -56,13 +60,18 @@ export function registerListTool(server: McpServer): void {
           });
           for (const item of page.data) {
             const parsed = parseFileRecord(item);
-            if (parsed) files.push(parsed);
-            if (files.length >= cap) break;
+            if (parsed) all.push(parsed);
           }
           cursor = page.hasNextPage ? page.nextCursor : null;
-        } while (cursor && files.length < cap);
+        } while (cursor);
 
-        files.sort((a, b) => b.uploadedAtMs - a.uploadedAtMs);
+        // Mirror the desktop view: hide trashed records and superseded versions.
+        const superseded = new Set(all.map((f) => f.parentVersionId).filter(Boolean));
+        const files = all
+          .filter((f) => !f.isDeleted && !superseded.has(f.objectId))
+          .filter((f) => (folder_id ? f.folderId === folder_id : true))
+          .sort((a, b) => b.uploadedAtMs - a.uploadedAtMs)
+          .slice(0, cap);
 
         return textResult(JSON.stringify({ owner: address, count: files.length, files }, null, 2));
       } catch (err) {

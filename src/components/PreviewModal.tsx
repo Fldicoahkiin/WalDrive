@@ -66,7 +66,7 @@ function DeleteDialog({
 }
 
 function TagBar({ file }: { file: BlobFile }) {
-  const { addTag, removeTag, busy } = useTags();
+  const { addTag, removeTag, busy, error } = useTags();
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState("");
 
@@ -125,17 +125,19 @@ function TagBar({ file }: { file: BlobFile }) {
           <Plus className="size-3" /> Tag
         </button>
       )}
+      {error && <span className="w-full truncate text-[11px] text-danger" title={error}>{error}</span>}
     </div>
   );
 }
 
 function MoveBar({ file }: { file: BlobFile }) {
   const { data: folders } = useFolders();
-  const { moveToFolder, removeFromFolder, busy } = useFolder();
+  const { moveToFolder, removeFromFolder, busy, error } = useFolder();
   if (!folders || folders.length === 0) return null;
   const current = file.folderId ?? "root";
 
   return (
+    <div className="flex shrink-0 flex-col items-end gap-1">
     <Select
       aria-label="Move to folder"
       className="w-36 shrink-0"
@@ -168,6 +170,8 @@ function MoveBar({ file }: { file: BlobFile }) {
         </ListBox>
       </Select.Popover>
     </Select>
+    {error && <span className="max-w-44 truncate text-[11px] text-danger" title={error}>{error}</span>}
+    </div>
   );
 }
 

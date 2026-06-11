@@ -15,7 +15,7 @@ export function FolderNav({
   folderId: string | null;
   onNavigate: (id: string | null) => void;
 }) {
-  const { createFolder, busy } = useFolder();
+  const { createFolder, busy, error } = useFolder();
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState("");
 
@@ -90,6 +90,7 @@ export function FolderNav({
             <FolderPlus className="size-3.5" /> New folder
           </Button>
         )}
+        {error && <span className="truncate text-[11px] text-danger" title={error}>{error}</span>}
       </div>
 
       {subfolders.length > 0 && (

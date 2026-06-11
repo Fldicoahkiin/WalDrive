@@ -100,7 +100,9 @@ export function App() {
         if (nav === "all") return (f.folderId ?? null) === folderId;
         return fileCategory(f.mimeType, f.name) === nav;
       })
-      .filter((f) => (q ? f.name.toLowerCase().includes(q) : true))
+      .filter((f) =>
+        q ? f.name.toLowerCase().includes(q) || f.tags.some((t) => t.toLowerCase().includes(q)) : true,
+      )
       .sort((a, b) =>
         sort === "name"
           ? a.name.localeCompare(b.name)

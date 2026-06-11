@@ -5,10 +5,8 @@ HTML is the source of truth: `index.html` is the whole composition (one root
 timeline). Six real screen recordings are embedded as seekable `<video>` clips,
 narrated by local TTS, with a lower-third caption track and a quiet music bed.
 
-- **Output:** `../out/waldrive-demo-hf.mp4` — 1920×1080, 30fps, H.264 + AAC, ~2:23.
+- **Output:** `../out/waldrive-demo.mp4` — 3840×2160 (authored 1080p, rendered at 2× DPR), 30fps, H.264 + AAC, ~2:23.
 - **Aesthetic:** dark Linear (`#010102` canvas, `#5e6ad2` accent), `DESIGN.md` palette.
-
-This is separate from the older Remotion cut (`video/src/`, `video/out/waldrive-demo.mp4`).
 
 ## Sections & timing
 
@@ -53,7 +51,7 @@ downloads ~466 MB (Whisper `small.en`). Both cache in `~/.cache/hyperframes/`.
 
 ```bash
 cd video/hf
-npx hyperframes render --quality high --fps 30 --output ../out/waldrive-demo-hf.mp4
+npx hyperframes render . --quality high --fps 30 --resolution landscape-4k --crf 17 --output ../out/waldrive-demo.mp4
 ```
 
 Quick iteration: `npx hyperframes render --quality draft --output renders/draft.mp4`.

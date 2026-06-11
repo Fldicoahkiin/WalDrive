@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { motion } from "motion/react";
-import { Droplet, HardDrive, Plus, ShieldCheck, Upload, UploadCloud } from "lucide-react";
+import { Droplet, Plus, ShieldCheck, Upload, UploadCloud } from "lucide-react";
 import { Input } from "@heroui/react";
 import { Button } from "@/components/ui/Button";
+import { BrandMark } from "@/components/BrandMark";
 import { useWallet } from "@/stores/walletStore";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -42,7 +43,7 @@ export function Onboarding() {
         transition={{ duration: 0.3, ease: EASE }}
       >
         <span className="lift flex size-16 items-center justify-center rounded-2xl border border-hairline bg-surface-1">
-          <HardDrive aria-hidden className="size-8 text-accent" strokeWidth={1.75} />
+          <BrandMark className="size-10" />
         </span>
         <div className="flex flex-col gap-2">
           <h1 className="text-xl font-semibold text-ink">Welcome to WalDrive</h1>

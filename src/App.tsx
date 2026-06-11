@@ -43,33 +43,62 @@ export function App() {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("date");
   const [view, setView] = useState<ViewMode>("grid");
-  const [category, setCategory] = useState<NavKey>("all");
+  const [nav, setNav] = useState<NavKey>("all");
   const [folderId, setFolderId] = useState<string | null>(null);
   const [selected, setSelected] = useState<BlobFile | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
-  // Drop back to "all" if the active category (type or trash) no longer has files.
+  function handleSelect(key: NavKey) {
+    if (key.startsWith("folder:")) {
+      setNav("all");
+      setFolderId(key.slice(7));
+    } else {
+      setNav(key);
+      setFolderId(null);
+    }
+  }
+
+  // Switching accounts swaps the whole tree — reset the view context.
+  useEffect(() => {
+    setNav("all");
+    setFolderId(null);
+    setQuery("");
+    setSelected(null);
+  }, [address]);
+
+  // Drop back to "all" when the active view (type, tag, trash) empties out.
   useEffect(() => {
     if (!files) return;
-    if (category === "trash") {
-      if (!files.some((f) => f.isDeleted)) setCategory("all");
-    } else if (
-      category !== "all" &&
-      !files.some((f) => !f.isDeleted && fileCategory(f.mimeType, f.name) === category)
-    ) {
-      setCategory("all");
-    }
-  }, [files, category]);
+    const live = files.filter((f) => !f.isDeleted);
+    const stale =
+      (nav === "trash" && !files.some((f) => f.isDeleted)) ||
+      (nav.startsWith("tag:") && !live.some((f) => f.tags.includes(nav.slice(4)))) ||
+      (nav !== "all" &&
+        nav !== "trash" &&
+        !nav.startsWith("tag:") &&
+        !live.some((f) => fileCategory(f.mimeType, f.name) === nav));
+    if (stale) setNav("all");
+  }, [files, nav]);
+
+  // The sidebar highlights the folder's root ancestor while browsing inside it.
+  const activeNav: NavKey = useMemo(() => {
+    if (nav !== "all" || !folderId || !folders) return nav;
+    const byId = new Map(folders.map((f) => [f.objectId, f]));
+    let cur = byId.get(folderId);
+    while (cur?.parentId && byId.has(cur.parentId)) cur = byId.get(cur.parentId);
+    return cur ? (`folder:${cur.objectId}` as NavKey) : nav;
+  }, [nav, folderId, folders]);
 
   const visible = useMemo(() => {
     if (!files) return [];
     const q = query.trim().toLowerCase();
     return files
-      .filter((f) => (category === "trash" ? f.isDeleted : !f.isDeleted))
+      .filter((f) => (nav === "trash" ? f.isDeleted : !f.isDeleted))
       .filter((f) => {
-        if (category === "trash") return true;
-        if (category === "all") return (f.folderId ?? null) === folderId;
-        return fileCategory(f.mimeType, f.name) === category;
+        if (nav === "trash") return true;
+        if (nav.startsWith("tag:")) return f.tags.includes(nav.slice(4));
+        if (nav === "all") return (f.folderId ?? null) === folderId;
+        return fileCategory(f.mimeType, f.name) === nav;
       })
       .filter((f) => (q ? f.name.toLowerCase().includes(q) : true))
       .sort((a, b) =>
@@ -79,7 +108,7 @@ export function App() {
             ? b.size - a.size
             : b.uploadedAtMs - a.uploadedAtMs,
       );
-  }, [files, query, sort, category, folderId]);
+  }, [files, query, sort, nav, folderId]);
 
   return (
     <div className="flex h-dvh overflow-hidden bg-canvas text-ink">
@@ -91,10 +120,11 @@ export function App() {
       ) : (
         <>
           <Sidebar
-            active={category}
+            active={activeNav}
             files={files ?? []}
+            folders={folders ?? []}
             onOpenSettings={() => setSettingsOpen(true)}
-            onSelect={setCategory}
+            onSelect={handleSelect}
           />
           <main className="flex flex-1 flex-col overflow-hidden border-l border-hairline bg-canvas">
             <div
@@ -154,7 +184,7 @@ export function App() {
               <div className="mx-auto flex max-w-5xl flex-col gap-5 px-6 py-6">
                 <FaucetBanner />
                 <UploadZone />
-                {category === "all" && (
+                {nav === "all" && (
                   <FolderNav folderId={folderId} folders={folders ?? []} onNavigate={setFolderId} />
                 )}
                 {isLoading ? (

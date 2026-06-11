@@ -100,3 +100,12 @@ export function relativeTime(ms: number): string {
   if (d < 30) return `${d}d ago`;
   return new Date(ms).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
+
+const TAG_PALETTE = ["#4caf6d", "#d2698a", "#c98fd8", "#e5736b", "#d8a657", "#6e8bd6", "#e0915a", "#8f86d8"];
+
+/** Stable muted color for a tag name — same tag, same dot everywhere. */
+export function tagColor(tag: string): string {
+  let h = 0;
+  for (const ch of tag) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return TAG_PALETTE[h % TAG_PALETTE.length];
+}

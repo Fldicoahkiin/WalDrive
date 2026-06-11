@@ -14,3 +14,9 @@ export function formatBytes(bytes: number): string {
   const value = bytes / 1024 ** exponent;
   return `${value.toFixed(exponent === 0 ? 0 : 1)} ${units[exponent]}`;
 }
+
+/** Deterministic two-tone identicon gradient for a Sui address. */
+export function addrGradient(address: string): string {
+  const h = parseInt(address.slice(2, 6) || "0", 16) % 360;
+  return `linear-gradient(135deg, hsl(${h} 62% 55%), hsl(${(h + 70) % 360} 62% 42%))`;
+}

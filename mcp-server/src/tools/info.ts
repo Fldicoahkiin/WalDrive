@@ -1,5 +1,5 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { SuiObjectResponse } from "@mysten/sui/client";
+import type { SuiObjectResponse } from "@mysten/sui/jsonRpc";
 import { z } from "zod";
 import { blobUrl, type BlobFile } from "@waldrive/shared";
 import { getContext } from "../lib/context";

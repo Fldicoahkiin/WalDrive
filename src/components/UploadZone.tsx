@@ -6,6 +6,7 @@ import type { UploadStatus } from "@waldrive/shared";
 import { Button } from "@/components/ui/Button";
 import { useUpload } from "@/hooks/useUpload";
 import { useFaucet } from "@/hooks/useFaucet";
+import { useSettings } from "@/stores/settingsStore";
 import { cn } from "@/lib/cn";
 
 type Stage = Extract<UploadStatus, "uploading" | "saving_meta" | "done">;
@@ -18,10 +19,15 @@ const STAGE: Record<Stage, { value: number; color: "warning" | "accent" | "succe
 export function UploadZone() {
   const { upload, status, error, needsGas, reset } = useUpload();
   const faucet = useFaucet();
+  const uploadMethod = useSettings((s) => s.uploadMethod);
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const busy = status === "uploading" || status === "saving_meta";
   const stage = status in STAGE ? STAGE[status as Stage] : null;
+  const stageLabel =
+    stage && status === "uploading" && uploadMethod === "wallet"
+      ? "Encoding & storing on Walrus (paid by your wallet)…"
+      : stage?.label;
 
   function pick(files: FileList | null) {
     if (files && files.length > 0) void upload(files[0]);
@@ -53,12 +59,12 @@ export function UploadZone() {
 
       {stage ? (
         <ProgressBar
-          aria-label={stage.label}
+          aria-label={stageLabel}
           className="flex-1 gap-1"
           color={stage.color}
           value={stage.value}
         >
-          <span className="text-xs text-ink-subtle">{stage.label}</span>
+          <span className="text-xs text-ink-subtle">{stageLabel}</span>
           <ProgressBar.Track className="h-1.5">
             <ProgressBar.Fill />
           </ProgressBar.Track>

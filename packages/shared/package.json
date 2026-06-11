@@ -9,7 +9,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@mysten/sui": "1.38.0"
+    "@mysten/sui": "^2.16.2"
   },
   "devDependencies": {
     "typescript": "5.9.2"

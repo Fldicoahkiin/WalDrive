@@ -1,11 +1,11 @@
-import type { SuiClient } from "@mysten/sui/client";
+import type { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
 import type { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { createSuiClient, CONTRACT } from "@waldrive/shared";
 import { loadKeypair } from "./wallet";
 
 /** Resolved runtime: Sui RPC client, signing keypair, and its address. */
 export interface WalDriveContext {
-  client: SuiClient;
+  client: SuiJsonRpcClient;
   keypair: Ed25519Keypair;
   address: string;
   packageId: string;
@@ -14,7 +14,7 @@ export interface WalDriveContext {
 let cached: WalDriveContext | undefined;
 
 /**
- * Build (once) the shared runtime: a SuiClient for the configured network and
+ * Build (once) the shared runtime: a SuiJsonRpcClient for the configured network and
  * the signing keypair from `WALDRIVE_KEYPAIR`. Throws if the package id or
  * keypair env is missing so tools surface a descriptive error.
  */

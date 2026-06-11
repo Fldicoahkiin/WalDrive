@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { WalletPanel } from "@/components/WalletPanel";
 import { useTheme, type Theme } from "@/lib/theme";
-import { useSettings } from "@/stores/settingsStore";
+import { useSettings, type UploadMethod } from "@/stores/settingsStore";
 import type { SuiNetwork } from "@/lib/constants";
 
 const VERSION = "0.1.0";
@@ -118,6 +118,26 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
               </Section>
 
               <Section title="Walrus storage">
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-xs text-ink-subtle">Upload via</span>
+                  <ToggleButtonGroup
+                    aria-label="Upload method"
+                    disallowEmptySelection
+                    selectedKeys={new Set([s.uploadMethod])}
+                    selectionMode="single"
+                    onSelectionChange={(keys) => {
+                      const k = firstKey(keys);
+                      if (k) s.setUploadMethod(k as UploadMethod);
+                    }}
+                  >
+                    <ToggleButton id="publisher">Publisher (free)</ToggleButton>
+                    <ToggleButton id="wallet">Your wallet (pays WAL)</ToggleButton>
+                  </ToggleButtonGroup>
+                  <span className="text-[11px] text-ink-tertiary">
+                    Publisher fronts the storage cost on testnet. Wallet mode encodes locally and
+                    pays WAL itself via the Walrus SDK — fully self-custodial.
+                  </span>
+                </div>
                 <EndpointField label="Aggregator" onCommit={s.setAggregator} value={s.aggregator} />
                 <EndpointField label="Publisher" onCommit={s.setPublisher} value={s.publisher} />
                 <EndpointField

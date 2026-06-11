@@ -1,19 +1,21 @@
 import { useCallback, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { SuiClient, getFullnodeUrl } from "@mysten/sui/client";
+import { SuiJsonRpcClient, getJsonRpcFullnodeUrl } from "@mysten/sui/jsonRpc";
 import { Transaction } from "@mysten/sui/transactions";
 import { uploadBlob } from "@waldrive/shared";
 import type { UploadStatus } from "@waldrive/shared";
 import { useWallet } from "@/stores/walletStore";
 import { useSettings } from "@/stores/settingsStore";
+import { uploadBlobWithWallet } from "@/lib/walrusSdk";
 import { CONTRACT } from "@/lib/constants";
 
 const SUI_CLOCK_ID = "0x6";
 
 /**
- * Desktop upload: PUT bytes to the Walrus publisher (blob sent to the local
- * wallet), then file_record::register signed in-process by the local keypair.
- * Endpoints, epochs, network and contract all come from the settings store.
+ * Desktop upload, two paths to Walrus picked in Settings:
+ * - publisher: HTTP PUT, the publisher fronts the WAL cost (testnet default)
+ * - wallet: encode locally via the Walrus SDK, the user's wallet pays WAL
+ * Either way file_record::register is then signed in-process.
  */
 export function useUpload() {
   const keypair = useWallet((s) => s.keypair);
@@ -23,8 +25,9 @@ export function useUpload() {
   const publisherToken = useSettings((s) => s.publisherToken);
   const epochs = useSettings((s) => s.epochs);
   const packageId = useSettings((s) => s.packageId);
+  const uploadMethod = useSettings((s) => s.uploadMethod);
   const queryClient = useQueryClient();
-  const suiClient = useMemo(() => new SuiClient({ url: getFullnodeUrl(network) }), [network]);
+  const suiClient = useMemo(() => new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network), network }), [network]);
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const [needsGas, setNeedsGas] = useState(false);
@@ -46,12 +49,15 @@ export function useUpload() {
       try {
         setStatus("uploading");
         const bytes = new Uint8Array(await file.arrayBuffer());
-        const blobId = await uploadBlob(bytes, {
-          sendObjectTo: address,
-          publisher,
-          epochs,
-          authToken: publisherToken,
-        });
+        const blobId =
+          uploadMethod === "wallet"
+            ? await uploadBlobWithWallet(bytes, { keypair, network, epochs })
+            : await uploadBlob(bytes, {
+                sendObjectTo: address,
+                publisher,
+                epochs,
+                authToken: publisherToken,
+              });
 
         setStatus("saving_meta");
         const tx = new Transaction();
@@ -76,8 +82,12 @@ export function useUpload() {
         setTimeout(() => setStatus("idle"), 1200);
       } catch (e) {
         const message = e instanceof Error ? e.message : "Upload failed.";
-        // The blob is on Walrus; only the on-chain record failed for lack of gas.
-        if (/gas|insufficient/i.test(message)) {
+        if (uploadMethod === "wallet" && /wal\b|balance|coin/i.test(message)) {
+          setError(
+            "Wallet upload needs WAL in this wallet to pay for storage — swap some, or switch Upload via back to Publisher (free) in Settings.",
+          );
+        } else if (/gas|insufficient/i.test(message)) {
+          // The blob is on Walrus; only the on-chain record failed for lack of gas.
           setNeedsGas(true);
           setError("Stored on Walrus, but recording it on Sui needs a little SUI for gas.");
         } else {
@@ -86,7 +96,7 @@ export function useUpload() {
         setStatus("failed");
       }
     },
-    [keypair, address, publisher, publisherToken, epochs, packageId, suiClient, queryClient],
+    [keypair, address, network, publisher, publisherToken, epochs, packageId, uploadMethod, suiClient, queryClient],
   );
 
   return {

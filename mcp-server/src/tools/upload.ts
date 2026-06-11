@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { basename } from "node:path";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { SuiObjectChange } from "@mysten/sui/client";
+import type { SuiObjectChange } from "@mysten/sui/jsonRpc";
 import { Transaction } from "@mysten/sui/transactions";
 import { z } from "zod";
 import { uploadBlob, WALRUS, blobUrl, CONTRACT } from "@waldrive/shared";

@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { SuiClient, getFullnodeUrl } from "@mysten/sui/client";
+import { SuiJsonRpcClient, getJsonRpcFullnodeUrl } from "@mysten/sui/jsonRpc";
 import { Transaction } from "@mysten/sui/transactions";
 import { uploadBlob } from "@waldrive/shared";
 import type { UploadStatus } from "@waldrive/shared";
@@ -24,7 +24,7 @@ export function useVersion() {
   const epochs = useSettings((s) => s.epochs);
   const packageId = useSettings((s) => s.packageId);
   const queryClient = useQueryClient();
-  const suiClient = useMemo(() => new SuiClient({ url: getFullnodeUrl(network) }), [network]);
+  const suiClient = useMemo(() => new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network), network }), [network]);
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [error, setError] = useState<string | null>(null);
 

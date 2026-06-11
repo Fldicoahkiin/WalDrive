@@ -1,11 +1,10 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { SuiClient, getFullnodeUrl } from "@mysten/sui/client";
+import { SuiJsonRpcClient, getJsonRpcFullnodeUrl } from "@mysten/sui/jsonRpc";
 import { Transaction } from "@mysten/sui/transactions";
 import { useWallet } from "@/stores/walletStore";
-import { CONTRACT, SUI_NETWORK } from "@/lib/constants";
-
-const suiClient = new SuiClient({ url: getFullnodeUrl(SUI_NETWORK) });
+import { useSettings } from "@/stores/settingsStore";
+import { CONTRACT } from "@/lib/constants";
 
 type RenameStatus = "idle" | "saving" | "done" | "failed";
 
@@ -17,6 +16,11 @@ type RenameStatus = "idle" | "saving" | "done" | "failed";
 export function useRename() {
   const keypair = useWallet((s) => s.keypair);
   const address = useWallet((s) => s.address);
+  const network = useSettings((s) => s.network);
+  const suiClient = useMemo(
+    () => new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network), network }),
+    [network],
+  );
   const queryClient = useQueryClient();
   const [status, setStatus] = useState<RenameStatus>("idle");
   const [error, setError] = useState<string | null>(null);

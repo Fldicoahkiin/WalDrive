@@ -2,6 +2,9 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { WALRUS, SUI_NETWORK, CONTRACT, setAggregatorBase, type SuiNetwork } from "@/lib/constants";
 
+/** How blob bytes reach Walrus: the free publisher, or the user's wallet via the SDK. */
+export type UploadMethod = "publisher" | "wallet";
+
 interface SettingsState {
   network: SuiNetwork;
   aggregator: string;
@@ -9,12 +12,14 @@ interface SettingsState {
   epochs: number;
   packageId: string;
   publisherToken: string;
+  uploadMethod: UploadMethod;
   setNetwork: (network: SuiNetwork) => void;
   setAggregator: (aggregator: string) => void;
   setPublisher: (publisher: string) => void;
   setEpochs: (epochs: number) => void;
   setPackageId: (packageId: string) => void;
   setPublisherToken: (token: string) => void;
+  setUploadMethod: (method: UploadMethod) => void;
   reset: () => void;
 }
 
@@ -25,6 +30,7 @@ const DEFAULTS = {
   epochs: WALRUS.EPOCHS_DEFAULT,
   packageId: CONTRACT.PACKAGE_ID,
   publisherToken: "",
+  uploadMethod: "publisher" as UploadMethod,
 };
 
 /**
@@ -45,6 +51,7 @@ export const useSettings = create<SettingsState>()(
       setEpochs: (epochs) => set({ epochs }),
       setPackageId: (packageId) => set({ packageId }),
       setPublisherToken: (publisherToken) => set({ publisherToken }),
+      setUploadMethod: (uploadMethod) => set({ uploadMethod }),
       reset: () => {
         setAggregatorBase(DEFAULTS.aggregator);
         set({ ...DEFAULTS });

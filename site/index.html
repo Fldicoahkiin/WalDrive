@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WalDrive — a desktop drive for Walrus</title>
+<meta name="description" content="The file-management and verifiable-data console for everything your agents store on Walrus. Files on a decentralized network, owned by you, verifiable by anyone." />
+<link rel="icon" type="image/png" href="assets/icon-64.png" />
+<meta property="og:title" content="WalDrive — a desktop drive for Walrus" />
+<meta property="og:description" content="Real bytes on Walrus, metadata on Sui, no backend in between. Built for Sui Overflow 2026." />
+<meta property="og:image" content="assets/app-grid.png" />
+<style>
+  :root {
+    --bg: #0b0b0f;
+    --surface: #15161c;
+    --surface-2: #1c1d25;
+    --hairline: rgba(255, 255, 255, 0.08);
+    --ink: #e8e9f1;
+    --ink-muted: #a3a6b9;
+    --ink-subtle: #767a8f;
+    --accent: #5e6ad2;
+    --accent-soft: #7c86f2;
+    --success: #4cb782;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 24px; }
+
+  nav { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(14px); background: rgba(11, 11, 15, 0.72); border-bottom: 1px solid var(--hairline); }
+  .nav-in { display: flex; align-items: center; gap: 10px; height: 60px; }
+  .nav-in img { width: 28px; height: 28px; border-radius: 7px; }
+  .nav-in .name { font-weight: 600; letter-spacing: -0.01em; }
+  .nav-in .spacer { flex: 1; }
+  .nav-link { color: var(--ink-muted); font-size: 14px; padding: 6px 12px; border-radius: 8px; transition: color .15s, background .15s; }
+  .nav-link:hover { color: var(--ink); background: var(--surface); }
+  .nav-cta { background: var(--accent); color: #fff; font-size: 14px; padding: 7px 14px; border-radius: 8px; transition: filter .15s; }
+  .nav-cta:hover { filter: brightness(1.1); }
+
+  .hero { padding: 96px 0 48px; text-align: center; position: relative; overflow: hidden; }
+  .hero::before { content: ""; position: absolute; inset: -40% -20% auto; height: 130%; background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(94, 106, 210, 0.16), transparent 70%); pointer-events: none; }
+  .badge { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink-muted); border: 1px solid var(--hairline); border-radius: 999px; padding: 5px 14px; margin-bottom: 28px; background: rgba(255,255,255,0.02); }
+  .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-soft); }
+  h1 { font-size: clamp(36px, 6vw, 58px); line-height: 1.08; letter-spacing: -0.025em; font-weight: 700; }
+  h1 .grad { background: linear-gradient(135deg, var(--accent-soft), var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { max-width: 620px; margin: 22px auto 0; color: var(--ink-muted); font-size: 18px; }
+  .cta-row { display: flex; gap: 12px; justify-content: center; margin-top: 34px; flex-wrap: wrap; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border-radius: 10px; font-size: 15px; font-weight: 500; transition: transform .15s, filter .15s, background .15s; }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { filter: brightness(1.12); }
+  .btn-ghost { border: 1px solid var(--hairline); color: var(--ink); background: rgba(255,255,255,0.02); }
+  .btn-ghost:hover { background: var(--surface); }
+  .shot { margin: 64px auto 0; max-width: 920px; border-radius: 14px; border: 1px solid var(--hairline); overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.5); }
+  .shot img { display: block; width: 100%; }
+
+  section { padding: 88px 0; }
+  .kicker { color: var(--accent-soft); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+  h2 { font-size: clamp(26px, 4vw, 36px); letter-spacing: -0.02em; margin-top: 10px; font-weight: 650; }
+  .lede { color: var(--ink-muted); max-width: 640px; margin-top: 14px; font-size: 16.5px; }
+
+  .cards3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 40px; }
+  .card { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 26px; }
+  .card .num { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--accent-soft); font-size: 13px; }
+  .card h3 { font-size: 17px; margin: 10px 0 8px; font-weight: 600; }
+  .card p { color: var(--ink-muted); font-size: 14.5px; }
+  .card code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; background: var(--surface-2); padding: 2px 6px; border-radius: 5px; color: var(--ink); }
+
+  .feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 40px; }
+  .feat { display: flex; gap: 12px; align-items: flex-start; background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 18px; }
+  .feat .ico { flex: none; width: 34px; height: 34px; display: grid; place-items: center; background: rgba(94,106,210,0.14); color: var(--accent-soft); border-radius: 9px; font-size: 16px; }
+  .feat b { display: block; font-size: 14.5px; font-weight: 600; }
+  .feat span { color: var(--ink-subtle); font-size: 13px; }
+
+  .arch { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 40px; }
+  @media (max-width: 720px) { .arch { grid-template-columns: 1fr; } }
+  .arch .card h3 { display: flex; align-items: center; gap: 8px; }
+  .pill { font-size: 11.5px; font-weight: 600; padding: 2px 9px; border-radius: 999px; }
+  .pill.sui { background: rgba(94,106,210,0.18); color: var(--accent-soft); }
+  .pill.wal { background: rgba(76,183,130,0.16); color: var(--success); }
+  .arch ul { list-style: none; margin-top: 12px; }
+  .arch li { color: var(--ink-muted); font-size: 14px; padding: 7px 0; border-top: 1px solid var(--hairline); }
+  .arch li:first-child { border-top: 0; }
+
+  .verify-shot { margin-top: 40px; border-radius: 14px; border: 1px solid var(--hairline); overflow: hidden; }
+  .verify-shot img { display: block; width: 100%; }
+
+  .mcp { background: var(--surface); border: 1px solid var(--hairline); border-radius: 16px; padding: 36px; margin-top: 40px; display: grid; grid-template-columns: 1.1fr 1fr; gap: 32px; align-items: center; }
+  @media (max-width: 760px) { .mcp { grid-template-columns: 1fr; } }
+  .term { background: #0d0e13; border: 1px solid var(--hairline); border-radius: 12px; padding: 18px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; line-height: 1.8; color: var(--ink-muted); overflow-x: auto; }
+  .term .p { color: var(--success); }
+  .term .c { color: var(--accent-soft); }
+
+  footer { border-top: 1px solid var(--hairline); padding: 40px 0 56px; color: var(--ink-subtle); font-size: 14px; }
+  .foot { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .foot img { width: 22px; height: 22px; border-radius: 6px; }
+  .foot .spacer { flex: 1; }
+  .foot a { color: var(--ink-muted); }
+  .foot a:hover { color: var(--ink); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-in">
+    <img src="assets/icon-64.png" alt="" />
+    <span class="name">WalDrive</span>
+    <span class="spacer"></span>
+    <a class="nav-link" href="#verifiable">Verifiable</a>
+    <a class="nav-link" href="#features">Features</a>
+    <a class="nav-link" href="#mcp">MCP</a>
+    <a class="nav-cta" href="https://github.com/Fldicoahkiin/WalDrive">GitHub</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="badge"><span class="dot"></span> Sui Overflow 2026 · Walrus track</div>
+    <h1>A desktop drive for Walrus.<br /><span class="grad">Files you actually own.</span></h1>
+    <p class="sub">Drag a file in — the bytes land on the Walrus decentralized network, the metadata on Sui, and nothing in between. No backend, no account, no lock-in. Verifiable by anyone.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://github.com/Fldicoahkiin/WalDrive">Get WalDrive</a>
+      <a class="btn btn-ghost" href="https://github.com/Fldicoahkiin/WalDrive#readme">Watch the demo</a>
+    </div>
+    <div class="shot"><img src="assets/app-grid.png" alt="WalDrive main window: sidebar, drag-to-upload zone and file grid" /></div>
+  </div>
+</header>
+
+<section id="verifiable">
+  <div class="wrap">
+    <span class="kicker">Verifiable by design</span>
+    <h2>Trustless storage you can check yourself</h2>
+    <p class="lede">Every file in WalDrive is backed by two public facts — a content-addressed blob on Walrus and a metadata object on Sui. The app just makes them fluid.</p>
+    <div class="cards3">
+      <div class="card">
+        <span class="num">01</span>
+        <h3>Content-addressed</h3>
+        <p>The Walrus blob ID <em>is</em> the cryptographic fingerprint of your bytes. Same content, same ID — tampering is mathematically loud.</p>
+      </div>
+      <div class="card">
+        <span class="num">02</span>
+        <h3>You own the storage</h3>
+        <p>Uploads mint an on-chain <code>Blob</code> object sent to your wallet, plus a <code>FileRecord</code> with name, tags, versions and expiry — signed by your local key, in-process, no popup.</p>
+      </div>
+      <div class="card">
+        <span class="num">03</span>
+        <h3>Anyone can verify</h3>
+        <p>Hit Verify and WalDrive re-fetches the bytes from a public aggregator and hashes them on screen. No wallet needed — share the link and the recipient can check too.</p>
+      </div>
+    </div>
+    <div class="verify-shot"><img src="assets/app-verify.png" alt="The Verifiable storage panel: content ID, live verify, open raw and Suiscan links" /></div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="wrap">
+    <span class="kicker">A real drive</span>
+    <h2>Everything you expect, all on-chain</h2>
+    <p class="lede">Not a tech demo — a fluid, native-feeling desktop app where every action writes real state to Sui and Walrus.</p>
+    <div class="feat-grid">
+      <div class="feat"><div class="ico">↑</div><div><b>Drag-to-upload</b><span>bytes to Walrus, record on Sui, appears live</span></div></div>
+      <div class="feat"><div class="ico">▦</div><div><b>Instant preview</b><span>images, markdown, code, PDF — straight from the aggregator</span></div></div>
+      <div class="feat"><div class="ico">⌕</div><div><b>Instant search</b><span>client-side, zero latency, with type filters and sort</span></div></div>
+      <div class="feat"><div class="ico">#</div><div><b>Tags &amp; folders</b><span>organize on-chain; breadcrumbs and nested folders</span></div></div>
+      <div class="feat"><div class="ico">⧉</div><div><b>Versioning</b><span>upload a new version, history linked on-chain</span></div></div>
+      <div class="feat"><div class="ico">↺</div><div><b>Trash &amp; restore</b><span>soft-delete with on-chain restore — or purge for good</span></div></div>
+      <div class="feat"><div class="ico">⚿</div><div><b>Multi-account wallet</b><span>generate, import, switch — keys never leave the device</span></div></div>
+      <div class="feat"><div class="ico">⇄</div><div><b>One-click share</b><span>a public, wallet-free link anyone can open and verify</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="kicker">Architecture</span>
+    <h2>No backend. Two networks.</h2>
+    <div class="arch">
+      <div class="card">
+        <h3>Metadata on Sui <span class="pill sui">Move objects</span></h3>
+        <ul>
+          <li><code>FileRecord</code> — name, mime, size, tags, version chain, expiry</li>
+          <li><code>Folder</code> — nested folders as owned objects</li>
+          <li>Signed in-process by your local Ed25519 key</li>
+          <li>Browse, rename, tag, trash — every action is a transaction</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Bytes on Walrus <span class="pill wal">erasure-coded</span></h3>
+        <ul>
+          <li>Files erasure-coded across storage nodes</li>
+          <li>Blob ID = content commitment (Merkle root)</li>
+          <li>Public aggregator reads — no wallet, no gate</li>
+          <li>Storage object owned by you: renew or delete</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="mcp">
+  <div class="wrap">
+    <span class="kicker">For agents</span>
+    <h2>Your agents write. You browse.</h2>
+    <div class="mcp">
+      <div>
+        <p style="color: var(--ink-muted); font-size: 16px;">WalDrive ships an <b style="color: var(--ink)">MCP server</b> — the agent write-path. AI clients and scripts store artifacts and memory to the same Walrus data you manage in the console: <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13.5px; background: var(--surface-2); padding: 2px 7px; border-radius: 6px;">upload_file</code> <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13.5px; background: var(--surface-2); padding: 2px 7px; border-radius: 6px;">list_files</code> <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13.5px; background: var(--surface-2); padding: 2px 7px; border-radius: 6px;">download_file</code> <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13.5px; background: var(--surface-2); padding: 2px 7px; border-radius: 6px;">get_file_info</code></p>
+        <p style="color: var(--ink-subtle); font-size: 14px; margin-top: 14px;">Humans get the fluid console; agents get a clean protocol. Same chain, same blobs, same truth.</p>
+      </div>
+      <div class="term">
+        <div><span class="p">›</span> claude "save this report to my drive"</div>
+        <div><span class="c">⏺</span> waldrive · upload_file(report.md)</div>
+        <div>&nbsp;&nbsp;blobId: tBy4Vp…0l4xc</div>
+        <div>&nbsp;&nbsp;FileRecord: 0x48c6…e86f ✓</div>
+        <div><span class="p">›</span> _</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <img src="assets/icon-64.png" alt="" />
+    <span>WalDrive — built for Sui Overflow 2026, Walrus track</span>
+    <span class="spacer"></span>
+    <a href="https://github.com/Fldicoahkiin/WalDrive">GitHub</a>
+  </div>
+</footer>
+
+</body>
+</html>

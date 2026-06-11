@@ -1,7 +1,7 @@
 import { openExternal } from "@/lib/openExternal";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Copy, ExternalLink, FileUp, Loader2, Pencil, Plus, RotateCcw, Share2, ShieldCheck, Trash2, X } from "lucide-react";
+import { Check, ChevronDown, Copy, ExternalLink, FileUp, Loader2, Pencil, Plus, RotateCcw, Share2, ShieldCheck, Trash2, X } from "lucide-react";
 import { AlertDialog, Input, ListBox, Modal, Select } from "@heroui/react";
 import type { BlobFile } from "@waldrive/shared";
 import { Button } from "@/components/ui/Button";
@@ -10,13 +10,14 @@ import { useRename } from "@/hooks/useRename";
 import { useDelete } from "@/hooks/useDelete";
 import { useTags } from "@/hooks/useTags";
 import { useVersion } from "@/hooks/useVersion";
+import { useVersionHistory, type FileVersion } from "@/hooks/useVersionHistory";
 import { useFolders } from "@/hooks/useFolders";
 import { useFolder } from "@/hooks/useFolder";
 import { useSettings } from "@/stores/settingsStore";
 import { getWalrusEpoch, EPOCH_DAYS } from "@/lib/walrusSdk";
 import { blobUrl, explorerUrl } from "@/lib/constants";
 import { formatBytes } from "@/lib/utils";
-import { fileKind } from "@/lib/fileKind";
+import { fileKind, relativeTime } from "@/lib/fileKind";
 
 function DeleteDialog({
   triggerLabel,
@@ -172,6 +173,54 @@ function MoveBar({ file }: { file: BlobFile }) {
     </Select>
     {error && <span className="max-w-44 truncate text-[11px] text-danger" title={error}>{error}</span>}
     </div>
+  );
+}
+
+function VersionHistory({ file, onClose }: { file: BlobFile; onClose: () => void }) {
+  const { data: history, isLoading } = useVersionHistory(file.parentVersionId);
+  const { restoreVersion, status } = useVersion();
+  const [open, setOpen] = useState(false);
+  const restoring = status === "saving_meta";
+
+  if (!file.parentVersionId) return null;
+
+  async function restore(v: FileVersion) {
+    if (await restoreVersion(file.objectId, v)) onClose();
+  }
+
+  return (
+    <section className="mb-4 rounded-lg border border-hairline bg-canvas/50">
+      <button
+        className="flex w-full items-center gap-1.5 px-3 py-2.5 text-xs font-medium text-ink-subtle outline-none transition-colors hover:text-ink"
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+      >
+        <RotateCcw aria-hidden className="size-3.5 text-accent" strokeWidth={1.75} />
+        History
+        {history && <span className="text-ink-tertiary">· {history.length} earlier {history.length === 1 ? "version" : "versions"}</span>}
+        <ChevronDown aria-hidden className={`ms-auto size-3.5 text-ink-tertiary transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="flex flex-col gap-0.5 border-t border-hairline px-2 py-1.5">
+          {isLoading && <span className="px-1 py-1 text-[11px] text-ink-tertiary">Loading history…</span>}
+          {history?.map((v) => (
+            <div key={v.objectId} className="flex items-center gap-2 rounded-md px-1.5 py-1 hover:bg-surface-2">
+              <span className="font-mono text-[11px] text-ink">v{v.version}</span>
+              <span className="text-[11px] text-ink-tertiary">{formatBytes(v.size)} · {relativeTime(v.uploadedAtMs)}</span>
+              <span className="ms-auto flex items-center gap-1">
+                <Button isIconOnly aria-label={`Open v${v.version} raw`} size="sm" variant="ghost" onPress={() => openExternal(blobUrl(v.blobId))}>
+                  <ExternalLink className="size-3" />
+                </Button>
+                <Button isDisabled={restoring} size="sm" variant="ghost" onPress={() => restore(v)}>
+                  {restoring ? <Loader2 className="size-3 animate-spin" /> : <RotateCcw className="size-3" />}
+                  Restore
+                </Button>
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -394,6 +443,7 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
 
                 <Modal.Body className="max-h-[62vh] overflow-auto">
                   <VerifiableStorage file={f} />
+                  <VersionHistory file={f} onClose={onClose} />
                   <PreviewBody file={f} kind={kind} />
                 </Modal.Body>
 

@@ -78,5 +78,46 @@ export function useVersion() {
     [keypair, address, network, publisher, publisherToken, epochs, packageId, uploadMethod, suiClient, queryClient],
   );
 
-  return { uploadVersion, status, error };
+  /**
+   * Roll back by minting a new version that points at an old version's blob —
+   * one transaction, no re-upload (the bytes never left Walrus).
+   */
+  const restoreVersion = useCallback(
+    async (latestObjectId: string, from: { blobId: string; size: number; expiryEpoch: number }) => {
+      if (!keypair || !address || !packageId) {
+        setError("Wallet not ready.");
+        setStatus("failed");
+        return false;
+      }
+      setError(null);
+      try {
+        setStatus("saving_meta");
+        const tx = new Transaction();
+        tx.moveCall({
+          target: `${packageId}::${CONTRACT.FILE_RECORD}::create_version`,
+          arguments: [
+            tx.object(latestObjectId),
+            tx.pure.string(from.blobId),
+            tx.pure.u64(BigInt(from.size)),
+            tx.pure.u64(BigInt(from.expiryEpoch)),
+            tx.object(SUI_CLOCK_ID),
+          ],
+        });
+        const { digest } = await suiClient.signAndExecuteTransaction({ signer: keypair, transaction: tx });
+        await suiClient.waitForTransaction({ digest });
+        setStatus("done");
+        await queryClient.invalidateQueries({ queryKey: ["files", address] });
+        await queryClient.invalidateQueries({ queryKey: ["version-history"] });
+        setTimeout(() => setStatus("idle"), 1200);
+        return true;
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Restore failed.");
+        setStatus("failed");
+        return false;
+      }
+    },
+    [keypair, address, packageId, suiClient, queryClient],
+  );
+
+  return { uploadVersion, restoreVersion, status, error };
 }

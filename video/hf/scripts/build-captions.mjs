@@ -13,20 +13,8 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const N = join(root, "assets", "narration");
 
 // Whisper transcribes the synthesized speech accurately but can't spell brand
-// names. Fix per-word tokens (case-insensitive, punctuation-preserving).
-const WORD_FIX = new Map([
-  ["while", "WalDrive"], // "While drive" → "WalDrive" (handled with next-word skip)
-  ["oneclick", "One click"],
-  ["refetches", "re-fetches"],
-  ["sui", "Sui"],
-  ["walrus", "Walrus"],
-  ["walrus.", "Walrus."],
-  ["walrus,", "Walrus,"],
-  ["ai", "AI"],
-]);
-
-// Phrase-level replacements applied to the final grouped string (catches
-// multi-token mishears the per-word map can't, plus brand-name spelling).
+// names. Phrase-level replacements applied to the final grouped string (catches
+// multi-token mishears, plus brand-name spelling).
 const PHRASE_FIX = [
   [/\bWhile drive\b/gi, "WalDrive"],
   [/\bWhiledrive\b/gi, "WalDrive"],
@@ -71,7 +59,7 @@ function fixGroupText(s) {
   let out = s;
   for (const [re, rep] of PHRASE_FIX) out = out.replace(re, rep);
   // Capitalize first letter of each group for readability.
-  out = out.replace(/^([a-z])/, (m, c) => c.toUpperCase());
+  out = out.replace(/^([a-z])/, (_, c) => c.toUpperCase());
   return out;
 }
 

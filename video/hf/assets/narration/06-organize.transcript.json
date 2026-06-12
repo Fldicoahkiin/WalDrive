@@ -1,132 +1,112 @@
 [
   {
-    "text": "and",
-    "start": 0.07,
-    "end": 0.19
+    "text": "Organize",
+    "start": 0.04,
+    "end": 0.68
   },
   {
-    "text": "it's",
-    "start": 0.25,
-    "end": 0.56
+    "text": "like",
+    "start": 0.74,
+    "end": 1.08
   },
   {
     "text": "a",
-    "start": 0.56,
-    "end": 0.64
+    "start": 1.08,
+    "end": 1.17
   },
   {
     "text": "real",
-    "start": 0.64,
-    "end": 0.95
+    "start": 1.17,
+    "end": 1.52
   },
   {
     "text": "drive.",
-    "start": 0.95,
-    "end": 1.4
+    "start": 1.52,
+    "end": 2
   },
   {
-    "text": "Tag",
-    "start": 1.47,
-    "end": 1.59
+    "text": "Folders,",
+    "start": 2.04,
+    "end": 2.5
   },
   {
-    "text": "a",
-    "start": 1.65,
-    "end": 1.67
+    "text": "tags,",
+    "start": 2.5,
+    "end": 2.85
   },
   {
-    "text": "file,",
-    "start": 1.69,
-    "end": 2.11
-  },
-  {
-    "text": "file",
-    "start": 2.12,
-    "end": 2.36
-  },
-  {
-    "text": "it",
-    "start": 2.36,
-    "end": 2.48
-  },
-  {
-    "text": "into",
-    "start": 2.48,
-    "end": 2.56
-  },
-  {
-    "text": "folders,",
-    "start": 2.83,
-    "end": 3.28
-  },
-  {
-    "text": "search",
-    "start": 3.35,
-    "end": 3.58
-  },
-  {
-    "text": "across",
-    "start": 3.58,
-    "end": 3.88
-  },
-  {
-    "text": "everything,",
-    "start": 3.88,
-    "end": 4.43
-  },
-  {
-    "text": "browse",
-    "start": 4.71,
-    "end": 4.96
-  },
-  {
-    "text": "right",
-    "start": 5.07,
-    "end": 5.37
-  },
-  {
-    "text": "in.",
-    "start": 5.52,
-    "end": 5.79
+    "text": "search.",
+    "start": 2.85,
+    "end": 3.4
   },
   {
     "text": "Every",
-    "start": 5.87,
-    "end": 6.14
+    "start": 3.44,
+    "end": 3.72
   },
   {
-    "text": "action",
-    "start": 6.14,
-    "end": 6.52
-  },
-  {
-    "text": "you",
-    "start": 6.58,
-    "end": 6.75
-  },
-  {
-    "text": "take",
-    "start": 6.75,
-    "end": 6.95
+    "text": "change",
+    "start": 3.72,
+    "end": 4.08
   },
   {
     "text": "is",
-    "start": 6.95,
-    "end": 7.23
+    "start": 4.14,
+    "end": 4.22
   },
   {
-    "text": "recorded",
-    "start": 7.23,
-    "end": 7.69
+    "text": "a",
+    "start": 4.22,
+    "end": 4.28
   },
   {
-    "text": "on",
-    "start": 7.69,
-    "end": 7.82
+    "text": "transaction",
+    "start": 4.28,
+    "end": 4.98
+  },
+  {
+    "text": "you",
+    "start": 4.98,
+    "end": 5.03
+  },
+  {
+    "text": "own,",
+    "start": 5.03,
+    "end": 5.44
+  },
+  {
+    "text": "and",
+    "start": 5.44,
+    "end": 5.56
+  },
+  {
+    "text": "the",
+    "start": 5.62,
+    "end": 5.74
+  },
+  {
+    "text": "sidebar",
+    "start": 5.74,
+    "end": 6.08
+  },
+  {
+    "text": "reads",
+    "start": 6.14,
+    "end": 6.42
+  },
+  {
+    "text": "straight",
+    "start": 6.42,
+    "end": 6.88
+  },
+  {
+    "text": "from",
+    "start": 6.88,
+    "end": 7.03
   },
   {
     "text": "chain.",
-    "start": 7.82,
-    "end": 8.4
+    "start": 7.14,
+    "end": 7.6
   }
 ]

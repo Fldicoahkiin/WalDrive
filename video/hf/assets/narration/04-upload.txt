@@ -1,1 +1,1 @@
-Drag a file in. The bytes go straight to Walrus, the metadata onto Sui. There's no backend in between. And the file appears the moment it's stored.
+Now drag files in — plural. A photo, notes, a log. Each one streams to the Walrus network, lands as an object on Sui, and appears the moment it confirms. No backend anywhere.

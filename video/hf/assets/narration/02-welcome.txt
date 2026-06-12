@@ -1,1 +1,1 @@
-Open WalDrive and generate a local wallet. It signs every transaction in process. No browser extension, no popup.
+Setup is one click. WalDrive generates a key on your machine — it signs everything in-process. No extension, no popups.

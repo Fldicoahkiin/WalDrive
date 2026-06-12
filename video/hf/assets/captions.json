@@ -48,162 +48,253 @@
   ],
   "02-welcome": [
     {
-      "text": "Open WalDrive and generate a",
-      "start": 0.04,
-      "end": 1.75
+      "text": "Setup is one click.",
+      "start": 0.14,
+      "end": 1.54
     },
     {
-      "text": "Local wallet.",
-      "start": 1.75,
-      "end": 2.8
+      "text": "WalDrive generates a key on",
+      "start": 1.54,
+      "end": 2.9
     },
     {
-      "text": "It signs every transaction and process.",
-      "start": 2.84,
-      "end": 5.44
+      "text": "Your machine, it signs everything in",
+      "start": 2.9,
+      "end": 4.68
     },
     {
-      "text": "No browser extension, no pop-up.",
-      "start": 5.5,
+      "text": "Process. No extension, no pop-ups.",
+      "start": 4.69,
       "end": 7.84
     }
   ],
   "03-fund": [
     {
-      "text": "A brand new wallet just needs",
+      "text": "A fresh wallet needs a little",
       "start": 0.04,
       "end": 1.78
     },
     {
-      "text": "A little gas.",
+      "text": "Free testnet gas, one press, and",
       "start": 1.78,
-      "end": 2.61
+      "end": 3.84
     },
     {
-      "text": "One click grabs free testnet Sui and",
-      "start": 2.61,
-      "end": 5.17
+      "text": "If the faucet is rate limited",
+      "start": 3.84,
+      "end": 5.27
     },
     {
-      "text": "You're ready to go.",
-      "start": 5.17,
-      "end": 6.01
+      "text": "The web faucet is one click",
+      "start": 5.35,
+      "end": 6.73
+    },
+    {
+      "text": "Away.",
+      "start": 6.73,
+      "end": 7.24
     }
   ],
   "04-upload": [
     {
-      "text": "Drag a file in, the bytes",
-      "start": 0.05,
-      "end": 1.41
+      "text": "Now drag files in — plural.",
+      "start": 0.06,
+      "end": 1.8
     },
     {
-      "text": "Go straight to Walrus, the metadata",
-      "start": 1.49,
-      "end": 3.36
+      "text": "A photo, notes, a log.",
+      "start": 1.82,
+      "end": 3.32
     },
     {
-      "text": "Onto Sui, there's no backend in",
-      "start": 3.36,
-      "end": 5.27
+      "text": "Each one streams to the Walrus",
+      "start": 3.41,
+      "end": 4.71
     },
     {
-      "text": "Between, and the file appears the",
-      "start": 5.27,
-      "end": 6.89
+      "text": "Network, lands as an object on",
+      "start": 4.71,
+      "end": 6.25
     },
     {
-      "text": "Moment it's stored.",
-      "start": 6.89,
-      "end": 8
+      "text": "Sui, and appears the moment it",
+      "start": 6.25,
+      "end": 7.73
+    },
+    {
+      "text": "Confirms. No backend anywhere.",
+      "start": 7.73,
+      "end": 10.64
     }
   ],
   "05-verify": [
     {
-      "text": "Here's the part that matters.",
-      "start": 0.09,
-      "end": 1.36
+      "text": "Notes render straight from the aggregator",
+      "start": 0.04,
+      "end": 2
     },
     {
-      "text": "Every file is content addressed.",
-      "start": 1.45,
-      "end": 3.28
+      "text": "With the real expiry epoch on",
+      "start": 2,
+      "end": 3.83
     },
     {
-      "text": "Hit verify and WalDrive re-fetches",
-      "start": 3.37,
-      "end": 5.32
+      "text": "Display. Hit Verify the bytes are",
+      "start": 3.83,
+      "end": 5.99
     },
     {
-      "text": "The bytes straight from Walrus and",
-      "start": 5.32,
-      "end": 6.92
+      "text": "Re-fetched and hashed on screen.",
+      "start": 5.99,
+      "end": 7.66
     },
     {
-      "text": "Hashes them right on screen.",
-      "start": 6.92,
-      "end": 8.66
+      "text": "Don't trust us.",
+      "start": 7.76,
+      "end": 8.71
     },
     {
-      "text": "That's real tamper-evident storage, not a",
-      "start": 8.75,
-      "end": 11.01
-    },
-    {
-      "text": "Fake ID, not a promise.",
-      "start": 11.08,
-      "end": 12.72
+      "text": "Check.",
+      "start": 8.76,
+      "end": 9.14
     }
   ],
   "06-organize": [
     {
-      "text": "And it's a real drive.",
-      "start": 0.07,
-      "end": 1.4
+      "text": "Organize like a real drive.",
+      "start": 0.04,
+      "end": 2
     },
     {
-      "text": "Tag a file, file it into",
-      "start": 1.47,
-      "end": 2.56
-    },
-    {
-      "text": "Folders, search across everything, browse right",
-      "start": 2.83,
-      "end": 5.37
-    },
-    {
-      "text": "In. Every action you take is",
-      "start": 5.52,
-      "end": 7.23
-    },
-    {
-      "text": "Recorded on chain.",
-      "start": 7.23,
-      "end": 8.4
-    }
-  ],
-  "07-restore": [
-    {
-      "text": "And because the truth lives on",
-      "start": 0.05,
-      "end": 1.58
-    },
-    {
-      "text": "Sui and Walrus not inside this",
-      "start": 1.58,
+      "text": "Folders, tags, search.",
+      "start": 2.04,
       "end": 3.4
     },
     {
-      "text": "App, import your key on any",
-      "start": 3.4,
-      "end": 5.01
+      "text": "Every change is a transaction you",
+      "start": 3.44,
+      "end": 5.03
     },
     {
-      "text": "Machine, and everything is instantly back.",
+      "text": "Own, and the sidebar reads straight",
       "start": 5.03,
-      "end": 7.36
+      "end": 6.88
+    },
+    {
+      "text": "From chain.",
+      "start": 6.88,
+      "end": 7.6
     }
   ],
-  "08-conclusion": [
+  "07-versions": [
+    {
+      "text": "Files have history here.",
+      "start": 0.11,
+      "end": 1.4
+    },
+    {
+      "text": "Ship a new revision.",
+      "start": 1.51,
+      "end": 2.4
+    },
+    {
+      "text": "The old one never leaves the",
+      "start": 2.51,
+      "end": 3.99
+    },
+    {
+      "text": "Chain. Open History.",
+      "start": 4.06,
+      "end": 5.52
+    },
+    {
+      "text": "Hit Restore.",
+      "start": 5.63,
+      "end": 6.4
+    },
+    {
+      "text": "One transaction.",
+      "start": 6.51,
+      "end": 7.36
+    },
+    {
+      "text": "No re-upload, and you're back.",
+      "start": 7.47,
+      "end": 10
+    }
+  ],
+  "08-storage": [
+    {
+      "text": "These are your storage receipts, actual",
+      "start": 0.08,
+      "end": 1.94
+    },
+    {
+      "text": "Walrus Blob objects in your wallet.",
+      "start": 1.94,
+      "end": 4.24
+    },
+    {
+      "text": "Extend one's life right from Settings.",
+      "start": 4.32,
+      "end": 6.34
+    },
+    {
+      "text": "Renew or delete. Your call, your",
+      "start": 6.42,
+      "end": 8.23
+    },
+    {
+      "text": "Keys.",
+      "start": 8.23,
+      "end": 8.74
+    }
+  ],
+  "09-accounts": [
+    {
+      "text": "Because everything lives on chain, your",
+      "start": 0.05,
+      "end": 2.07
+    },
+    {
+      "text": "Drive follows your key.",
+      "start": 2.15,
+      "end": 3.68
+    },
+    {
+      "text": "Import it on any machine and",
+      "start": 3.73,
+      "end": 5.21
+    },
+    {
+      "text": "The whole thing comes back.",
+      "start": 5.21,
+      "end": 6.67
+    }
+  ],
+  "10-mcp": [
+    {
+      "text": "And it's not just for humans.",
+      "start": 0.05,
+      "end": 1.8
+    },
+    {
+      "text": "WalDrive ships an MCP server,",
+      "start": 1.85,
+      "end": 4.02
+    },
+    {
+      "text": "Your agents and scripts operate the",
+      "start": 4.07,
+      "end": 5.88
+    },
+    {
+      "text": "Same drive with the same keys.",
+      "start": 5.88,
+      "end": 7.72
+    }
+  ],
+  "11-conclusion": [
     {
       "text": "WalDrive, the file management and",
       "start": 0.04,

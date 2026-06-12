@@ -1,0 +1,1 @@
+Files have history here. Ship a new revision — the old one never leaves the chain. Open History, hit Restore: one transaction, no re-upload, and you're back.

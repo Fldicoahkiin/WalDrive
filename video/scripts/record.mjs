@@ -98,17 +98,19 @@ class Director {
     await this.click(selector);
     for (const ch of text) { await this.page.keyboard.type(ch); await sleep(perChar); }
   }
-  /** Drop a file onto the upload zone with a real drag-over (dragging UI shows). */
-  async dropFile(name, mime, bytesBase64) {
-    const zone = this.page.locator('input[type="file"]').locator("xpath=..");
+  /** Drop files onto the upload zone with a real drag-over (dragging UI shows). */
+  async dropFiles(files) {
+    const zone = this.page.locator('input[type="file"]').first().locator("xpath=..");
     const box = await zone.boundingBox();
     await this.glideTo(box.x + box.width / 2, box.y - 120, 500);
-    const dt = await this.page.evaluateHandle(async ({ name, mime, b64 }) => {
-      const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const dt = await this.page.evaluateHandle(async (specs) => {
       const dt = new DataTransfer();
-      dt.items.add(new File([bytes], name, { type: mime }));
+      for (const { name, mime, b64 } of specs) {
+        const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+        dt.items.add(new File([bytes], name, { type: mime }));
+      }
       return dt;
-    }, { name, mime, b64: bytesBase64 });
+    }, files);
     await zone.dispatchEvent("dragover", { dataTransfer: dt });
     await this.glideTo(box.x + box.width / 2, box.y + box.height / 2, 700);
     await sleep(350);
@@ -150,7 +152,7 @@ const scenes = {
     const coin = JSON.parse(execFileSync("sui", ["client", "gas", "--json"]).toString())[0].gasCoinId;
     execFileSync(
       "sui",
-      ["client", "transfer-sui", "--to", addr, "--sui-coin-object-id", coin, "--amount", "300000000", "--gas-budget", "10000000"],
+      ["client", "transfer-sui", "--to", addr, "--sui-coin-object-id", coin, "--amount", "100000000", "--gas-budget", "10000000"],
       { stdio: "ignore" },
     );
     await page.reload();
@@ -162,24 +164,35 @@ const scenes = {
   },
 
   /** Drag a real photo in → progress → card appears live. */
-  async "03-first-upload"(d, page) {
+  async "03-multi-upload"(d, page) {
     await page.waitForSelector("text=Drag a file here");
     await sleep(800);
-    await d.dropFile("trip-photo.png", "image/png", fileB64("public/01-grid.png"));
-    await page.waitForSelector("text=Uploading to Walrus", { timeout: 15000 }).catch(() => {});
+    const md = btoa(unescape(encodeURIComponent(
+      "# Field Notes\n\nShot list for the trip:\n\n- harbor at dawn\n- the old lighthouse\n- **walrus colony** at the point\n\n`gear: 24-70mm`"
+    )));
+    const json = btoa('{"trip":"north-coast","day":3,"keepers":12,"weather":"fog"}');
+    await d.dropFiles([
+      { name: "trip-photo.png", mime: "image/png", b64: fileB64("public/01-grid.png") },
+      { name: "field-notes.md", mime: "text/markdown", b64: md },
+      { name: "shoot-log.json", mime: "application/json", b64: json },
+    ]);
+    // batch progress "1 of 3 — Uploading…" plays on camera
     await page.waitForSelector('[aria-label="Open trip-photo.png"]', { timeout: 90000 });
-    await sleep(500);
-    await d.glide('[aria-label="Open trip-photo.png"]', 600);
-    await sleep(1400);
+    await page.waitForSelector('[aria-label="Open field-notes.md"]', { timeout: 90000 });
+    await page.waitForSelector('[aria-label="Open shoot-log.json"]', { timeout: 90000 });
+    await sleep(600);
+    await d.glide('[aria-label="Open field-notes.md"]', 600);
+    await sleep(1200);
   },
 
-  /** Open the file → image preview → Verify (live SHA-256 against Walrus). */
+  /** Open the markdown → rendered preview + real expiry → Verify (live SHA-256). */
   async "04-verify"(d, page) {
-    await page.waitForSelector('[aria-label="Open trip-photo.png"]');
+    await page.waitForSelector('[aria-label="Open field-notes.md"]');
     await sleep(600);
-    await d.click('[aria-label="Open trip-photo.png"]');
+    await d.click('[aria-label="Open field-notes.md"]');
     await page.waitForSelector("text=Verifiable storage");
-    await sleep(1200);
+    await page.waitForSelector(".prose-preview h1", { timeout: 20000 }).catch(() => {});
+    await sleep(1600); // rendered markdown + "epoch N · ≈Xd left" on camera
     await d.click('button:has-text("Verify")');
     await page.waitForSelector("text=Retrieved", { timeout: 30000 });
     await sleep(2400);
@@ -195,17 +208,17 @@ const scenes = {
     await page.waitForSelector('[aria-label^="Open "]', { timeout: 20000 });
     const file = await page.evaluate(() => {
       const labels = [...document.querySelectorAll('[aria-label^="Open "]')].map((b) => b.getAttribute("aria-label"));
-      return labels.find((l) => l.includes("trip-photo")) ?? labels[0];
+      return labels.find((l) => l.includes("shoot-log")) ?? labels[0];
     });
     // 1) make the folder first (breadcrumb bar, no modal in the way)
     await d.click('button:has-text("New folder")');
     const folderInput = page.locator('[aria-label="Folder name"]');
     await folderInput.waitFor({ state: "visible" });
     await sleep(300);
-    await folderInput.pressSequentially("Photos", { delay: 90 });
+    await folderInput.pressSequentially("Albums", { delay: 90 });
     await sleep(400);
     await folderInput.press("Enter");
-    await page.waitForSelector('button:has-text("Photos")', { timeout: 30000 });
+    await page.waitForSelector('button:has-text("Albums")', { timeout: 30000 });
     await sleep(1100);
     // 2) open the file, tag it
     await d.click(`[aria-label="${file}"]`);
@@ -215,41 +228,114 @@ const scenes = {
     const tagInput = page.locator('[aria-label="New tag"]');
     await tagInput.waitFor({ state: "visible" });
     await sleep(300);
-    await tagInput.pressSequentially("travel", { delay: 90 });
+    await tagInput.pressSequentially("logs", { delay: 90 });
     await sleep(400);
     await tagInput.press("Enter");
-    await page.waitForSelector('[role="dialog"] span:has-text("travel")', { timeout: 25000 }).catch(() => {});
+    await page.waitForSelector('[role="dialog"] span:has-text("logs")', { timeout: 25000 }).catch(() => {});
     await sleep(1300);
     // 3) move it into Photos via the Move select (the select fires the move tx;
     //    the modal stays open, so close it ourselves and let the list refetch)
-    await d.click('[aria-label="Move to folder"]');
-    await page.waitForSelector('[role="option"]:has-text("Photos")', { timeout: 8000 });
+    await d.click('[aria-label="Move to folder"]', { force: true });
+    await page.waitForSelector('[role="option"]:has-text("Albums")', { timeout: 8000 });
     await sleep(300);
-    await d.click('[role="option"]:has-text("Photos")');
+    await d.click('[role="option"]:has-text("Albums")', { force: true });
     await sleep(1900); // move tx in flight
     await d.closeModal(); // HeroUI modal ignores Escape — click Close
     await sleep(1000);
     // 4) browse into the folder via the breadcrumb tile
-    await d.click('button:has-text("Photos")', { force: true });
+    await d.click('button:has-text("Albums")', { force: true });
     await page.waitForSelector('[aria-label^="Open "]', { timeout: 20000 }).catch(() => {});
     await sleep(1600);
   },
 
-  /** Import the long-lived wallet: files appear instantly — restore story. */
-  async "06-restore"(d, page) {
-    if (!RESTORE_KEY) throw new Error("no restore key in ../.env.local backup");
-    await d.click('button:has-text("Settings")');
-    await page.waitForSelector("text=Wallet");
+  /** Upload a new version of the markdown, open History, restore v1 — one tx. */
+  async "06-versions"(d, page) {
+    // back to All Files (we may be inside the Photos folder from 05)
+    await d.click('[role="option"]:has-text("All Files")', { force: true }).catch(() => {});
     await sleep(800);
-    await d.click('button:has-text("Import")');
+    await page.waitForSelector('[aria-label="Open field-notes.md"]', { timeout: 20000 });
+    await d.click('[aria-label="Open field-notes.md"]');
+    await page.waitForSelector("text=Verifiable storage");
+    await sleep(700);
+    // hover the new-version button for the camera, then feed its hidden input
+    await d.glide('[aria-label="Upload new version"]', 600);
+    await sleep(400);
+    const md2 = btoa(unescape(encodeURIComponent("# Field Notes (rev 2)\n\nTrimmed the shot list to keepers only.")));
+    await page.evaluate((b64) => {
+      const input = document.querySelector('[role="dialog"] input[type="file"]');
+      const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+      const dt = new DataTransfer();
+      dt.items.add(new File([bytes], "field-notes.md", { type: "text/markdown" }));
+      input.files = dt.files;
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    }, md2);
+    await sleep(12000); // version uploads + create_version tx land
+    await d.closeModal();
+    // reopen — now v2 with history
+    await page.waitForSelector('[aria-label="Open field-notes.md"]', { timeout: 30000 });
+    await sleep(900);
+    await d.click('[aria-label="Open field-notes.md"]');
+    await page.waitForSelector("text=History", { timeout: 30000 });
+    await sleep(700);
+    await d.click('button:has-text("History")');
+    await page.waitForSelector('button:has-text("Restore")', { timeout: 20000 });
+    await sleep(1400); // history rows on camera
+    await d.click('button:has-text("Restore")');
+    // restore closes the modal once the tx lands
+    await page
+      .locator('[data-slot="modal-backdrop"]')
+      .waitFor({ state: "detached", timeout: 30000 })
+      .catch(() => {});
+    await sleep(1000);
+    // reopen to show the v3 badge + rolled-back content
+    await d.click('[aria-label="Open field-notes.md"]');
+    await page.waitForSelector("text=· 2 earlier versions", { timeout: 30000 }).catch(() => {});
+    await sleep(2000);
+    await d.closeModal();
+    await sleep(400);
+  },
+
+  /** Settings → Storage objects: the wallet's Blob receipts; extend one on-chain. */
+  async "07-storage"(d, page) {
+    await d.click('button:has-text("Settings")');
+    await page.waitForSelector("text=Storage objects");
+    await sleep(600);
+    // scroll the panel into view inside the modal body
+    await page.evaluate(() => {
+      const el = [...document.querySelectorAll('[role="dialog"] span')].find((s) => s.textContent === "Storage objects");
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    await page.waitForSelector("text=expires epoch", { timeout: 30000 });
+    await sleep(1500); // blob list on camera
+    await d.click('button:has-text("epochs")');
+    await sleep(9000); // extend tx + refetch — the epoch bumps on camera
+    await sleep(1600);
+    await d.closeModal();
+    await sleep(400);
+  },
+
+  /** Account switcher: the wallet menu, then import the long-lived account —
+   *  the whole tree swaps in. Restore story. */
+  async "08-accounts"(d, page) {
+    if (!RESTORE_KEY) throw new Error("no restore key in ../.env.local backup");
+    await d.click('[aria-label="Switch account"]');
+    await page.waitForSelector('[role="menu"]');
+    await sleep(1600); // menu with identicon dots on camera
+    await d.click('[role="menuitem"]:has-text("Add account")');
+    await page.waitForSelector("text=Wallet", { timeout: 15000 });
+    await sleep(600);
+    await d.click('[role="dialog"] button:has-text("Add account")');
+    await page.waitForSelector('[aria-label="Account name"]', { timeout: 15000 });
+    await sleep(400);
+    await page.locator('[aria-label="Account name"]').pressSequentially("Main", { delay: 90 });
     await d.click('[aria-label="Private key"]');
     await page.locator('[aria-label="Private key"]').fill(RESTORE_KEY);
-    await sleep(500);
-    await d.click('button:has-text("Import"):not(:has-text("an existing"))');
+    await sleep(600);
+    await d.click('button:has-text("Import account")');
     await sleep(1400);
     await d.closeModal();
     await page.waitForSelector('[aria-label^="Open "]', { timeout: 30000 });
-    await sleep(2500);
+    await sleep(2600); // the old account's whole drive slides in
   },
 };
 

@@ -2,25 +2,28 @@
 
 The submission video, built with [HyperFrames](https://hyperframes.heygen.com).
 HTML is the source of truth: `index.html` is the whole composition (one root
-timeline). Six real screen recordings are embedded as seekable `<video>` clips,
+timeline). Eight real screen recordings are embedded as seekable `<video>` clips,
 narrated by local TTS, with a lower-third caption track and a quiet music bed.
 
-- **Output:** `../out/waldrive-demo.mp4` — 3840×2160 (authored 1080p, rendered at 2× DPR), 30fps, H.264 + AAC, ~2:23.
+- **Output:** `../out/waldrive-demo.mp4` — 3840×2160 (authored 1080p, rendered at 2× DPR), 30fps, H.264 + AAC, ~3:54.
 - **Aesthetic:** dark Linear (`#010102` canvas, `#5e6ad2` accent), `DESIGN.md` palette.
 
 ## Sections & timing
 
-| Time          | Section            | Source                                            |
-| ------------- | ------------------ | ------------------------------------------------- |
-| 0:00–0:05     | Title card         | animated wordmark + track badge                   |
-| 0:05–0:27     | Problem            | text scene (where does agent data live?)          |
-| 0:27–0:37     | 01 Generate wallet | `assets/clips/01-welcome.mp4`                      |
-| 0:37–0:46     | 02 Fund with gas   | `assets/clips/02-fund.mp4`                         |
-| 0:46–1:03     | 03 Drag-to-upload  | `assets/clips/03-first-upload.mp4`                |
-| 1:03–1:18     | 04 **Verify**      | `assets/clips/04-verify.mp4` (slow zoom on proof) |
-| 1:18–1:52     | 05 Organize        | `assets/clips/05-organize.mp4`                    |
-| 1:52–2:05     | 06 Restore         | `assets/clips/06-restore.mp4`                     |
-| 2:05–2:23     | Conclusion         | text scene + vision                               |
+| Time          | Section             | Source                                            |
+| ------------- | ------------------- | ------------------------------------------------- |
+| 0:00–0:05     | Title card          | animated wordmark + track badge                   |
+| 0:05–0:27     | Problem             | text scene (where does agent data live?)          |
+| 0:27–0:43     | 01 Generate wallet  | `assets/clips/01-welcome.mp4`                      |
+| 0:43–1:01     | 02 Free testnet gas | `assets/clips/02-fund.mp4`                         |
+| 1:01–1:33     | 03 Multi-upload     | `assets/clips/03-multi-upload.mp4`                |
+| 1:33–1:46     | 04 **Verify**       | `assets/clips/04-verify.mp4` (slow zoom on proof) |
+| 1:46–2:11     | 05 Organize         | `assets/clips/05-organize.mp4`                    |
+| 2:11–2:53     | 06 Versions         | `assets/clips/06-versions.mp4`                    |
+| 2:53–3:10     | 07 Storage          | `assets/clips/07-storage.mp4`                     |
+| 3:10–3:25     | 08 Accounts         | `assets/clips/08-accounts.mp4`                    |
+| 3:25–3:36     | MCP                 | text scene (the agent write-path)                 |
+| 3:36–3:54     | Conclusion          | text scene + vision                               |
 
 Scenes crossfade (0.6s, ease-out). Clips alternate `data-track-index` 2/3 so
 each crossfade has both frames live; text scenes are GSAP-gated DOM.
@@ -61,7 +64,7 @@ Studio URL it prints.
 Always re-check before rendering:
 
 ```bash
-npx hyperframes lint        # 0 errors expected (4 benign opacity-overlap warnings)
+npx hyperframes lint        # 0 errors expected (4 benign opacity-overlap warnings + 1 file-size advisory)
 npx hyperframes validate    # WCAG contrast + console errors
 npx hyperframes inspect     # layout overflow
 ```
@@ -104,7 +107,7 @@ hf/
 │   ├── transcribe.sh          # *.wav → *.transcript.json
 │   └── build-captions.mjs     # transcripts → captions.js + assets/captions.json
 └── assets/
-    ├── clips/                 # the six real screen recordings
+    ├── clips/                 # the eight real screen recordings
     ├── narration/             # NN-*.txt scripts, *.wav, *.transcript.json
     ├── music/bed.wav          # quiet ambient bed (generated via ffmpeg, see below)
     └── captions.json          # AUTO-GENERATED (inspection copy of the caption data)

@@ -22,8 +22,21 @@ const PHRASE_FIX = [
   [/\bagent store\b/gi, "agents store"],
   [/\bOneClick\b/g, "One click"],
   [/\brefetches\b/gi, "re-fetches"],
+  [/\brefetched\b/gi, "re-fetched"],
   [/\bbackhand\b/gi, "backend"],
+  [/\bback-end\b/gi, "backend"],
   [/\bSUI\b/g, "Sui"],
+  [/\bwalrus\b/g, "Walrus"],
+  [/\bin process\b/gi, "in-process"],
+  [/\bfiles in plural\b/gi, "files in — plural"],
+  [/\b(h)it verify\b/gi, "$1it Verify"],
+  [/\b(h)it restore\b/gi, "$1it Restore"],
+  [/\b(o)pen history\b/gi, "$1pen History"],
+  [/\bre-upload in your back\b/gi, "re-upload, and you're back"],
+  [/\bdelete your call\b/gi, "delete. Your call"],
+  [/\bsame Drive\b/g, "same drive"],
+  [/\bA photo notes a log\b/gi, "A photo, notes, a log"],
+  [/\bfrom settings\b/g, "from Settings"],
 ];
 
 const MAX_WORDS = 6; // measured/calm narration → longer groups

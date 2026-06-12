@@ -1,0 +1,1 @@
+And it's not just for humans. WalDrive ships an MCP server — your agents and scripts operate the same drive, with the same keys.

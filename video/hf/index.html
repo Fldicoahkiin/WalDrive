@@ -158,8 +158,9 @@
         background: var(--accent);
       }
 
-      /* ---- problem -------------------------------------------------------- */
-      #problem .wrap {
+      /* ---- problem / mcp (same text-scene chrome) -------------------------- */
+      #problem .wrap,
+      #mcp .wrap {
         position: absolute;
         left: 160px;
         top: 150px;
@@ -180,7 +181,8 @@
         height: 3px;
         background: var(--accent);
       }
-      #problem h1 {
+      #problem h1,
+      #mcp h1 {
         font-size: 88px;
         font-weight: 700;
         letter-spacing: -3px;
@@ -188,8 +190,13 @@
         margin-top: 28px;
         max-width: 1500px;
       }
-      #problem h1 .mut {
+      #problem h1 .mut,
+      #mcp h1 .mut {
         color: var(--ink-subtle);
+      }
+      #mcp .pill {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 27px;
       }
       .pills {
         position: absolute;
@@ -364,7 +371,7 @@
       id="root"
       data-composition-id="main"
       data-start="0"
-      data-duration="143"
+      data-duration="234"
       data-width="1920"
       data-height="1080"
     >
@@ -412,49 +419,80 @@
 
       <!-- CLIP 1 · WELCOME -->
       <div id="s-welcome" class="scene clip-scene">
-        <video id="v-welcome" class="clip" src="assets/clips/01-welcome.mp4" data-start="26.8" data-duration="10.2" data-media-start="0.3" data-track-index="2" muted playsinline crossorigin="anonymous"></video>
+        <video id="v-welcome" class="clip" src="assets/clips/01-welcome.mp4" data-start="26.4" data-duration="16.2" data-media-start="0.4" data-track-index="2" muted playsinline crossorigin="anonymous"></video>
         <div class="clip-frame"></div>
         <div class="demo-label" id="l-welcome"><span class="num">01</span><span class="div"></span><span class="txt">Generate a local wallet</span></div>
       </div>
 
       <!-- CLIP 2 · FUND -->
       <div id="s-fund" class="scene clip-scene">
-        <video id="v-fund" class="clip" src="assets/clips/02-fund.mp4" data-start="36.4" data-duration="10.1" data-media-start="0.5" data-track-index="3" muted playsinline crossorigin="anonymous"></video>
+        <video id="v-fund" class="clip" src="assets/clips/02-fund.mp4" data-start="42.0" data-duration="19.0" data-media-start="0.4" data-track-index="3" muted playsinline crossorigin="anonymous"></video>
         <div class="clip-frame"></div>
-        <div class="demo-label" id="l-fund"><span class="num">02</span><span class="div"></span><span class="txt">Fund with free testnet gas</span></div>
+        <div class="demo-label" id="l-fund"><span class="num">02</span><span class="div"></span><span class="txt">Free testnet gas</span></div>
       </div>
 
-      <!-- CLIP 3 · UPLOAD -->
+      <!-- CLIP 3 · MULTI-UPLOAD -->
       <div id="s-upload" class="scene clip-scene">
-        <video id="v-upload" class="clip" src="assets/clips/03-first-upload.mp4" data-start="45.9" data-duration="17.6" data-media-start="0.3" data-track-index="2" muted playsinline crossorigin="anonymous"></video>
+        <video id="v-upload" class="clip" src="assets/clips/03-multi-upload.mp4" data-start="60.4" data-duration="32.6" data-media-start="0.4" data-track-index="2" muted playsinline crossorigin="anonymous"></video>
         <div class="clip-frame"></div>
-        <div class="demo-label" id="l-upload"><span class="num">03</span><span class="div"></span><span class="txt">Drag to upload → Walrus + Sui</span></div>
+        <div class="demo-label" id="l-upload"><span class="num">03</span><span class="div"></span><span class="txt">Drag files in — plural</span></div>
       </div>
 
       <!-- CLIP 4 · VERIFY (slow zoom on the proof) -->
       <div id="s-verify" class="scene clip-scene">
-        <div class="zoomwrap" id="verify-zoom" style="position: absolute; inset: 0; transform-origin: 62% 52%;">
-          <video id="v-verify" class="clip" src="assets/clips/04-verify.mp4" data-start="62.9" data-duration="15.6" data-media-start="0.2" data-track-index="3" muted playsinline crossorigin="anonymous"></video>
+        <div class="zoomwrap" id="verify-zoom" style="position: absolute; inset: 0; transform-origin: 50% 48%;">
+          <video id="v-verify" class="clip" src="assets/clips/04-verify.mp4" data-start="92.4" data-duration="13.6" data-media-start="0.4" data-track-index="3" muted playsinline crossorigin="anonymous"></video>
         </div>
         <div class="clip-frame"></div>
-        <div class="demo-label" id="l-verify"><span class="num">04</span><span class="div"></span><span class="txt">Verify — re-fetch &amp; hash on screen</span></div>
+        <div class="demo-label" id="l-verify"><span class="num">04</span><span class="div"></span><span class="txt">Render, verify, hash on screen</span></div>
       </div>
 
       <!-- CLIP 5 · ORGANIZE -->
       <div id="s-organize" class="scene clip-scene">
-        <video id="v-organize" class="clip" src="assets/clips/05-organize.mp4" data-start="77.9" data-duration="34.6" data-media-start="0.5" data-track-index="2" muted playsinline crossorigin="anonymous"></video>
+        <video id="v-organize" class="clip" src="assets/clips/05-organize.mp4" data-start="105.4" data-duration="25.6" data-media-start="0.4" data-track-index="2" muted playsinline crossorigin="anonymous"></video>
         <div class="clip-frame"></div>
-        <div class="demo-label" id="l-organize"><span class="num">05</span><span class="div"></span><span class="txt">Tag · folder · search — on-chain</span></div>
+        <div class="demo-label" id="l-organize"><span class="num">05</span><span class="div"></span><span class="txt">Folders &amp; tags — on-chain</span></div>
       </div>
 
-      <!-- CLIP 6 · RESTORE -->
-      <div id="s-restore" class="scene clip-scene">
-        <video id="v-restore" class="clip" src="assets/clips/06-restore.mp4" data-start="111.9" data-duration="13.1" data-media-start="0.3" data-track-index="3" muted playsinline crossorigin="anonymous"></video>
+      <!-- CLIP 6 · VERSIONS -->
+      <div id="s-versions" class="scene clip-scene">
+        <video id="v-versions" class="clip" src="assets/clips/06-versions.mp4" data-start="130.4" data-duration="42.4" data-media-start="0.4" data-track-index="3" muted playsinline crossorigin="anonymous"></video>
         <div class="clip-frame"></div>
-        <div class="demo-label" id="l-restore"><span class="num">06</span><span class="div"></span><span class="txt">Import a key — instant restore</span></div>
+        <div class="demo-label" id="l-versions"><span class="num">06</span><span class="div"></span><span class="txt">Version history &amp; rollback</span></div>
       </div>
 
-      <!-- CONCLUSION (125–143) -->
+      <!-- CLIP 7 · STORAGE -->
+      <div id="s-storage" class="scene clip-scene">
+        <video id="v-storage" class="clip" src="assets/clips/07-storage.mp4" data-start="172.2" data-duration="17.8" data-media-start="0.4" data-track-index="2" muted playsinline crossorigin="anonymous"></video>
+        <div class="clip-frame"></div>
+        <div class="demo-label" id="l-storage"><span class="num">07</span><span class="div"></span><span class="txt">Your storage, renewable</span></div>
+      </div>
+
+      <!-- CLIP 8 · ACCOUNTS -->
+      <div id="s-accounts" class="scene clip-scene">
+        <video id="v-accounts" class="clip" src="assets/clips/08-accounts.mp4" data-start="189.4" data-duration="15.8" data-media-start="0.4" data-track-index="3" muted playsinline crossorigin="anonymous"></video>
+        <div class="clip-frame"></div>
+        <div class="demo-label" id="l-accounts"><span class="num">08</span><span class="div"></span><span class="txt">Your key is your drive</span></div>
+      </div>
+
+      <!-- MCP (205–216.6) — the agent write-path, same chrome as the problem scene -->
+      <div id="mcp" class="scene">
+        <div class="grid-bg" id="m-grid"></div>
+        <div class="glow" id="m-glow" style="width: 640px; height: 640px; right: -120px; top: 360px; background: var(--accent);"></div>
+        <div class="ghost" id="m-ghost" style="left: -30px; bottom: 40px; font-size: 280px;">MCP</div>
+        <div class="wrap">
+          <div class="kicker" id="m-kicker"><span class="bar"></span>Not just for humans</div>
+          <h1 id="m-head">Agents get the same drive.<br /><span class="mut">WalDrive ships an MCP server.</span></h1>
+        </div>
+        <div class="pills">
+          <div class="pill" id="m-pill1">upload_file</div>
+          <div class="pill" id="m-pill2">list_files</div>
+          <div class="pill" id="m-pill3">download_file</div>
+          <div class="pill" id="m-pill4">get_file_info</div>
+        </div>
+      </div>
+
+      <!-- CONCLUSION (216–234) -->
       <div id="outro" class="scene">
         <div class="grid-bg" id="o-grid"></div>
         <div class="glow" id="o-glow" style="width: 820px; height: 820px; left: 980px; top: 280px; background: var(--accent);"></div>
@@ -478,16 +516,19 @@
 
       <!-- NARRATION (one timed audio per scene) -->
       <audio id="n-problem"    class="clip" src="assets/narration/01-problem.wav"    data-start="6.2"   data-duration="17.6" data-track-index="10" data-volume="1"></audio>
-      <audio id="n-welcome"    class="clip" src="assets/narration/02-welcome.wav"    data-start="27.8"  data-duration="8.1"  data-track-index="10" data-volume="1"></audio>
-      <audio id="n-fund"       class="clip" src="assets/narration/03-fund.wav"       data-start="38"    data-duration="6.4"  data-track-index="10" data-volume="1"></audio>
-      <audio id="n-upload"     class="clip" src="assets/narration/04-upload.wav"     data-start="47.3"  data-duration="8.6"  data-track-index="10" data-volume="1"></audio>
-      <audio id="n-verify"     class="clip" src="assets/narration/05-verify.wav"     data-start="64.3"  data-duration="13"   data-track-index="10" data-volume="1"></audio>
-      <audio id="n-organize"   class="clip" src="assets/narration/06-organize.wav"   data-start="79.5"  data-duration="8.8"  data-track-index="10" data-volume="1"></audio>
-      <audio id="n-restore"    class="clip" src="assets/narration/07-restore.wav"    data-start="113.3" data-duration="7.9"  data-track-index="10" data-volume="1"></audio>
-      <audio id="n-conclusion" class="clip" src="assets/narration/08-conclusion.wav" data-start="126.5" data-duration="13.1" data-track-index="10" data-volume="1"></audio>
+      <audio id="n-welcome"    class="clip" src="assets/narration/02-welcome.wav"    data-start="27.8"  data-duration="8.0"  data-track-index="10" data-volume="1"></audio>
+      <audio id="n-fund"       class="clip" src="assets/narration/03-fund.wav"       data-start="43.4"  data-duration="7.8"  data-track-index="10" data-volume="1"></audio>
+      <audio id="n-upload"     class="clip" src="assets/narration/04-upload.wav"     data-start="61.8"  data-duration="10.8" data-track-index="10" data-volume="1"></audio>
+      <audio id="n-verify"     class="clip" src="assets/narration/05-verify.wav"     data-start="93.8"  data-duration="9.6"  data-track-index="10" data-volume="1"></audio>
+      <audio id="n-organize"   class="clip" src="assets/narration/06-organize.wav"   data-start="106.8" data-duration="8.0"  data-track-index="10" data-volume="1"></audio>
+      <audio id="n-versions"   class="clip" src="assets/narration/07-versions.wav"   data-start="131.8" data-duration="9.4"  data-track-index="10" data-volume="1"></audio>
+      <audio id="n-storage"    class="clip" src="assets/narration/08-storage.wav"    data-start="173.6" data-duration="9.1"  data-track-index="10" data-volume="1"></audio>
+      <audio id="n-accounts"   class="clip" src="assets/narration/09-accounts.wav"   data-start="190.8" data-duration="7.0"  data-track-index="10" data-volume="1"></audio>
+      <audio id="n-mcp"        class="clip" src="assets/narration/10-mcp.wav"        data-start="206.4" data-duration="8.0"  data-track-index="10" data-volume="1"></audio>
+      <audio id="n-conclusion" class="clip" src="assets/narration/11-conclusion.wav" data-start="217.5" data-duration="13.1" data-track-index="10" data-volume="1"></audio>
 
       <!-- MUSIC BED (quiet, full length) -->
-      <audio id="music" class="clip" src="assets/music/bed.wav" data-start="0" data-duration="143" data-media-start="0" data-track-index="11" data-volume="0.12"></audio>
+      <audio id="music" class="clip" src="assets/music/bed.wav" data-start="0" data-duration="234" data-media-start="0" data-track-index="11" data-volume="0.12"></audio>
     </div>
 
     <script>
@@ -511,16 +552,19 @@
       // title up immediately
       tl.set("#title", { opacity: 1 }, 0);
       // crossfade chain (out of prev starts where next fades in)
-      sceneIn("#problem", 5.0);    sceneOut("#title", 5.0);
-      sceneIn("#s-welcome", 27.0); sceneOut("#problem", 27.0);
-      sceneIn("#s-fund", 37.0);    sceneOut("#s-welcome", 37.0);
-      sceneIn("#s-upload", 46.5);  sceneOut("#s-fund", 46.5);
-      sceneIn("#s-verify", 63.5);  sceneOut("#s-upload", 63.5);
-      sceneIn("#s-organize", 78.5);sceneOut("#s-verify", 78.5);
-      sceneIn("#s-restore", 112.5);sceneOut("#s-organize", 112.5);
-      sceneIn("#outro", 125.0);    sceneOut("#s-restore", 125.0);
+      sceneIn("#problem", 5.0);     sceneOut("#title", 5.0);
+      sceneIn("#s-welcome", 27.0);  sceneOut("#problem", 27.0);
+      sceneIn("#s-fund", 42.6);     sceneOut("#s-welcome", 42.6);
+      sceneIn("#s-upload", 61.0);   sceneOut("#s-fund", 61.0);
+      sceneIn("#s-verify", 93.0);   sceneOut("#s-upload", 93.0);
+      sceneIn("#s-organize", 106.0);sceneOut("#s-verify", 106.0);
+      sceneIn("#s-versions", 131.0);sceneOut("#s-organize", 131.0);
+      sceneIn("#s-storage", 172.8); sceneOut("#s-versions", 172.8);
+      sceneIn("#s-accounts", 190.0);sceneOut("#s-storage", 190.0);
+      sceneIn("#mcp", 205.2);       sceneOut("#s-accounts", 205.2);
+      sceneIn("#outro", 216.0);     sceneOut("#mcp", 216.0);
       // final fade to black
-      sceneOut("#outro", 142.0);
+      sceneOut("#outro", 233.0);
 
       /* ----- TITLE entrances ----- */
       tl.from("#t-eyebrow", { y: 24, opacity: 0, duration: 0.6, ease: "power3.out" }, 0.3);
@@ -549,26 +593,39 @@
         tl.from(sel, { x: -50, opacity: 0, duration: 0.55, ease: "power3.out" }, at);
       }
       labelIn("#l-welcome", 27.6);
-      labelIn("#l-fund", 37.6);
-      labelIn("#l-upload", 47.1);
-      labelIn("#l-verify", 64.1);
-      labelIn("#l-organize", 79.1);
-      labelIn("#l-restore", 113.1);
+      labelIn("#l-fund", 43.2);
+      labelIn("#l-upload", 61.6);
+      labelIn("#l-verify", 93.6);
+      labelIn("#l-organize", 106.6);
+      labelIn("#l-versions", 131.6);
+      labelIn("#l-storage", 173.4);
+      labelIn("#l-accounts", 190.6);
 
       /* ----- VERIFY: slow breathing zoom (the differentiator) ----- */
-      tl.fromTo("#verify-zoom", { scale: 1.0 }, { scale: 1.12, duration: 8, ease: "sine.inOut" }, 64.5);
-      tl.to("#verify-zoom", { scale: 1.04, duration: 4, ease: "sine.inOut" }, 73);
+      tl.fromTo("#verify-zoom", { scale: 1.0 }, { scale: 1.12, duration: 8, ease: "sine.inOut" }, 94.0);
+      tl.to("#verify-zoom", { scale: 1.04, duration: 3.4, ease: "sine.inOut" }, 102.4);
+
+      /* ----- MCP entrances (mirrors the problem scene) ----- */
+      tl.from("#m-kicker", { x: -40, opacity: 0, duration: 0.6, ease: "power3.out" }, 205.8);
+      tl.from("#m-head", { y: 40, opacity: 0, duration: 0.8, ease: "power3.out" }, 206.0);
+      tl.from("#m-pill1", { y: 30, opacity: 0, duration: 0.5, ease: "back.out(1.4)" }, 208.4);
+      tl.from("#m-pill2", { y: 30, opacity: 0, duration: 0.5, ease: "back.out(1.4)" }, 208.6);
+      tl.from("#m-pill3", { y: 30, opacity: 0, duration: 0.5, ease: "back.out(1.4)" }, 208.8);
+      tl.from("#m-pill4", { y: 30, opacity: 0, duration: 0.5, ease: "back.out(1.4)" }, 209.0);
+      tl.from("#m-ghost", { x: -60, opacity: 0, duration: 1.2, ease: "power2.out" }, 205.7);
+      tl.to("#m-glow", { scale: 1.18, duration: 3.4, ease: "sine.inOut", yoyo: true, repeat: 1 }, 205.4);
+      tl.to("#m-grid", { x: 48, duration: 10.8, ease: "none" }, 205.2);
 
       /* ----- CONCLUSION entrances ----- */
-      tl.from("#o-wal", { y: 60, opacity: 0, duration: 0.8, ease: "power4.out" }, 125.5);
-      tl.from("#o-drive", { y: 60, opacity: 0, duration: 0.8, ease: "power4.out" }, 125.65);
-      tl.from("#o-line", { y: 34, opacity: 0, duration: 0.8, ease: "power2.out" }, 126.0);
-      tl.from("#o-p1", { y: 28, opacity: 0, duration: 0.5, ease: "back.out(1.4)" }, 127.5);
-      tl.from("#o-p2", { y: 28, opacity: 0, duration: 0.5, ease: "back.out(1.4)" }, 127.7);
-      tl.from("#o-p3", { y: 28, opacity: 0, duration: 0.5, ease: "back.out(1.4)" }, 127.9);
-      tl.from("#o-repo", { opacity: 0, duration: 0.7, ease: "power2.out" }, 128.3);
-      tl.from("#o-ghost", { x: 60, opacity: 0, duration: 1.2, ease: "power2.out" }, 125.5);
-      tl.to("#o-glow", { scale: 1.16, duration: 3.4, ease: "sine.inOut", yoyo: true, repeat: 1 }, 125.2);
+      tl.from("#o-wal", { y: 60, opacity: 0, duration: 0.8, ease: "power4.out" }, 216.5);
+      tl.from("#o-drive", { y: 60, opacity: 0, duration: 0.8, ease: "power4.out" }, 216.65);
+      tl.from("#o-line", { y: 34, opacity: 0, duration: 0.8, ease: "power2.out" }, 217.0);
+      tl.from("#o-p1", { y: 28, opacity: 0, duration: 0.5, ease: "back.out(1.4)" }, 218.5);
+      tl.from("#o-p2", { y: 28, opacity: 0, duration: 0.5, ease: "back.out(1.4)" }, 218.7);
+      tl.from("#o-p3", { y: 28, opacity: 0, duration: 0.5, ease: "back.out(1.4)" }, 218.9);
+      tl.from("#o-repo", { opacity: 0, duration: 0.7, ease: "power2.out" }, 219.3);
+      tl.from("#o-ghost", { x: 60, opacity: 0, duration: 1.2, ease: "power2.out" }, 216.5);
+      tl.to("#o-glow", { scale: 1.16, duration: 3.4, ease: "sine.inOut", yoyo: true, repeat: 1 }, 216.2);
 
       /* ----- CAPTION TRACK -----
          One <span> group per phrase from window.__captions, each scene's local
@@ -578,12 +635,15 @@
       const SCENE_AT = {
         "01-problem": 6.2,
         "02-welcome": 27.8,
-        "03-fund": 38,
-        "04-upload": 47.3,
-        "05-verify": 64.3,
-        "06-organize": 79.5,
-        "07-restore": 113.3,
-        "08-conclusion": 126.5,
+        "03-fund": 43.4,
+        "04-upload": 61.8,
+        "05-verify": 93.8,
+        "06-organize": 106.8,
+        "07-versions": 131.8,
+        "08-storage": 173.6,
+        "09-accounts": 190.8,
+        "10-mcp": 206.4,
+        "11-conclusion": 217.5,
       };
       const CAPS = window.__captions || {};
       let ci = 0;

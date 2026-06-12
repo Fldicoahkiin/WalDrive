@@ -463,7 +463,7 @@
 
       <!-- CLIP 7 · STORAGE -->
       <div id="s-storage" class="scene clip-scene">
-        <video id="v-storage" class="clip" src="assets/clips/07-storage.mp4" data-start="172.2" data-duration="17.8" data-media-start="0.4" data-track-index="2" muted playsinline crossorigin="anonymous"></video>
+        <video id="v-storage" class="clip" src="assets/clips/07-storage.mp4" data-start="172.2" data-duration="17.8" data-media-start="0.76" data-track-index="2" muted playsinline crossorigin="anonymous"></video>
         <div class="clip-frame"></div>
         <div class="demo-label" id="l-storage"><span class="num">07</span><span class="div"></span><span class="txt">Your storage, renewable</span></div>
       </div>
@@ -629,8 +629,10 @@
 
       /* ----- CAPTION TRACK -----
          One <span> group per phrase from window.__captions, each scene's local
-         timestamps offset by the scene's narration start. One group visible at
-         a time, hard kill at end. */
+         timestamps offset by the scene's narration start. All groups share one
+         visual slot, so each group's 0.35s linger is clamped to the next
+         group's start — Whisper hands off mid-sentence groups with zero gap,
+         and an unclamped linger stacks two captions on top of each other. */
       const capRoot = document.getElementById("captions");
       const SCENE_AT = {
         "01-problem": 6.2,
@@ -646,24 +648,30 @@
         "11-conclusion": 217.5,
       };
       const CAPS = window.__captions || {};
-      let ci = 0;
+      const groups = [];
       Object.keys(SCENE_AT).forEach(function (scene) {
         const base = SCENE_AT[scene];
         (CAPS[scene] || []).forEach(function (g) {
-          const start = +(base + g.start).toFixed(3);
-          const end = +(base + g.end + 0.35).toFixed(3);
-          const wrap = document.createElement("div");
-          wrap.className = "cap";
-          wrap.id = "cap-" + ci;
-          const span = document.createElement("span");
-          span.textContent = g.text;
-          wrap.appendChild(span);
-          capRoot.appendChild(wrap);
-          tl.to(wrap, { opacity: 1, duration: 0.18, ease: "power2.out" }, start);
-          tl.to(wrap, { opacity: 0, duration: 0.16, ease: "power2.in" }, end - 0.16);
-          tl.set(wrap, { opacity: 0 }, end);
-          ci++;
+          groups.push({
+            text: g.text,
+            start: +(base + g.start).toFixed(3),
+            end: +(base + g.end).toFixed(3),
+          });
         });
+      });
+      groups.forEach(function (g, i) {
+        const next = groups[i + 1];
+        const end = next ? Math.min(g.end + 0.35, next.start) : g.end + 0.35;
+        const wrap = document.createElement("div");
+        wrap.className = "cap";
+        wrap.id = "cap-" + i;
+        const span = document.createElement("span");
+        span.textContent = g.text;
+        wrap.appendChild(span);
+        capRoot.appendChild(wrap);
+        tl.to(wrap, { opacity: 1, duration: 0.18, ease: "power2.out" }, g.start);
+        tl.to(wrap, { opacity: 0, duration: 0.16, ease: "power2.in" }, end - 0.16);
+        tl.set(wrap, { opacity: 0 }, end);
       });
 
       window.__timelines["main"] = tl;

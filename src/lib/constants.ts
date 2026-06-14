@@ -2,7 +2,11 @@
 // (@waldrive/shared's constants read process.env for the Node/MCP runtime.)
 
 export const CONTRACT = {
-  PACKAGE_ID: import.meta.env.VITE_CONTRACT_PACKAGE_ID ?? "",
+  // Defaults to the deployed testnet package so web / dev builds work without a
+  // .env; override with VITE_CONTRACT_PACKAGE_ID to point at another deployment.
+  PACKAGE_ID:
+    import.meta.env.VITE_CONTRACT_PACKAGE_ID ??
+    "0x2fc345f205e241e8941cc5228ed6dd76f11e82484b6583c4070bc63eb914b5f6",
   FILE_RECORD: "file_record",
   SHARE_LINK: "share_link",
 } as const;

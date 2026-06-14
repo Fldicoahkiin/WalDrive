@@ -1,1 +1,0 @@
-A fresh wallet needs a little free testnet gas. One press. And if the faucet is rate-limited, the web faucet is one click away.

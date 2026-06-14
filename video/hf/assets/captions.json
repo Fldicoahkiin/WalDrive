@@ -26,23 +26,23 @@
       "end": 9.56
     },
     {
-      "text": "Else? WalDrive is a desktop",
+      "text": "Else? WalDrive is a desktop drive",
       "start": 9.64,
-      "end": 11.4
+      "end": 11.7
     },
     {
-      "text": "Drive for Walrus, your files stored",
-      "start": 11.47,
-      "end": 13.48
+      "text": "For Walrus, your files stored on",
+      "start": 11.77,
+      "end": 13.55
     },
     {
-      "text": "On a decentralized network owned by",
-      "start": 13.48,
-      "end": 15.36
+      "text": "A decentralized network owned by you",
+      "start": 13.6,
+      "end": 15.58
     },
     {
-      "text": "You and verifiable by anyone.",
-      "start": 15.36,
+      "text": "And verifiable by anyone.",
+      "start": 15.69,
       "end": 17.26
     }
   ],
@@ -53,46 +53,36 @@
       "end": 1.54
     },
     {
-      "text": "WalDrive generates a key on",
+      "text": "WalDrive generates a key on your",
       "start": 1.54,
-      "end": 2.9
+      "end": 3.04
     },
     {
-      "text": "Your machine, it signs everything in",
-      "start": 2.9,
-      "end": 4.68
+      "text": "Machine, it signs everything in-process.",
+      "start": 3.04,
+      "end": 5.6
     },
     {
-      "text": "Process. No extension, no pop-ups.",
-      "start": 4.69,
+      "text": "No extension, no pop-ups.",
+      "start": 5.75,
       "end": 7.84
     }
   ],
-  "03-fund": [
+  "03-faucet": [
     {
-      "text": "A fresh wallet needs a little",
+      "text": "A fresh wallet needs gas, WalDrive's",
       "start": 0.04,
-      "end": 1.78
+      "end": 2.58
     },
     {
-      "text": "Free testnet gas, one press, and",
-      "start": 1.78,
-      "end": 3.84
+      "text": "Faucet lands it in one click",
+      "start": 2.67,
+      "end": 3.97
     },
     {
-      "text": "If the faucet is rate limited",
-      "start": 3.84,
-      "end": 5.27
-    },
-    {
-      "text": "The web faucet is one click",
-      "start": 5.35,
-      "end": 6.73
-    },
-    {
-      "text": "Away.",
-      "start": 6.73,
-      "end": 7.24
+      "text": "Instant on devnet captcha-free.",
+      "start": 4.24,
+      "end": 6.1
     }
   ],
   "04-upload": [
@@ -279,35 +269,35 @@
       "end": 1.8
     },
     {
-      "text": "WalDrive ships an MCP server,",
+      "text": "WalDrive ships an MCP server, your",
       "start": 1.85,
-      "end": 4.02
+      "end": 4.19
     },
     {
-      "text": "Your agents and scripts operate the",
-      "start": 4.07,
-      "end": 5.88
+      "text": "Agents and scripts operate the same",
+      "start": 4.31,
+      "end": 6.1
     },
     {
-      "text": "Same drive with the same keys.",
-      "start": 5.88,
+      "text": "Drive with the same keys.",
+      "start": 6.15,
       "end": 7.72
     }
   ],
   "11-conclusion": [
     {
-      "text": "WalDrive, the file management and",
+      "text": "WalDrive, the file management and verifiable",
       "start": 0.04,
-      "end": 1.86
+      "end": 2.51
     },
     {
-      "text": "Verifiable data console for everything your",
-      "start": 1.9,
-      "end": 4.67
+      "text": "Data console for everything your agent",
+      "start": 2.51,
+      "end": 5.04
     },
     {
-      "text": "Agents store on Walrus.",
-      "start": 4.67,
+      "text": "Store on Walrus.",
+      "start": 5.04,
       "end": 6.04
     },
     {

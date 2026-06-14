@@ -132,15 +132,36 @@ const activeAddress = async (page) =>
 // ───────────────────────────── scenes ─────────────────────────────
 
 const scenes = {
-  /** Welcome → generate a wallet → main view appears with the gas banner. */
+  /** Welcome → generate a wallet → main view appears. */
   async "01-welcome"(d, page) {
     await page.waitForSelector("text=Welcome to WalDrive");
     await sleep(1800);
     await d.click('button:has-text("Generate a new wallet")', { ms: 900 });
-    await page.waitForSelector("text=it just needs gas");
-    await sleep(600);
-    await d.glide('button:has-text("Get free test SUI")', 700);
+    await page.waitForSelector('[aria-label="Switch account"]', { timeout: 20000 });
     await sleep(1600);
+  },
+
+  /** In-app faucet: switch to devnet (testnet's auto-faucet is closed) and grab
+   *  gas in one click — the balance jumps 0 → 10 SUI live, banner clears. */
+  async "02-faucet"(d, page) {
+    const addr = await activeAddress(page);
+    if (!addr) throw new Error("no wallet — run 01-welcome first (same profile)");
+    await page.evaluate(() => {
+      const k = "waldrive-settings-v2";
+      const v = JSON.parse(localStorage.getItem(k) || '{"state":{},"version":0}');
+      v.state = v.state || {};
+      v.state.network = "devnet";
+      localStorage.setItem(k, JSON.stringify(v));
+    });
+    await page.reload();
+    await page.waitForSelector('button:has-text("Get free test SUI")', { timeout: 20000 });
+    await sleep(1900); // banner "wallet needs gas" + the one-click button on camera
+    await d.click('button:has-text("Get free test SUI")');
+    await page.waitForFunction(
+      () => /\b[1-9][\d.]*\s*SUI\s*·\s*devnet/.test(document.body.innerText),
+      { timeout: 45000 },
+    );
+    await sleep(3000); // 0 → 10 SUI lands, banner clears
   },
 
   /** Top up off-screen, reload: banner gone, balance live. */

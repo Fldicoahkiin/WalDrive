@@ -19,6 +19,11 @@ const PHRASE_FIX = [
   [/\bWhile drive\b/gi, "WalDrive"],
   [/\bWhiledrive\b/gi, "WalDrive"],
   [/\bWaldrive\b/g, "WalDrive"],
+  [/\bDevNet\b/g, "devnet"],
+  [/\bdevnet\b/gi, "devnet"],
+  [/\btestnet\b/gi, "testnet"],
+  [/\bcapture-free\b/gi, "captcha-free"],
+  [/\bcaptcha-free\b/gi, "captcha-free"],
   [/\bagent store\b/gi, "agents store"],
   [/\bOneClick\b/g, "One click"],
   [/\brefetches\b/gi, "re-fetches"],
@@ -38,6 +43,37 @@ const PHRASE_FIX = [
   [/\bA photo notes a log\b/gi, "A photo, notes, a log"],
   [/\bfrom settings\b/g, "from Settings"],
 ];
+
+// Word-level merges for multi-token brand mishears. Applied to the raw word
+// array BEFORE grouping, so a brand name Whisper splits across two tokens (and
+// thus across a group boundary) collapses into one token first — PHRASE_FIX
+// runs per-group and can't reach across a split. The merged token keeps the
+// first word's start and the last word's end.
+const WORD_FIX = [
+  [["while", "drive"], "WalDrive"], // "WalDrive" → "while Drive"
+];
+
+function mergeWords(words) {
+  const out = [];
+  for (let i = 0; i < words.length; i++) {
+    // compare on the alphabetic stem before any apostrophe ("Drive's" → "drive")
+    const stem = (t) => t.toLowerCase().split("'")[0].replace(/[^a-z]/g, "");
+    const hit = WORD_FIX.find(([seq]) =>
+      seq.every((tok, k) => words[i + k] && stem(words[i + k].text) === tok),
+    );
+    if (hit) {
+      const [seq, rep] = hit;
+      const last = words[i + seq.length - 1];
+      // preserve a trailing possessive/punctuation on the final token (e.g. "'s")
+      const tail = last.text.replace(/^[A-Za-z]+/, "");
+      out.push({ text: rep + tail, start: words[i].start, end: last.end });
+      i += seq.length - 1;
+    } else {
+      out.push(words[i]);
+    }
+  }
+  return out;
+}
 
 const MAX_WORDS = 6; // measured/calm narration → longer groups
 const MIN_WORDS = 2;
@@ -81,7 +117,7 @@ for (const file of readdirSync(N).sort()) {
   const m = file.match(/^(\d\d-[a-z]+)\.transcript\.json$/);
   if (!m) continue;
   const scene = m[1];
-  const words = JSON.parse(readFileSync(join(N, file), "utf8"));
+  const words = mergeWords(JSON.parse(readFileSync(join(N, file), "utf8")));
   const groups = groupWords(words).map((g) => ({
     text: fixGroupText(g.text),
     start: +g.start.toFixed(2),

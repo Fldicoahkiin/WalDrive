@@ -1,0 +1,87 @@
+[
+  {
+    "text": "A",
+    "start": 0.04,
+    "end": 0.09
+  },
+  {
+    "text": "fresh",
+    "start": 0.09,
+    "end": 0.56
+  },
+  {
+    "text": "wallet",
+    "start": 0.56,
+    "end": 1
+  },
+  {
+    "text": "needs",
+    "start": 1.15,
+    "end": 1.58
+  },
+  {
+    "text": "gas,",
+    "start": 1.58,
+    "end": 2
+  },
+  {
+    "text": "while",
+    "start": 2,
+    "end": 2.26
+  },
+  {
+    "text": "Drive's",
+    "start": 2.26,
+    "end": 2.58
+  },
+  {
+    "text": "faucet",
+    "start": 2.67,
+    "end": 2.92
+  },
+  {
+    "text": "lands",
+    "start": 2.95,
+    "end": 3.24
+  },
+  {
+    "text": "it",
+    "start": 3.29,
+    "end": 3.37
+  },
+  {
+    "text": "in",
+    "start": 3.4,
+    "end": 3.54
+  },
+  {
+    "text": "one",
+    "start": 3.54,
+    "end": 3.76
+  },
+  {
+    "text": "click",
+    "start": 3.76,
+    "end": 3.97
+  },
+  {
+    "text": "instant",
+    "start": 4.24,
+    "end": 4.6
+  },
+  {
+    "text": "on",
+    "start": 4.6,
+    "end": 4.76
+  },
+  {
+    "text": "DevNet",
+    "start": 4.76,
+    "end": 5.19
+  },
+  {
+    "text": "capture-free.",
+    "start": 5.34,
+    "end": 6.1
+  }
+]

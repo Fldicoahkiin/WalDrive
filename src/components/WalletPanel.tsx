@@ -209,7 +209,7 @@ export function WalletPanel({ onClose }: { onClose?: () => void }) {
             {balanceLoading ? "…" : `${(balance ?? 0).toLocaleString(undefined, { maximumFractionDigits: 4 })} SUI`}
           </span>
           {faucet.available &&
-            (!faucet.programmatic || faucet.status === "error" ? (
+            (faucet.status === "error" ? (
               <Button size="sm" variant="primary" onPress={() => openExternal(faucet.webFaucetUrl)}>
                 <ExternalLink className="size-3.5" />
                 Web faucet

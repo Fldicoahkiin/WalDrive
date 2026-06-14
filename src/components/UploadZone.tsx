@@ -20,7 +20,7 @@ const STAGE: Record<Stage, { value: number; color: "warning" | "accent" | "succe
 export function UploadZone() {
   const { upload, status, error, needsGas, reset } = useUpload();
   const faucet = useFaucet();
-  const faucetWeb = !faucet.programmatic || faucet.status === "error";
+  const faucetWeb = faucet.status === "error";
   const uploadMethod = useSettings((s) => s.uploadMethod);
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);

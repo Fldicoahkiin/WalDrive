@@ -8,15 +8,17 @@ import { useFaucet } from "@/hooks/useFaucet";
 /**
  * First-run nudge: a brand-new wallet has no SUI, so registering files on-chain
  * would fail. Shown while the balance is zero; disappears once gas arrives.
- * testnet's programmatic faucet is closed, so there we point straight at the
- * captcha-gated web faucet; devnet/localnet can grab gas in one click.
+ * The one-click request retries with backoff (testnet is rate-limited); the web
+ * faucet stays available as a fallback there and after a failure.
  */
 export function FaucetBanner() {
   const { data: balance, isLoading } = useBalance();
-  const { request, status, available, programmatic, webFaucetUrl } = useFaucet();
+  const { request, status, available, rateLimited, webFaucetUrl } = useFaucet();
 
   if (!available || isLoading || (balance ?? 0) > 0) return null;
-  const useWeb = !programmatic || status === "error";
+  const loading = status === "loading";
+  const failed = status === "error";
+  const showWeb = rateLimited || failed;
 
   return (
     <motion.div
@@ -26,33 +28,36 @@ export function FaucetBanner() {
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className="flex min-w-0 flex-col gap-0.5">
-        <span className="text-sm text-ink">
-          {useWeb ? "Your wallet needs gas to store files." : "Your wallet is ready — it just needs gas."}
-        </span>
+        <span className="text-sm text-ink">Your wallet needs gas to store files.</span>
         <span className="text-xs text-ink-subtle">
-          {useWeb
-            ? "Testnet's auto-faucet is closed. Open the web faucet — captcha-gated, with your address pre-filled."
-            : "Storing a file records it on Sui, which costs a little gas. Devnet SUI is free."}
+          {failed
+            ? "The faucet is busy right now. Open the web faucet — captcha-gated, address pre-filled."
+            : rateLimited
+              ? "Testnet's faucet is rate-limited — “Get test SUI” retries for a slot, or use the web faucet."
+              : "Storing a file records it on Sui, which costs a little gas. It's free."}
         </span>
       </div>
-      <div className="shrink-0">
-        {useWeb ? (
-          <Button size="sm" variant="primary" onPress={() => openExternal(webFaucetUrl)}>
+      <div className="flex shrink-0 items-center gap-2">
+        {showWeb && (
+          <Button
+            size="sm"
+            variant={failed ? "primary" : "secondary"}
+            onPress={() => openExternal(webFaucetUrl)}
+          >
             <ExternalLink className="size-3.5" />
-            Open web faucet
-          </Button>
-        ) : (
-          <Button isDisabled={status === "loading"} size="sm" variant="primary" onPress={request}>
-            {status === "loading" ? (
-              <Loader2 className="size-3.5 animate-spin" />
-            ) : status === "ok" ? (
-              <Check className="size-3.5" />
-            ) : (
-              <Droplet className="size-3.5" />
-            )}
-            {status === "ok" ? "On its way" : "Get free test SUI"}
+            Web faucet
           </Button>
         )}
+        <Button isDisabled={loading} size="sm" variant="primary" onPress={request}>
+          {loading ? (
+            <Loader2 className="size-3.5 animate-spin" />
+          ) : status === "ok" ? (
+            <Check className="size-3.5" />
+          ) : (
+            <Droplet className="size-3.5" />
+          )}
+          {loading ? "Requesting…" : status === "ok" ? "On its way" : "Get free test SUI"}
+        </Button>
       </div>
     </motion.div>
   );

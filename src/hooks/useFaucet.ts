@@ -7,10 +7,11 @@ import { useSettings } from "@/stores/settingsStore";
 export type FaucetStatus = "idle" | "loading" | "ok" | "error";
 
 /**
- * Request free gas from the network faucet for the active wallet (not on
- * mainnet). The public faucet rate-limits hard by IP (HTTP 429), so on error
- * callers should offer `webFaucetUrl` — the browser faucet has a captcha and
- * works when the API refuses.
+ * Request free gas for the active wallet. testnet's programmatic faucet is
+ * effectively closed — it answers every API caller with HTTP 429 and points to
+ * the captcha-gated web UI — so only devnet/localnet can self-serve over the
+ * API (`programmatic`). Everywhere else, send the user to `webFaucetUrl`
+ * (their address is pre-filled).
  */
 export function useFaucet() {
   const address = useWallet((s) => s.address);
@@ -18,10 +19,11 @@ export function useFaucet() {
   const queryClient = useQueryClient();
   const [status, setStatus] = useState<FaucetStatus>("idle");
   const available = network !== "mainnet";
+  const programmatic = network === "devnet" || network === "localnet";
   const webFaucetUrl = address ? `https://faucet.sui.io/?address=${address}` : "https://faucet.sui.io/";
 
   const request = useCallback(async () => {
-    if (!address || !available) return false;
+    if (!address || !available || !programmatic) return false;
     setStatus("loading");
     try {
       await requestSuiFromFaucetV2({
@@ -33,12 +35,12 @@ export function useFaucet() {
       setTimeout(() => setStatus("idle"), 3000);
       return true;
     } catch {
-      // Almost always the per-IP rate limit — keep the error state until the
-      // user acts so the web-faucet fallback stays visible.
+      // Keep the error state until the user acts so the web-faucet fallback
+      // stays visible.
       setStatus("error");
       return false;
     }
-  }, [address, network, available, queryClient]);
+  }, [address, network, available, programmatic, queryClient]);
 
-  return { request, status, available, webFaucetUrl };
+  return { request, status, available, programmatic, webFaucetUrl };
 }

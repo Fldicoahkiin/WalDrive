@@ -30,7 +30,7 @@ export function AccountSwitcher({ onOpenSettings }: { onOpenSettings: () => void
     if (k === "add") onOpenSettings();
     else if (k === "copy") void navigator.clipboard.writeText(address ?? "");
     else if (k === "faucet") {
-      if (faucet.status === "error") openExternal(faucet.webFaucetUrl);
+      if (!faucet.programmatic || faucet.status === "error") openExternal(faucet.webFaucetUrl);
       else void faucet.request();
     } else if (accounts.some((a) => a.address === k)) switchTo(k);
   }
@@ -92,7 +92,9 @@ export function AccountSwitcher({ onOpenSettings }: { onOpenSettings: () => void
           {faucet.available && balance === 0 && (
             <Dropdown.Item id="faucet" textValue="Get test SUI">
               <Droplet className="size-4" />
-              <Label>{faucet.status === "error" ? "Open web faucet" : "Get test SUI"}</Label>
+              <Label>
+                {!faucet.programmatic || faucet.status === "error" ? "Open web faucet" : "Get test SUI"}
+              </Label>
             </Dropdown.Item>
           )}
         </Dropdown.Menu>

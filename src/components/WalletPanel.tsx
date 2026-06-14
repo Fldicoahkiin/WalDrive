@@ -208,14 +208,13 @@ export function WalletPanel({ onClose }: { onClose?: () => void }) {
           <span className="font-mono text-xs text-ink-muted">
             {balanceLoading ? "…" : `${(balance ?? 0).toLocaleString(undefined, { maximumFractionDigits: 4 })} SUI`}
           </span>
-          {faucet.available && (
-            <>
-              {faucet.status === "error" && (
-                <Button size="sm" variant="primary" onPress={() => openExternal(faucet.webFaucetUrl)}>
-                  <ExternalLink className="size-3.5" />
-                  Web faucet
-                </Button>
-              )}
+          {faucet.available &&
+            (!faucet.programmatic || faucet.status === "error" ? (
+              <Button size="sm" variant="primary" onPress={() => openExternal(faucet.webFaucetUrl)}>
+                <ExternalLink className="size-3.5" />
+                Web faucet
+              </Button>
+            ) : (
               <Button
                 isDisabled={faucet.status === "loading"}
                 size="sm"
@@ -229,10 +228,9 @@ export function WalletPanel({ onClose }: { onClose?: () => void }) {
                 ) : (
                   <Droplet className="size-3.5" />
                 )}
-                {faucet.status === "ok" ? "Requested" : faucet.status === "error" ? "Retry" : "Faucet"}
+                {faucet.status === "ok" ? "Requested" : "Faucet"}
               </Button>
-            </>
-          )}
+            ))}
         </div>
       </div>
 

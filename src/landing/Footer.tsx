@@ -4,6 +4,7 @@ import { Tag, Copy, Check, ExternalLink } from "lucide-react";
 import { BrandMark } from "@/components/BrandMark";
 import {
   CONTAINER,
+  DEEPSURGE_URL,
   EASE,
   IN_VIEW,
   PACKAGE_ID,
@@ -90,6 +91,15 @@ export function Footer() {
             >
               <Tag className="size-4" strokeWidth={1.75} />
               Latest release
+            </a>
+            <a
+              className="inline-flex items-center gap-1.5 text-[14px] text-ink-subtle transition-colors hover:text-ink"
+              href={DEEPSURGE_URL}
+              rel="noreferrer"
+              target="_blank"
+            >
+              <ExternalLink className="size-4" strokeWidth={1.75} />
+              DeepSurge
             </a>
           </div>
         </div>

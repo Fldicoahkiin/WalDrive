@@ -11,6 +11,8 @@ export const REPO_URL = "https://github.com/Fldicoahkiin/WalDrive";
 export const RELEASE_URL = "https://github.com/Fldicoahkiin/WalDrive/releases/latest";
 export const PACKAGE_ID = "0x2fc345f205e241e8941cc5228ed6dd76f11e82484b6583c4070bc63eb914b5f6";
 export const SUISCAN_PACKAGE_URL = `https://suiscan.xyz/testnet/object/${PACKAGE_ID}`;
+export const DEEPSURGE_URL =
+  "https://www.deepsurge.xyz/projects/c13d586b-9a0a-4d77-b827-d5e6b3374a47";
 
 /** Reusable max-width + horizontal padding for every section's inner container. */
 export const CONTAINER = "mx-auto w-full max-w-[1120px] px-6";

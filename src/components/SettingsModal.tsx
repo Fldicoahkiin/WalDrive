@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
+import { openExternal } from "@/lib/openExternal";
 import {
   Input,
   Modal,
@@ -172,7 +173,18 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
               </Section>
             </Modal.Body>
             <Modal.Footer className="justify-between">
-              <span className="text-xs text-ink-tertiary">WalDrive v{VERSION}</span>
+              <div className="flex items-center gap-3 text-xs text-ink-tertiary">
+                <span>WalDrive v{VERSION}</span>
+                <button
+                  className="transition-colors hover:text-ink"
+                  onClick={() =>
+                    openExternal("https://www.deepsurge.xyz/projects/c13d586b-9a0a-4d77-b827-d5e6b3374a47")
+                  }
+                  type="button"
+                >
+                  DeepSurge ↗
+                </button>
+              </div>
               <Button size="sm" variant="ghost" onPress={s.reset}>
                 Reset defaults
               </Button>

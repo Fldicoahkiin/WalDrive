@@ -1,6 +1,6 @@
-import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { SuiJsonRpcClient, getJsonRpcFullnodeUrl, type SuiObjectResponse } from "@mysten/sui/jsonRpc";
+import type { SuiObjectResponse } from "@mysten/sui/jsonRpc";
+import { useSuiClient } from "@/lib/suiClient";
 import { useWallet } from "@/stores/walletStore";
 import { useSettings } from "@/stores/settingsStore";
 import { CONTRACT } from "@/lib/constants";
@@ -35,7 +35,7 @@ export function useFiles() {
   const address = useWallet((s) => s.address);
   const network = useSettings((s) => s.network);
   const packageId = useSettings((s) => s.packageId);
-  const suiClient = useMemo(() => new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network), network }), [network]);
+  const suiClient = useSuiClient();
 
   return useQuery({
     queryKey: ["files", address, network, packageId],

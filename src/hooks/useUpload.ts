@@ -1,7 +1,7 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { SuiJsonRpcClient, getJsonRpcFullnodeUrl } from "@mysten/sui/jsonRpc";
 import { Transaction } from "@mysten/sui/transactions";
+import { useSuiClient } from "@/lib/suiClient";
 import { uploadBlob } from "@waldrive/shared";
 import type { UploadStatus } from "@waldrive/shared";
 import { useWallet } from "@/stores/walletStore";
@@ -27,7 +27,7 @@ export function useUpload() {
   const packageId = useSettings((s) => s.packageId);
   const uploadMethod = useSettings((s) => s.uploadMethod);
   const queryClient = useQueryClient();
-  const suiClient = useMemo(() => new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network), network }), [network]);
+  const suiClient = useSuiClient();
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const [needsGas, setNeedsGas] = useState(false);

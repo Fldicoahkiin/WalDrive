@@ -1,6 +1,6 @@
-import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { SuiJsonRpcClient, getJsonRpcFullnodeUrl, type SuiObjectResponse } from "@mysten/sui/jsonRpc";
+import type { SuiObjectResponse } from "@mysten/sui/jsonRpc";
+import { useSuiClient } from "@/lib/suiClient";
 import { useSettings } from "@/stores/settingsStore";
 
 export interface FileVersion {
@@ -42,10 +42,7 @@ const MAX_DEPTH = 20;
  */
 export function useVersionHistory(parentVersionId: string | null | undefined) {
   const network = useSettings((s) => s.network);
-  const suiClient = useMemo(
-    () => new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network), network }),
-    [network],
-  );
+  const suiClient = useSuiClient();
 
   return useQuery({
     queryKey: ["version-history", parentVersionId, network],

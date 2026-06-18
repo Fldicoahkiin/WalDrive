@@ -1,4 +1,5 @@
-import { SuiJsonRpcClient, getJsonRpcFullnodeUrl } from "@mysten/sui/jsonRpc";
+import type { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
+import { getSuiClient } from "@/lib/suiClient";
 // Vite swallows the SDK's own import.meta.url wasm reference during dep
 // optimization (the request 404s into the SPA fallback), so resolve it
 // explicitly and hand it to the client.
@@ -33,7 +34,7 @@ export async function uploadBlobWithWallet(
   // Loaded on demand: the walrus module graph is heavy (contract bindings +
   // wasm glue) and stalls the dev module graph when imported eagerly.
   const { WalrusClient } = await import("@mysten/walrus");
-  const suiClient = new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network), network });
+  const suiClient = getSuiClient(network);
   const walrus = new WalrusClient({
     network: network as "testnet" | "mainnet",
     suiClient,
@@ -60,7 +61,7 @@ export async function getWalrusEpoch(network: SuiNetwork): Promise<number> {
     throw new Error(`Walrus is not available on ${network}.`);
   }
   const { WalrusClient } = await import("@mysten/walrus");
-  const suiClient = new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network), network });
+  const suiClient = getSuiClient(network);
   const walrus = new WalrusClient({ network, suiClient, wasmUrl: walrusWasmUrl });
   const state = await walrus.systemState();
   return state.committee.epoch;
@@ -79,7 +80,7 @@ export interface OwnedBlob {
 
 /** Resolve the Walrus package id from the system object's type (works per network). */
 async function walrusPackageId(
-  suiClient: InstanceType<typeof SuiJsonRpcClient>,
+  suiClient: SuiJsonRpcClient,
   network: "testnet" | "mainnet",
 ): Promise<string> {
   const { TESTNET_WALRUS_PACKAGE_CONFIG, MAINNET_WALRUS_PACKAGE_CONFIG } = await import("@mysten/walrus");
@@ -97,7 +98,7 @@ async function walrusPackageId(
 export async function listOwnedBlobs(address: string, network: SuiNetwork): Promise<OwnedBlob[]> {
   if (network !== "testnet" && network !== "mainnet") return [];
   const { blobIdFromInt } = await import("@mysten/walrus");
-  const suiClient = new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network), network });
+  const suiClient = getSuiClient(network);
   const pkg = await walrusPackageId(suiClient, network);
 
   const blobs: OwnedBlob[] = [];
@@ -135,7 +136,7 @@ export async function extendOwnedBlob(
 ): Promise<void> {
   if (network !== "testnet" && network !== "mainnet") throw new Error(`Not available on ${network}.`);
   const { WalrusClient } = await import("@mysten/walrus");
-  const suiClient = new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network), network });
+  const suiClient = getSuiClient(network);
   const walrus = new WalrusClient({ network, suiClient, wasmUrl: walrusWasmUrl });
   await walrus.executeExtendBlobTransaction({ blobObjectId, epochs, signer: keypair });
 }
@@ -147,7 +148,7 @@ export async function deleteOwnedBlob(
 ): Promise<void> {
   if (network !== "testnet" && network !== "mainnet") throw new Error(`Not available on ${network}.`);
   const { WalrusClient } = await import("@mysten/walrus");
-  const suiClient = new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network), network });
+  const suiClient = getSuiClient(network);
   const walrus = new WalrusClient({ network, suiClient, wasmUrl: walrusWasmUrl });
   await walrus.executeDeleteBlobTransaction({ blobObjectId, signer: keypair });
 }

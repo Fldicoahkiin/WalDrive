@@ -1,6 +1,5 @@
-import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { SuiJsonRpcClient, getJsonRpcFullnodeUrl } from "@mysten/sui/jsonRpc";
+import { useSuiClient } from "@/lib/suiClient";
 import { useWallet } from "@/stores/walletStore";
 import { useSettings } from "@/stores/settingsStore";
 
@@ -10,7 +9,7 @@ const MIST_PER_SUI = 1_000_000_000;
 export function useBalance() {
   const address = useWallet((s) => s.address);
   const network = useSettings((s) => s.network);
-  const suiClient = useMemo(() => new SuiJsonRpcClient({ url: getJsonRpcFullnodeUrl(network), network }), [network]);
+  const suiClient = useSuiClient();
 
   return useQuery({
     queryKey: ["balance", address, network],

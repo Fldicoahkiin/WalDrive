@@ -32,6 +32,15 @@ const VIEWS: { key: ViewMode; label: string; Icon: typeof LayoutGrid }[] = [
   { key: "list", label: "List view", Icon: List },
 ];
 
+/** Whether a file belongs to the active nav view (search + sort applied separately). */
+function inNav(f: BlobFile, nav: NavKey, folderId: string | null): boolean {
+  if (nav === "trash") return Boolean(f.isDeleted);
+  if (f.isDeleted) return false;
+  if (nav === "all") return (f.folderId ?? null) === folderId;
+  if (nav.startsWith("tag:")) return f.tags.includes(nav.slice(4));
+  return fileCategory(f.mimeType, f.name) === nav;
+}
+
 export function App() {
   const initWallet = useWallet((s) => s.init);
   const address = useWallet((s) => s.address);
@@ -81,16 +90,9 @@ export function App() {
 
   // Drop back to "all" when the active view (type, tag, trash) empties out.
   useEffect(() => {
-    if (!files) return;
-    const live = files.filter((f) => !f.isDeleted);
-    const stale =
-      (nav === "trash" && !files.some((f) => f.isDeleted)) ||
-      (nav.startsWith("tag:") && !live.some((f) => f.tags.includes(nav.slice(4)))) ||
-      (nav !== "all" &&
-        nav !== "trash" &&
-        !nav.startsWith("tag:") &&
-        !live.some((f) => fileCategory(f.mimeType, f.name) === nav));
-    if (stale) setNav("all");
+    if (files && nav !== "all" && !files.some((f) => inNav(f, nav, null))) {
+      setNav("all");
+    }
   }, [files, nav]);
 
   // The sidebar highlights the folder's root ancestor while browsing inside it.
@@ -106,13 +108,7 @@ export function App() {
     if (!files) return [];
     const q = query.trim().toLowerCase();
     return files
-      .filter((f) => (nav === "trash" ? f.isDeleted : !f.isDeleted))
-      .filter((f) => {
-        if (nav === "trash") return true;
-        if (nav.startsWith("tag:")) return f.tags.includes(nav.slice(4));
-        if (nav === "all") return (f.folderId ?? null) === folderId;
-        return fileCategory(f.mimeType, f.name) === nav;
-      })
+      .filter((f) => inNav(f, nav, folderId))
       .filter((f) =>
         q ? f.name.toLowerCase().includes(q) || f.tags.some((t) => t.toLowerCase().includes(q)) : true,
       )

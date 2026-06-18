@@ -97,6 +97,26 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
                     <Moon className="size-3.5" /> Dark
                   </ToggleButton>
                 </ToggleButtonGroup>
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-xs text-ink-subtle">Display scale</span>
+                  <ToggleButtonGroup
+                    aria-label="Display scale"
+                    className="self-start"
+                    disallowEmptySelection
+                    selectedKeys={new Set([String(s.uiScale)])}
+                    selectionMode="single"
+                    onSelectionChange={(keys) => {
+                      const k = firstKey(keys);
+                      if (k) s.setUiScale(Number(k));
+                    }}
+                  >
+                    {["0.9", "1", "1.1", "1.25"].map((v) => (
+                      <ToggleButton key={v} id={v}>
+                        {Math.round(Number(v) * 100)}%
+                      </ToggleButton>
+                    ))}
+                  </ToggleButtonGroup>
+                </div>
               </Section>
 
               <Section title="Network">

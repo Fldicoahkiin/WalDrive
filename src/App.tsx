@@ -16,6 +16,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useFiles } from "@/hooks/useFiles";
 import { useFolders } from "@/hooks/useFolders";
 import { useWallet } from "@/stores/walletStore";
+import { useSettings } from "@/stores/settingsStore";
 import { fileCategory } from "@/lib/fileKind";
 
 type SortKey = "date" | "name" | "size";
@@ -34,9 +35,21 @@ const VIEWS: { key: ViewMode; label: string; Icon: typeof LayoutGrid }[] = [
 export function App() {
   const initWallet = useWallet((s) => s.init);
   const address = useWallet((s) => s.address);
+  const uiScale = useSettings((s) => s.uiScale);
   useEffect(() => {
     initWallet();
   }, [initWallet]);
+
+  // Display scaling (DPI handling): the whole UI is rem-based, so scaling the
+  // root font-size zooms layout + type together. Drives the console's density
+  // and lets demo captures render at a larger, sharper proportion.
+  useEffect(() => {
+    const el = document.documentElement;
+    el.style.fontSize = `${16 * uiScale}px`;
+    return () => {
+      el.style.fontSize = "";
+    };
+  }, [uiScale]);
 
   const { data: files, isLoading } = useFiles();
   const { data: folders } = useFolders();

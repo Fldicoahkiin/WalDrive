@@ -13,6 +13,8 @@ interface SettingsState {
   packageId: string;
   publisherToken: string;
   uploadMethod: UploadMethod;
+  /** Display scale (DPI handling): root font-size multiplier the whole UI keys off. */
+  uiScale: number;
   setNetwork: (network: SuiNetwork) => void;
   setAggregator: (aggregator: string) => void;
   setPublisher: (publisher: string) => void;
@@ -20,6 +22,7 @@ interface SettingsState {
   setPackageId: (packageId: string) => void;
   setPublisherToken: (token: string) => void;
   setUploadMethod: (method: UploadMethod) => void;
+  setUiScale: (scale: number) => void;
   reset: () => void;
 }
 
@@ -31,6 +34,7 @@ const DEFAULTS = {
   packageId: CONTRACT.PACKAGE_ID,
   publisherToken: "",
   uploadMethod: "publisher" as UploadMethod,
+  uiScale: 1,
 };
 
 /**
@@ -52,6 +56,7 @@ export const useSettings = create<SettingsState>()(
       setPackageId: (packageId) => set({ packageId }),
       setPublisherToken: (publisherToken) => set({ publisherToken }),
       setUploadMethod: (uploadMethod) => set({ uploadMethod }),
+      setUiScale: (uiScale) => set({ uiScale }),
       reset: () => {
         setAggregatorBase(DEFAULTS.aggregator);
         set({ ...DEFAULTS });

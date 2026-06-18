@@ -27,13 +27,21 @@ const CONFIG = `{
   }
 }`;
 
+const CLI = `# teach an agent to use WalDrive
+npx skills add Fldicoahkiin/WalDrive
+
+# or drive it straight from a shell / CI
+waldrive upload ./report.pdf
+waldrive ls --json
+waldrive download <blobId> --out ./out.pdf`;
+
 export function Mcp() {
   return (
     <section className="border-y border-hairline bg-surface-1/40 py-20 sm:py-28">
       <div className={CONTAINER}>
         <SectionHeading
-          eyebrow="For developers"
-          lede="WalDrive ships an MCP server so AI clients and scripts store artifacts and memory to the same Walrus data you manage in the console. Humans get a fluid console; agents get a clean protocol. Same chain, same blobs, same truth."
+          eyebrow="For agents & developers"
+          lede="WalDrive gives agents three ways in — an MCP server, a waldrive CLI, and an installable skill — so AI clients, scripts, and CI store artifacts and memory to the same Walrus data you manage in the console. Humans get a fluid console; agents get a clean protocol. Same chain, same blobs, same truth."
           title="Your agents write. You browse."
         />
 
@@ -56,12 +64,14 @@ export function Mcp() {
           </div>
 
           <motion.div
+            className="flex flex-col gap-4"
             initial={{ opacity: 0, y: 22 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={IN_VIEW}
             transition={{ duration: 0.55, ease: EASE, delay: 0.1 }}
           >
             <CodeBlock caption="claude_desktop_config.json" code={CONFIG} />
+            <CodeBlock caption="terminal" code={CLI} />
           </motion.div>
         </div>
       </div>

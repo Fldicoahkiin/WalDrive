@@ -26,12 +26,12 @@ const PIECES: Piece[] = [
   {
     Icon: Terminal,
     index: "02",
-    title: "MCP server",
-    body: "The agent write-path. AI clients and scripts operate the same Walrus data from the command line.",
+    title: "Agent surfaces",
+    body: "Three ways for an agent to reach the same Walrus data — an MCP server, a CLI, and an installable skill.",
     bullets: [
-      "upload_file · list_files · download_file · get_file_info",
-      "Runs locally over stdio — no CORS, no relay",
-      "Signs with a dedicated testnet keypair",
+      "MCP: upload_file · list_files · download_file · get_file_info",
+      "CLI: waldrive upload · ls · download · info",
+      "Skill: npx skills add Fldicoahkiin/WalDrive",
     ],
   },
   {

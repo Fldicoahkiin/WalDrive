@@ -2,6 +2,7 @@
 node_modules/
 renders/
 .hyperframes/
+.waveform-cache/
 
 # Generated audio (regenerate: scripts/tts.sh, scripts/music.sh).
 # Word-level transcripts and the grouped captions ARE committed so the

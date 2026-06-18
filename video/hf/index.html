@@ -1,8 +1,8 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=1920, height=1080" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <!-- Caption groups (auto-generated from the narration transcripts). Loaded
          synchronously so the data is ready when the timeline is built. -->
@@ -52,23 +52,99 @@
         background: var(--canvas);
         opacity: 0;
       }
+      /* ---- demo clips: a framed window on the brand canvas (Screen Studio look) -- */
       .clip-scene {
+        background: radial-gradient(ellipse 62% 52% at 50% 8%, rgba(94, 106, 210, 0.18), transparent 70%),
+          var(--canvas);
+      }
+      .clip-scene::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(var(--hairline) 1px, transparent 1px),
+          linear-gradient(90deg, var(--hairline) 1px, transparent 1px);
+        background-size: 96px 96px;
+        opacity: 0.22;
+        pointer-events: none;
+      }
+      .win {
+        position: absolute;
+        left: 232px;
+        top: 48px;
+        width: 1456px;
+        border-radius: 18px;
+        background: var(--surface-1);
+        border: 1px solid var(--hairline-strong);
+        box-shadow: 0 60px 130px -34px rgba(0, 0, 0, 0.85);
+        overflow: hidden;
+        transform-origin: 50% 52%;
+        will-change: transform;
+      }
+      .win .titlebar {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        height: 52px;
+        padding: 0 22px;
+        background: var(--surface-2);
+        border-bottom: 1px solid var(--hairline);
+      }
+      .win .dot {
+        width: 15px;
+        height: 15px;
+        border-radius: 999px;
+      }
+      .win .dot.r {
+        background: #ff5f57;
+      }
+      .win .dot.y {
+        background: #febc2e;
+      }
+      .win .dot.g {
+        background: #28c840;
+      }
+      .win .wtitle {
+        margin-left: 10px;
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: -0.3px;
+        color: var(--ink-muted);
+      }
+      .win .wstep {
+        margin-left: auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 21px;
+        font-weight: 500;
+        letter-spacing: -0.2px;
+        color: var(--ink-muted);
+      }
+      .win .wstep .num {
+        font-weight: 700;
+        color: var(--accent-hover);
+        font-variant-numeric: tabular-nums;
+      }
+      .win .screen {
+        position: relative;
+        width: 100%;
+        height: 819px;
+        overflow: hidden;
         background: var(--canvas);
       }
-      .clip-scene video {
+      .win .vz {
         position: absolute;
         inset: 0;
-        width: 1920px;
-        height: 1080px;
+        transform-origin: 50% 50%;
+        will-change: transform;
+      }
+      .win .vz video {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
         object-fit: cover;
         display: block;
-      }
-      .clip-frame {
-        position: absolute;
-        inset: 0;
-        z-index: 6;
-        pointer-events: none;
-        box-shadow: inset 0 0 0 2px var(--hairline-strong);
       }
 
       /* ---- decorative ----------------------------------------------------- */
@@ -238,39 +314,6 @@
         font-weight: 600;
       }
 
-      /* ---- lower-third label on demo clips -------------------------------- */
-      /* bottom-left, clear of the app's own top toolbar in every recording */
-      .demo-label {
-        position: absolute;
-        left: 64px;
-        bottom: 168px;
-        z-index: 7;
-        display: inline-flex;
-        align-items: center;
-        gap: 16px;
-        padding: 16px 26px 16px 22px;
-        background: rgba(15, 16, 17, 0.92);
-        border: 2px solid var(--hairline-strong);
-        border-radius: 12px;
-      }
-      .demo-label .num {
-        font-size: 22px;
-        font-weight: 700;
-        color: var(--accent-hover);
-        font-variant-numeric: tabular-nums;
-      }
-      .demo-label .txt {
-        font-size: 28px;
-        font-weight: 600;
-        letter-spacing: -0.4px;
-        color: var(--ink);
-      }
-      .demo-label .div {
-        width: 2px;
-        height: 26px;
-        background: var(--hairline-strong);
-      }
-
       /* ---- caption track -------------------------------------------------- */
       #captions {
         position: absolute;
@@ -367,14 +410,7 @@
     </style>
   </head>
   <body>
-    <div
-      id="root"
-      data-composition-id="main"
-      data-start="0"
-      data-duration="222"
-      data-width="1920"
-      data-height="1080"
-    >
+    <div data-hf-id="hf-655w" id="root" data-composition-id="main" data-start="0" data-duration="222" data-width="1920" data-height="1080">
       <!-- ============================================================
            Videos are the TIMED elements (class="clip"). Scene wrappers
            are NON-timed; GSAP drives their opacity for crossfades.
@@ -384,187 +420,195 @@
            ============================================================ -->
 
       <!-- TITLE (0–5.4) -->
-      <div id="title" class="scene">
-        <div class="grid-bg" id="t-grid"></div>
-        <div class="glow" id="t-glow" style="width: 760px; height: 760px; left: 1080px; top: -160px; background: var(--accent);"></div>
-        <div class="ghost" id="t-ghost" style="right: -40px; bottom: 40px; font-size: 300px;">WALRUS</div>
-        <div class="wrap">
-          <div class="eyebrow" id="t-eyebrow">Verifiable data console</div>
-          <h1 class="wordmark"><span id="t-wal">Wal</span><span class="drive" id="t-drive">Drive</span></h1>
-          <div class="tagline" id="t-tag">A desktop drive for Walrus — files you actually own.</div>
+      <div data-hf-id="hf-jsqc" id="title" class="scene">
+        <div data-hf-id="hf-cc7f" class="grid-bg" id="t-grid"></div>
+        <div data-hf-id="hf-dpf4" class="glow" id="t-glow" style="width: 760px; height: 760px; left: 1080px; top: -160px; background: var(--accent);"></div>
+        <div data-hf-id="hf-ixc4" class="ghost" id="t-ghost" style="right: -40px; bottom: 40px; font-size: 300px;">WALRUS</div>
+        <div data-hf-id="hf-wnm4" class="wrap">
+          <div data-hf-id="hf-m8jb" class="eyebrow" id="t-eyebrow">Verifiable data console</div>
+          <h1 data-hf-id="hf-d7d9" class="wordmark"><span data-hf-id="hf-tp4v" id="t-wal">Wal</span><span data-hf-id="hf-u5bk" class="drive" id="t-drive">Drive</span></h1>
+          <div data-hf-id="hf-7nls" class="tagline" id="t-tag">A desktop drive for Walrus — files you actually own.</div>
         </div>
-        <div class="rule" id="t-rule" style="left: 160px; top: 50%; margin-top: 200px; width: 360px;"></div>
-        <div class="badge" id="t-badge"><span class="pip"></span>Sui Overflow 2026 · Walrus track</div>
+        <div data-hf-id="hf-xy2v" class="rule" id="t-rule" style="left: 160px; top: 50%; margin-top: 200px; width: 360px;"></div>
+        <div data-hf-id="hf-pbn0" class="badge" id="t-badge"><span data-hf-id="hf-rz58" class="pip"></span>Sui Overflow 2026 · Walrus track</div>
       </div>
 
       <!-- PROBLEM (5–27.4) -->
-      <div id="problem" class="scene">
-        <div class="grid-bg" id="p-grid"></div>
-        <div class="glow" id="p-glow" style="width: 640px; height: 640px; right: -120px; top: 380px; background: var(--accent);"></div>
-        <div class="ghost" id="p-ghost" style="left: -30px; top: 30px; font-size: 230px;">DATA</div>
-        <div class="wrap">
-          <div class="kicker" id="p-kicker"><span class="bar"></span>The problem</div>
-          <h1 id="p-head">Your agents make real data.<br /><span class="mut">Where does it actually live?</span></h1>
+      <div data-hf-id="hf-xe2b" id="problem" class="scene">
+        <div data-hf-id="hf-4707" class="grid-bg" id="p-grid"></div>
+        <div data-hf-id="hf-mzkn" class="glow" id="p-glow" style="width: 640px; height: 640px; right: -120px; top: 380px; background: var(--accent);"></div>
+        <div data-hf-id="hf-r7if" class="ghost" id="p-ghost" style="left: -30px; top: 30px; font-size: 230px;">DATA</div>
+        <div data-hf-id="hf-fvl0" class="wrap">
+          <div data-hf-id="hf-yoax" class="kicker" id="p-kicker"><span data-hf-id="hf-flu0" class="bar"></span>The problem</div>
+          <h1 data-hf-id="hf-5bu3" id="p-head">Your agents make real data.<br data-hf-id="hf-x5px"><span data-hf-id="hf-h8nk" class="mut">Where does it actually live?</span></h1>
         </div>
-        <div class="pills">
-          <div class="pill" id="p-pill1"><span class="x">×</span>someone's server</div>
-          <div class="pill" id="p-pill2"><span class="x">×</span>behind a login</div>
-          <div class="pill" id="p-pill3"><span class="x">×</span>deletable by someone else</div>
+        <div data-hf-id="hf-c9cw" class="pills">
+          <div data-hf-id="hf-xjtt" class="pill" id="p-pill1"><span data-hf-id="hf-d1fs" class="x">×</span>someone's server</div>
+          <div data-hf-id="hf-dihp" class="pill" id="p-pill2"><span data-hf-id="hf-h3wg" class="x">×</span>behind a login</div>
+          <div data-hf-id="hf-veak" class="pill" id="p-pill3"><span data-hf-id="hf-fwzd" class="x">×</span>deletable by someone else</div>
         </div>
-        <div class="answer" id="p-answer">
-          <b>WalDrive</b> stores your files on a <span class="accent">decentralized network</span> —
+        <div data-hf-id="hf-yl47" class="answer" id="p-answer">
+          <b data-hf-id="hf-7a7l">WalDrive</b> stores your files on a <span data-hf-id="hf-ign5" class="accent">decentralized network</span> —
           owned by you, and verifiable by anyone.
         </div>
       </div>
 
       <!-- CLIP 1 · WELCOME -->
-      <div id="s-welcome" class="scene clip-scene">
-        <video id="v-welcome" class="clip" src="assets/clips/01-welcome.mp4" data-start="26.4" data-duration="16.2" data-media-start="0.4" data-track-index="2" muted playsinline crossorigin="anonymous"></video>
-        <div class="clip-frame"></div>
-        <div class="demo-label" id="l-welcome"><span class="num">01</span><span class="div"></span><span class="txt">Generate a local wallet</span></div>
+      <div data-hf-id="hf-8r8h" id="s-welcome" class="scene clip-scene">
+        <div data-hf-id="hf-nfxo" class="win" id="w-welcome">
+          <div data-hf-id="hf-t179" class="titlebar"><span data-hf-id="hf-620k" class="dot r"></span><span data-hf-id="hf-65hz" class="dot y"></span><span data-hf-id="hf-4ih5" class="dot g"></span><span data-hf-id="hf-bs0e" class="wtitle">WalDrive</span><span data-hf-id="hf-xp6m" class="wstep"><span data-hf-id="hf-cshg" class="num">01</span>Generate a local wallet</span></div>
+          <div data-hf-id="hf-cdmk" class="screen"><div data-hf-id="hf-nopz" class="vz" id="z-welcome"><video data-hf-id="hf-y3kg" id="v-welcome" class="clip" src="assets/clips/01-welcome.mp4" data-start="26.4" data-duration="16.2" data-media-start="0.4" data-track-index="2" muted playsinline crossorigin="anonymous"></video></div></div>
+        </div>
       </div>
 
       <!-- CLIP 2 · FAUCET (in-app one-click gas — devnet) -->
-      <div id="s-faucet" class="scene clip-scene">
-        <video id="v-faucet" class="clip" src="assets/clips/02-faucet.mp4" data-start="42.6" data-duration="7.0" data-media-start="0" data-track-index="3" muted playsinline crossorigin="anonymous"></video>
-        <div class="clip-frame"></div>
-        <div class="demo-label" id="l-faucet"><span class="num">02</span><span class="div"></span><span class="txt">Grab gas — one click</span></div>
+      <div data-hf-id="hf-2bwv" id="s-faucet" class="scene clip-scene">
+        <div data-hf-id="hf-lcbg" class="win" id="w-faucet">
+          <div data-hf-id="hf-hdop" class="titlebar"><span data-hf-id="hf-u764" class="dot r"></span><span data-hf-id="hf-lmxj" class="dot y"></span><span data-hf-id="hf-ghh9" class="dot g"></span><span data-hf-id="hf-zdle" class="wtitle">WalDrive</span><span data-hf-id="hf-l2pt" class="wstep"><span data-hf-id="hf-blkd" class="num">02</span>Grab gas — one click</span></div>
+          <div data-hf-id="hf-0hv8" class="screen"><div data-hf-id="hf-biyd" class="vz" id="z-faucet"><video data-hf-id="hf-lmao" id="v-faucet" class="clip" src="assets/clips/02-faucet.mp4" data-start="42.6" data-duration="7.0" data-media-start="0" data-track-index="3" muted playsinline crossorigin="anonymous"></video></div></div>
+        </div>
       </div>
 
       <!-- CLIP 3 · MULTI-UPLOAD -->
-      <div id="s-upload" class="scene clip-scene">
-        <video id="v-upload" class="clip" src="assets/clips/03-multi-upload.mp4" data-start="48.4" data-duration="32.6" data-media-start="0.4" data-track-index="2" muted playsinline crossorigin="anonymous"></video>
-        <div class="clip-frame"></div>
-        <div class="demo-label" id="l-upload"><span class="num">03</span><span class="div"></span><span class="txt">Drag files in — plural</span></div>
+      <div data-hf-id="hf-0758" id="s-upload" class="scene clip-scene">
+        <div data-hf-id="hf-cp83" class="win" id="w-upload">
+          <div data-hf-id="hf-ikls" class="titlebar"><span data-hf-id="hf-t091" class="dot r"></span><span data-hf-id="hf-l8mi" class="dot y"></span><span data-hf-id="hf-hoec" class="dot g"></span><span data-hf-id="hf-zrwf" class="wtitle">WalDrive</span><span data-hf-id="hf-j9n4" class="wstep"><span data-hf-id="hf-bzve" class="num">03</span>Drag files in — plural</span></div>
+          <div data-hf-id="hf-zay5" class="screen"><div data-hf-id="hf-u7xq" class="vz" id="z-upload"><video data-hf-id="hf-kc26" id="v-upload" class="clip" src="assets/clips/03-multi-upload.mp4" data-start="48.4" data-duration="32.6" data-media-start="0.4" data-track-index="2" muted playsinline crossorigin="anonymous"></video></div></div>
+        </div>
       </div>
 
       <!-- CLIP 4 · VERIFY (slow zoom on the proof) -->
-      <div id="s-verify" class="scene clip-scene">
-        <div class="zoomwrap" id="verify-zoom" style="position: absolute; inset: 0; transform-origin: 50% 48%;">
-          <video id="v-verify" class="clip" src="assets/clips/04-verify.mp4" data-start="80.4" data-duration="13.6" data-media-start="0.4" data-track-index="3" muted playsinline crossorigin="anonymous"></video>
+      <div data-hf-id="hf-3nzg" id="s-verify" class="scene clip-scene">
+        <div data-hf-id="hf-4z4n" class="win" id="w-verify">
+          <div data-hf-id="hf-i6ar" class="titlebar"><span data-hf-id="hf-tek2" class="dot r"></span><span data-hf-id="hf-kubh" class="dot y"></span><span data-hf-id="hf-ha3b" class="dot g"></span><span data-hf-id="hf-067g" class="wtitle">WalDrive</span><span data-hf-id="hf-9cww" class="wstep"><span data-hf-id="hf-dzej" class="num">04</span>Render, verify, hash on screen</span></div>
+          <div data-hf-id="hf-zp96" class="screen"><div data-hf-id="hf-zflv" class="vz" id="z-verify" style="transform-origin: 50% 48%;"><video data-hf-id="hf-hb7p" id="v-verify" class="clip" src="assets/clips/04-verify.mp4" data-start="80.4" data-duration="13.6" data-media-start="0.4" data-track-index="3" muted playsinline crossorigin="anonymous"></video></div></div>
         </div>
-        <div class="clip-frame"></div>
-        <div class="demo-label" id="l-verify"><span class="num">04</span><span class="div"></span><span class="txt">Render, verify, hash on screen</span></div>
       </div>
 
       <!-- CLIP 5 · ORGANIZE -->
-      <div id="s-organize" class="scene clip-scene">
-        <video id="v-organize" class="clip" src="assets/clips/05-organize.mp4" data-start="93.4" data-duration="25.6" data-media-start="0.4" data-track-index="2" muted playsinline crossorigin="anonymous"></video>
-        <div class="clip-frame"></div>
-        <div class="demo-label" id="l-organize"><span class="num">05</span><span class="div"></span><span class="txt">Folders &amp; tags — on-chain</span></div>
+      <div data-hf-id="hf-3ogs" id="s-organize" class="scene clip-scene">
+        <div data-hf-id="hf-v44j" class="win" id="w-organize">
+          <div data-hf-id="hf-g6rm" class="titlebar"><span data-hf-id="hf-ve37" class="dot r"></span><span data-hf-id="hf-nmgo" class="dot y"></span><span data-hf-id="hf-ih0e" class="dot g"></span><span data-hf-id="hf-0kih" class="wtitle">WalDrive</span><span data-hf-id="hf-0iyj" class="wstep"><span data-hf-id="hf-edpk" class="num">05</span>Folders &amp; tags — on-chain</span></div>
+          <div data-hf-id="hf-1osb" class="screen"><div data-hf-id="hf-tdx2" class="vz" id="z-organize"><video data-hf-id="hf-r7ek" id="v-organize" class="clip" src="assets/clips/05-organize.mp4" data-start="93.4" data-duration="25.6" data-media-start="0.4" data-track-index="2" muted playsinline crossorigin="anonymous"></video></div></div>
+        </div>
       </div>
 
       <!-- CLIP 6 · VERSIONS -->
-      <div id="s-versions" class="scene clip-scene">
-        <video id="v-versions" class="clip" src="assets/clips/06-versions.mp4" data-start="118.4" data-duration="42.4" data-media-start="0.4" data-track-index="3" muted playsinline crossorigin="anonymous"></video>
-        <div class="clip-frame"></div>
-        <div class="demo-label" id="l-versions"><span class="num">06</span><span class="div"></span><span class="txt">Version history &amp; rollback</span></div>
+      <div data-hf-id="hf-n1bg" id="s-versions" class="scene clip-scene">
+        <div data-hf-id="hf-2bkv" class="win" id="w-versions">
+          <div data-hf-id="hf-fsgl" class="titlebar"><span data-hf-id="hf-vse8" class="dot r"></span><span data-hf-id="hf-n85n" class="dot y"></span><span data-hf-id="hf-i2pd" class="dot g"></span><span data-hf-id="hf-0yti" class="wtitle">WalDrive</span><span data-hf-id="hf-6ud4" class="wstep"><span data-hf-id="hf-d6sh" class="num">06</span>Version history &amp; rollback</span></div>
+          <div data-hf-id="hf-233c" class="screen"><div data-hf-id="hf-q5iq" class="vz" id="z-versions"><video data-hf-id="hf-mrsv" id="v-versions" class="clip" src="assets/clips/06-versions.mp4" data-start="118.4" data-duration="42.4" data-media-start="0.4" data-track-index="3" muted playsinline crossorigin="anonymous"></video></div></div>
+        </div>
       </div>
 
       <!-- CLIP 7 · STORAGE -->
-      <div id="s-storage" class="scene clip-scene">
-        <video id="v-storage" class="clip" src="assets/clips/07-storage.mp4" data-start="160.2" data-duration="17.8" data-media-start="0.76" data-track-index="2" muted playsinline crossorigin="anonymous"></video>
-        <div class="clip-frame"></div>
-        <div class="demo-label" id="l-storage"><span class="num">07</span><span class="div"></span><span class="txt">Your storage, renewable</span></div>
+      <div data-hf-id="hf-ja0i" id="s-storage" class="scene clip-scene">
+        <div data-hf-id="hf-2ah7" class="win" id="w-storage">
+          <div data-hf-id="hf-gzdo" class="titlebar"><span data-hf-id="hf-ulh5" class="dot r"></span><span data-hf-id="hf-mtum" class="dot y"></span><span data-hf-id="hf-j9mg" class="dot g"></span><span data-hf-id="hf-1d4j" class="wtitle">WalDrive</span><span data-hf-id="hf-ejlt" class="wstep"><span data-hf-id="hf-dl3i" class="num">07</span>Your storage, renewable</span></div>
+          <div data-hf-id="hf-0w69" class="screen"><div data-hf-id="hf-gmfo" class="vz" id="z-storage"><video data-hf-id="hf-86sb" id="v-storage" class="clip" src="assets/clips/07-storage.mp4" data-start="160.2" data-duration="17.8" data-media-start="0.76" data-track-index="2" muted playsinline crossorigin="anonymous"></video></div></div>
+        </div>
       </div>
 
       <!-- CLIP 8 · ACCOUNTS -->
-      <div id="s-accounts" class="scene clip-scene">
-        <video id="v-accounts" class="clip" src="assets/clips/08-accounts.mp4" data-start="177.4" data-duration="15.8" data-media-start="0.4" data-track-index="3" muted playsinline crossorigin="anonymous"></video>
-        <div class="clip-frame"></div>
-        <div class="demo-label" id="l-accounts"><span class="num">08</span><span class="div"></span><span class="txt">Your key is your drive</span></div>
+      <div data-hf-id="hf-u0gv" id="s-accounts" class="scene clip-scene">
+        <div data-hf-id="hf-3lys" class="win" id="w-accounts">
+          <div data-hf-id="hf-gl2n" class="titlebar"><span data-hf-id="hf-uzs6" class="dot r"></span><span data-hf-id="hf-mfjl" class="dot y"></span><span data-hf-id="hf-ivbf" class="dot g"></span><span data-hf-id="hf-1rfk" class="wtitle">WalDrive</span><span data-hf-id="hf-pqo1" class="wstep"><span data-hf-id="hf-fkmn" class="num">08</span>Your key is your drive</span></div>
+          <div data-hf-id="hf-1aha" class="screen"><div data-hf-id="hf-l2s9" class="vz" id="z-accounts"><video data-hf-id="hf-o126" id="v-accounts" class="clip" src="assets/clips/08-accounts.mp4" data-start="177.4" data-duration="15.8" data-media-start="0.4" data-track-index="3" muted playsinline crossorigin="anonymous"></video></div></div>
+        </div>
       </div>
 
       <!-- MCP (205–216.6) — the agent write-path, same chrome as the problem scene -->
-      <div id="mcp" class="scene">
-        <div class="grid-bg" id="m-grid"></div>
-        <div class="glow" id="m-glow" style="width: 640px; height: 640px; right: -120px; top: 360px; background: var(--accent);"></div>
-        <div class="ghost" id="m-ghost" style="left: -30px; bottom: 40px; font-size: 280px;">MCP</div>
-        <div class="wrap">
-          <div class="kicker" id="m-kicker"><span class="bar"></span>Not just for humans</div>
-          <h1 id="m-head">Agents get the same drive.<br /><span class="mut">WalDrive ships an MCP server.</span></h1>
+      <div data-hf-id="hf-yvtm" id="mcp" class="scene">
+        <div data-hf-id="hf-3b28" class="grid-bg" id="m-grid"></div>
+        <div data-hf-id="hf-zt0c" class="glow" id="m-glow" style="width: 640px; height: 640px; right: -120px; top: 360px; background: var(--accent);"></div>
+        <div data-hf-id="hf-0iu6" class="ghost" id="m-ghost" style="left: -30px; bottom: 40px; font-size: 280px;">MCP</div>
+        <div data-hf-id="hf-eonx" class="wrap">
+          <div data-hf-id="hf-74nw" class="kicker" id="m-kicker"><span data-hf-id="hf-78ow" class="bar"></span>Not just for humans</div>
+          <h1 data-hf-id="hf-aenm" id="m-head">Agents get the same drive.<br data-hf-id="hf-rsrt"><span data-hf-id="hf-9z0m" class="mut">WalDrive ships an MCP server.</span></h1>
         </div>
-        <div class="pills">
-          <div class="pill" id="m-pill1">upload_file</div>
-          <div class="pill" id="m-pill2">list_files</div>
-          <div class="pill" id="m-pill3">download_file</div>
-          <div class="pill" id="m-pill4">get_file_info</div>
+        <div data-hf-id="hf-hgt4" class="pills">
+          <div data-hf-id="hf-ruub" class="pill" id="m-pill1">upload_file</div>
+          <div data-hf-id="hf-5aca" class="pill" id="m-pill2">list_files</div>
+          <div data-hf-id="hf-vm5a" class="pill" id="m-pill3">download_file</div>
+          <div data-hf-id="hf-bf1k" class="pill" id="m-pill4">get_file_info</div>
         </div>
       </div>
 
       <!-- CONCLUSION (216–234) -->
-      <div id="outro" class="scene">
-        <div class="grid-bg" id="o-grid"></div>
-        <div class="glow" id="o-glow" style="width: 820px; height: 820px; left: 980px; top: 280px; background: var(--accent);"></div>
-        <div class="ghost" id="o-ghost" style="right: 40px; top: 30px; font-size: 220px;">SUI</div>
-        <div class="wrap">
-          <h1 class="wordmark"><span id="o-wal">Wal</span><span class="drive" id="o-drive">Drive</span></h1>
-          <div class="line" id="o-line">
-            The file-management &amp; <b>verifiable-data console</b> for everything your agents store on Walrus.
+      <div data-hf-id="hf-5h8r" id="outro" class="scene">
+        <div data-hf-id="hf-hn6y" class="grid-bg" id="o-grid"></div>
+        <div data-hf-id="hf-o8iv" class="glow" id="o-glow" style="width: 820px; height: 820px; left: 980px; top: 280px; background: var(--accent);"></div>
+        <div data-hf-id="hf-0iqt" class="ghost" id="o-ghost" style="right: 40px; top: 30px; font-size: 220px;">SUI</div>
+        <div data-hf-id="hf-f2yy" class="wrap">
+          <h1 data-hf-id="hf-1d4x" class="wordmark"><span data-hf-id="hf-ew6a" id="o-wal">Wal</span><span data-hf-id="hf-hwyp" class="drive" id="o-drive">Drive</span></h1>
+          <div data-hf-id="hf-9204" class="line" id="o-line">
+            The file-management &amp; <b data-hf-id="hf-5g7a">verifiable-data console</b> for everything your agents store on Walrus.
           </div>
         </div>
-        <div class="props">
-          <div class="prop" id="o-p1"><span class="ck">✓</span>Real bytes</div>
-          <div class="prop" id="o-p2"><span class="ck">✓</span>Real ownership</div>
-          <div class="prop" id="o-p3"><span class="ck">✓</span>Verifiable by anyone</div>
+        <div data-hf-id="hf-py16" class="props">
+          <div data-hf-id="hf-fn2j" class="prop" id="o-p1"><span data-hf-id="hf-51x0" class="ck">✓</span>Real bytes</div>
+          <div data-hf-id="hf-j82a" class="prop" id="o-p2"><span data-hf-id="hf-juh8" class="ck">✓</span>Real ownership</div>
+          <div data-hf-id="hf-v0bm" class="prop" id="o-p3"><span data-hf-id="hf-ink5" class="ck">✓</span>Verifiable by anyone</div>
         </div>
-        <div class="repo" id="o-repo">github.com/Fldicoahkiin/WalDrive</div>
+        <div data-hf-id="hf-9bd3" class="repo" id="o-repo">github.com/Fldicoahkiin/WalDrive</div>
       </div>
 
       <!-- CAPTION TRACK (overlay, non-timed; GSAP-gated) -->
-      <div id="captions"></div>
+      <div data-hf-id="hf-iuvo" id="captions"></div>
 
       <!-- NARRATION (one timed audio per scene) -->
-      <audio id="n-problem"    class="clip" src="assets/narration/01-problem.wav"    data-start="6.2"   data-duration="17.6" data-track-index="10" data-volume="1"></audio>
-      <audio id="n-welcome"    class="clip" src="assets/narration/02-welcome.wav"    data-start="27.8"  data-duration="8.0"  data-track-index="10" data-volume="1"></audio>
-      <audio id="n-faucet"     class="clip" src="assets/narration/03-faucet.wav"     data-start="43.4"  data-duration="6.4"  data-track-index="10" data-volume="1"></audio>
-      <audio id="n-upload"     class="clip" src="assets/narration/04-upload.wav"     data-start="49.8"  data-duration="10.8" data-track-index="10" data-volume="1"></audio>
-      <audio id="n-verify"     class="clip" src="assets/narration/05-verify.wav"     data-start="81.8"  data-duration="9.6"  data-track-index="10" data-volume="1"></audio>
-      <audio id="n-organize"   class="clip" src="assets/narration/06-organize.wav"   data-start="94.8"  data-duration="8.0"  data-track-index="10" data-volume="1"></audio>
-      <audio id="n-versions"   class="clip" src="assets/narration/07-versions.wav"   data-start="119.8" data-duration="9.4"  data-track-index="10" data-volume="1"></audio>
-      <audio id="n-storage"    class="clip" src="assets/narration/08-storage.wav"    data-start="161.6" data-duration="9.1"  data-track-index="10" data-volume="1"></audio>
-      <audio id="n-accounts"   class="clip" src="assets/narration/09-accounts.wav"   data-start="178.8" data-duration="7.0"  data-track-index="10" data-volume="1"></audio>
-      <audio id="n-mcp"        class="clip" src="assets/narration/10-mcp.wav"        data-start="194.4" data-duration="8.0"  data-track-index="10" data-volume="1"></audio>
-      <audio id="n-conclusion" class="clip" src="assets/narration/11-conclusion.wav" data-start="205.5" data-duration="13.1" data-track-index="10" data-volume="1"></audio>
+      <audio data-hf-id="hf-hxle" id="n-problem" class="clip" src="assets/narration/01-problem.wav" data-start="6.2" data-duration="17.6" data-track-index="10" data-volume="1"></audio>
+      <audio data-hf-id="hf-r77k" id="n-welcome" class="clip" src="assets/narration/02-welcome.wav" data-start="27.8" data-duration="8.0" data-track-index="10" data-volume="1"></audio>
+      <audio data-hf-id="hf-874d" id="n-faucet" class="clip" src="assets/narration/03-faucet.wav" data-start="43.4" data-duration="6.4" data-track-index="10" data-volume="1"></audio>
+      <audio data-hf-id="hf-y9fp" id="n-upload" class="clip" src="assets/narration/04-upload.wav" data-start="49.8" data-duration="10.8" data-track-index="10" data-volume="1"></audio>
+      <audio data-hf-id="hf-21kw" id="n-verify" class="clip" src="assets/narration/05-verify.wav" data-start="81.8" data-duration="9.6" data-track-index="10" data-volume="1"></audio>
+      <audio data-hf-id="hf-62wy" id="n-organize" class="clip" src="assets/narration/06-organize.wav" data-start="94.8" data-duration="8.0" data-track-index="10" data-volume="1"></audio>
+      <audio data-hf-id="hf-1dj6" id="n-versions" class="clip" src="assets/narration/07-versions.wav" data-start="119.8" data-duration="9.4" data-track-index="10" data-volume="1"></audio>
+      <audio data-hf-id="hf-nb0n" id="n-storage" class="clip" src="assets/narration/08-storage.wav" data-start="161.6" data-duration="9.1" data-track-index="10" data-volume="1"></audio>
+      <audio data-hf-id="hf-f7i5" id="n-accounts" class="clip" src="assets/narration/09-accounts.wav" data-start="178.8" data-duration="7.0" data-track-index="10" data-volume="1"></audio>
+      <audio data-hf-id="hf-f1by" id="n-mcp" class="clip" src="assets/narration/10-mcp.wav" data-start="194.4" data-duration="8.0" data-track-index="10" data-volume="1"></audio>
+      <audio data-hf-id="hf-nfzk" id="n-conclusion" class="clip" src="assets/narration/11-conclusion.wav" data-start="205.5" data-duration="13.1" data-track-index="10" data-volume="1"></audio>
 
       <!-- MUSIC BED (quiet, full length) -->
-      <audio id="music" class="clip" src="assets/music/bed.wav" data-start="0" data-duration="222" data-media-start="0" data-track-index="11" data-volume="0.12"></audio>
+      <audio data-hf-id="hf-eg9m" id="music" class="clip" src="assets/music/bed.wav" data-start="0" data-duration="222" data-media-start="0" data-track-index="11" data-volume="0.12"></audio>
     </div>
 
     <script>
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
 
-      /* ----- scene crossfades -----
-         Wrappers are non-timed: GSAP fully owns their opacity. Each scene
-         fades IN at its start, holds, then fades OUT as the next scene fades
-         in (a real crossfade — both layers live for ~0.6s). The video inside
-         is a timed clip the runtime plays only within its own window, which
-         overlaps the neighbour's window so both frames are present. */
-      const XF = 0.6;
-      function sceneIn(sel, at) {
-        tl.fromTo(sel, { opacity: 0 }, { opacity: 1, duration: XF, ease: "power2.inOut" }, at);
+      /* ----- scene transitions -----
+         Wrappers are non-timed: GSAP fully owns their opacity. Text scenes
+         crossfade softly (XF). Demo clips share one window position, so going
+         clip→clip is a quick content cut (CUT) — clean, never a mushy gradient.
+         The video inside is a timed clip the runtime plays only within its own
+         window, which overlaps the neighbour's so both frames are present
+         during the cut. */
+      const XF = 0.5; // text-scene crossfade
+      const CUT = 0.16; // clip↔clip: quick, clean cut (Screen Studio feel)
+      function sceneIn(sel, at, d = XF) {
+        tl.fromTo(sel, { opacity: 0 }, { opacity: 1, duration: d, ease: "power2.out" }, at);
       }
-      function sceneOut(sel, at) {
-        tl.to(sel, { opacity: 0, duration: XF, ease: "power2.inOut" }, at);
+      function sceneOut(sel, at, d = XF) {
+        tl.to(sel, { opacity: 0, duration: d, ease: "power2.in" }, at);
       }
 
       // title up immediately
       tl.set("#title", { opacity: 1 }, 0);
-      // crossfade chain (out of prev starts where next fades in)
-      sceneIn("#problem", 5.0);     sceneOut("#title", 5.0);
-      sceneIn("#s-welcome", 27.0);  sceneOut("#problem", 27.0);
-      sceneIn("#s-faucet", 42.6);   sceneOut("#s-welcome", 42.6);
-      sceneIn("#s-upload", 49.0);   sceneOut("#s-faucet", 49.0);
-      sceneIn("#s-verify", 81.0);   sceneOut("#s-upload", 81.0);
-      sceneIn("#s-organize", 94.0); sceneOut("#s-verify", 94.0);
-      sceneIn("#s-versions", 119.0);sceneOut("#s-organize", 119.0);
-      sceneIn("#s-storage", 160.8); sceneOut("#s-versions", 160.8);
-      sceneIn("#s-accounts", 178.0);sceneOut("#s-storage", 178.0);
-      sceneIn("#mcp", 193.2);       sceneOut("#s-accounts", 193.2);
-      sceneIn("#outro", 204.0);     sceneOut("#mcp", 204.0);
+      // transition chain (out of prev starts where next comes in)
+      sceneIn("#problem", 5.0);              sceneOut("#title", 5.0);
+      sceneIn("#s-welcome", 27.0, CUT);      sceneOut("#problem", 27.0, CUT);
+      sceneIn("#s-faucet", 42.6, CUT);       sceneOut("#s-welcome", 42.6, CUT);
+      sceneIn("#s-upload", 49.0, CUT);       sceneOut("#s-faucet", 49.0, CUT);
+      sceneIn("#s-verify", 81.0, CUT);       sceneOut("#s-upload", 81.0, CUT);
+      sceneIn("#s-organize", 94.0, CUT);     sceneOut("#s-verify", 94.0, CUT);
+      sceneIn("#s-versions", 119.0, CUT);    sceneOut("#s-organize", 119.0, CUT);
+      sceneIn("#s-storage", 160.8, CUT);     sceneOut("#s-versions", 160.8, CUT);
+      sceneIn("#s-accounts", 178.0, CUT);    sceneOut("#s-storage", 178.0, CUT);
+      sceneIn("#mcp", 193.2);                sceneOut("#s-accounts", 193.2, CUT);
+      sceneIn("#outro", 204.0);              sceneOut("#mcp", 204.0);
       // final fade to black
-      sceneOut("#outro", 221.0);
+      sceneOut("#outro", 221.0, 1.0);
 
       /* ----- TITLE entrances ----- */
       tl.from("#t-eyebrow", { y: 24, opacity: 0, duration: 0.6, ease: "power3.out" }, 0.3);
@@ -588,22 +632,24 @@
       tl.to("#p-glow", { scale: 1.2, duration: 3.2, ease: "sine.inOut", yoyo: true, repeat: 2 }, 5.2);
       tl.to("#p-grid", { x: 48, duration: 22, ease: "none" }, 5.2);
 
-      /* ----- demo labels: slide in just after each cut ----- */
-      function labelIn(sel, at) {
-        tl.from(sel, { x: -50, opacity: 0, duration: 0.55, ease: "power3.out" }, at);
+      /* ----- per-clip push-in zoom (Screen Studio "always alive") -----
+         Each clip's screen content eases in slightly over its hold; verify
+         gets a stronger breathing zoom to land on the on-screen proof. Every
+         tween targets a distinct .vz wrapper — never the video element. */
+      function clipZoom(sel, at, dur, to) {
+        tl.fromTo(sel, { scale: 1.0 }, { scale: to, duration: dur, ease: "sine.inOut" }, at);
       }
-      labelIn("#l-welcome", 27.6);
-      labelIn("#l-faucet", 43.2);
-      labelIn("#l-upload", 49.6);
-      labelIn("#l-verify", 81.6);
-      labelIn("#l-organize", 94.6);
-      labelIn("#l-versions", 119.6);
-      labelIn("#l-storage", 161.4);
-      labelIn("#l-accounts", 178.6);
+      clipZoom("#z-welcome", 27.0, 15.0, 1.045);
+      clipZoom("#z-faucet", 42.7, 6.0, 1.03);
+      clipZoom("#z-upload", 49.1, 31.0, 1.05);
+      clipZoom("#z-organize", 94.1, 24.0, 1.05);
+      clipZoom("#z-versions", 119.1, 40.0, 1.05);
+      clipZoom("#z-storage", 160.9, 16.0, 1.04);
+      clipZoom("#z-accounts", 178.1, 14.0, 1.04);
 
       /* ----- VERIFY: slow breathing zoom (the differentiator) ----- */
-      tl.fromTo("#verify-zoom", { scale: 1.0 }, { scale: 1.12, duration: 8, ease: "sine.inOut" }, 82.0);
-      tl.to("#verify-zoom", { scale: 1.04, duration: 3.4, ease: "sine.inOut" }, 90.4);
+      tl.fromTo("#z-verify", { scale: 1.0 }, { scale: 1.12, duration: 8, ease: "sine.inOut" }, 82.0);
+      tl.to("#z-verify", { scale: 1.04, duration: 3.4, ease: "sine.inOut" }, 90.4);
 
       /* ----- MCP entrances (mirrors the problem scene) ----- */
       tl.from("#m-kicker", { x: -40, opacity: 0, duration: 0.6, ease: "power3.out" }, 193.8);

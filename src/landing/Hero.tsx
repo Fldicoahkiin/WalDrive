@@ -2,7 +2,7 @@ import { motion } from "motion/react";
 import { ArrowRight, Download } from "lucide-react";
 import { CONTAINER, EASE, RELEASE_URL } from "./shared";
 import { LinkCta, NavCta } from "./primitives";
-import { WindowFrame } from "./WindowFrame";
+import { LiveApp } from "./LiveApp";
 
 const container = {
   hidden: {},
@@ -73,10 +73,7 @@ export function Hero() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.85, ease: EASE, delay: 0.45 }}
         >
-          <WindowFrame
-            alt="WalDrive console: sidebar, drag-to-upload zone and a live file grid"
-            src="/landing/app-grid.png"
-          />
+          <LiveApp />
         </motion.div>
       </motion.div>
     </section>

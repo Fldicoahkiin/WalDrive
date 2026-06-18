@@ -376,6 +376,19 @@
         color: var(--ink);
         font-weight: 600;
       }
+      #outro .pricing {
+        font-size: 30px;
+        font-weight: 400;
+        letter-spacing: -0.4px;
+        color: var(--ink-subtle);
+        margin-top: 22px;
+        max-width: 1300px;
+        line-height: 1.4;
+      }
+      #outro .pricing b {
+        color: var(--ink-muted);
+        font-weight: 600;
+      }
       .props {
         position: absolute;
         left: 160px;
@@ -544,6 +557,9 @@
           <div data-hf-id="hf-9204" class="line" id="o-line">
             The file-management &amp; <b data-hf-id="hf-5g7a">verifiable-data console</b> for everything your agents store on Walrus.
           </div>
+          <div class="pricing" id="o-pricing">
+            Free on testnet today — on mainnet, agents <b>pay per upload</b> (WAL storage + a little SUI gas), metered by the on-chain record.
+          </div>
         </div>
         <div data-hf-id="hf-py16" class="props">
           <div data-hf-id="hf-fn2j" class="prop" id="o-p1"><span data-hf-id="hf-51x0" class="ck">✓</span>Real bytes</div>
@@ -666,6 +682,7 @@
       tl.from("#o-wal", { y: 60, opacity: 0, duration: 0.8, ease: "power4.out" }, 204.5);
       tl.from("#o-drive", { y: 60, opacity: 0, duration: 0.8, ease: "power4.out" }, 204.65);
       tl.from("#o-line", { y: 34, opacity: 0, duration: 0.8, ease: "power2.out" }, 205.0);
+      tl.from("#o-pricing", { y: 28, opacity: 0, duration: 0.7, ease: "power2.out" }, 205.5);
       tl.from("#o-p1", { y: 28, opacity: 0, duration: 0.5, ease: "back.out(1.4)" }, 206.5);
       tl.from("#o-p2", { y: 28, opacity: 0, duration: 0.5, ease: "back.out(1.4)" }, 206.7);
       tl.from("#o-p3", { y: 28, opacity: 0, duration: 0.5, ease: "back.out(1.4)" }, 206.9);

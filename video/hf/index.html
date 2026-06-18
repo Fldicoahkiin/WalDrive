@@ -70,60 +70,50 @@
       .win {
         position: absolute;
         left: 232px;
-        top: 48px;
+        top: 44px;
         width: 1456px;
-        border-radius: 18px;
-        background: var(--surface-1);
+        border-radius: 16px;
         border: 1px solid var(--hairline-strong);
         box-shadow: 0 60px 130px -34px rgba(0, 0, 0, 0.85);
         overflow: hidden;
-        transform-origin: 50% 52%;
+        transform-origin: 50% 50%;
         will-change: transform;
       }
-      .win .titlebar {
-        display: flex;
-        align-items: center;
-        gap: 11px;
-        height: 52px;
-        padding: 0 22px;
-        background: var(--surface-2);
-        border-bottom: 1px solid var(--hairline);
+      /* active-window top edge — a faint accent line, like the real desktop window */
+      .win::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        z-index: 8;
+        background: linear-gradient(90deg, transparent, rgba(130, 143, 255, 0.75), transparent);
+        pointer-events: none;
       }
-      .win .dot {
-        width: 15px;
-        height: 15px;
+      /* macOS overlay traffic lights — integrated top-left, no title bar */
+      .win .lights {
+        position: absolute;
+        top: 19px;
+        left: 22px;
+        z-index: 8;
+        display: flex;
+        gap: 9px;
+        pointer-events: none;
+      }
+      .win .lights span {
+        width: 13px;
+        height: 13px;
         border-radius: 999px;
       }
-      .win .dot.r {
+      .win .lights .r {
         background: #ff5f57;
       }
-      .win .dot.y {
+      .win .lights .y {
         background: #febc2e;
       }
-      .win .dot.g {
+      .win .lights .g {
         background: #28c840;
-      }
-      .win .wtitle {
-        margin-left: 10px;
-        font-size: 22px;
-        font-weight: 600;
-        letter-spacing: -0.3px;
-        color: var(--ink-muted);
-      }
-      .win .wstep {
-        margin-left: auto;
-        display: inline-flex;
-        align-items: center;
-        gap: 12px;
-        font-size: 21px;
-        font-weight: 500;
-        letter-spacing: -0.2px;
-        color: var(--ink-muted);
-      }
-      .win .wstep .num {
-        font-weight: 700;
-        color: var(--accent-hover);
-        font-variant-numeric: tabular-nums;
       }
       .win .screen {
         position: relative;
@@ -319,7 +309,7 @@
         position: absolute;
         left: 0;
         right: 0;
-        bottom: 78px;
+        bottom: 90px;
         z-index: 9;
         pointer-events: none;
       }
@@ -334,15 +324,15 @@
       }
       .cap span {
         display: inline-block;
-        max-width: 1500px;
-        padding: 14px 34px;
-        background: rgba(1, 1, 2, 0.74);
+        max-width: 1560px;
+        padding: 18px 42px;
+        background: rgba(1, 1, 2, 0.82);
         border: 1px solid var(--hairline);
-        border-radius: 12px;
-        font-size: 40px;
-        font-weight: 500;
+        border-radius: 14px;
+        font-size: 52px;
+        font-weight: 600;
         letter-spacing: -0.4px;
-        line-height: 1.25;
+        line-height: 1.3;
         color: var(--ink);
       }
 
@@ -469,7 +459,7 @@
       <!-- CLIP 1 · WELCOME -->
       <div data-hf-id="hf-8r8h" id="s-welcome" class="scene clip-scene">
         <div data-hf-id="hf-nfxo" class="win" id="w-welcome">
-          <div data-hf-id="hf-t179" class="titlebar"><span data-hf-id="hf-620k" class="dot r"></span><span data-hf-id="hf-65hz" class="dot y"></span><span data-hf-id="hf-4ih5" class="dot g"></span><span data-hf-id="hf-bs0e" class="wtitle">WalDrive</span><span data-hf-id="hf-xp6m" class="wstep"><span data-hf-id="hf-cshg" class="num">01</span>Generate a local wallet</span></div>
+          <div class="lights"><span class="r"></span><span class="y"></span><span class="g"></span></div>
           <div data-hf-id="hf-cdmk" class="screen"><div data-hf-id="hf-nopz" class="vz" id="z-welcome"><video data-hf-id="hf-y3kg" id="v-welcome" class="clip" src="assets/clips/01-welcome.mp4" data-start="26.4" data-duration="16.2" data-media-start="0.4" data-track-index="2" muted playsinline crossorigin="anonymous"></video></div></div>
         </div>
       </div>
@@ -477,7 +467,7 @@
       <!-- CLIP 2 · FAUCET (in-app one-click gas — devnet) -->
       <div data-hf-id="hf-2bwv" id="s-faucet" class="scene clip-scene">
         <div data-hf-id="hf-lcbg" class="win" id="w-faucet">
-          <div data-hf-id="hf-hdop" class="titlebar"><span data-hf-id="hf-u764" class="dot r"></span><span data-hf-id="hf-lmxj" class="dot y"></span><span data-hf-id="hf-ghh9" class="dot g"></span><span data-hf-id="hf-zdle" class="wtitle">WalDrive</span><span data-hf-id="hf-l2pt" class="wstep"><span data-hf-id="hf-blkd" class="num">02</span>Grab gas — one click</span></div>
+          <div class="lights"><span class="r"></span><span class="y"></span><span class="g"></span></div>
           <div data-hf-id="hf-0hv8" class="screen"><div data-hf-id="hf-biyd" class="vz" id="z-faucet"><video data-hf-id="hf-lmao" id="v-faucet" class="clip" src="assets/clips/02-faucet.mp4" data-start="42.6" data-duration="7.0" data-media-start="0" data-track-index="3" muted playsinline crossorigin="anonymous"></video></div></div>
         </div>
       </div>
@@ -485,7 +475,7 @@
       <!-- CLIP 3 · MULTI-UPLOAD -->
       <div data-hf-id="hf-0758" id="s-upload" class="scene clip-scene">
         <div data-hf-id="hf-cp83" class="win" id="w-upload">
-          <div data-hf-id="hf-ikls" class="titlebar"><span data-hf-id="hf-t091" class="dot r"></span><span data-hf-id="hf-l8mi" class="dot y"></span><span data-hf-id="hf-hoec" class="dot g"></span><span data-hf-id="hf-zrwf" class="wtitle">WalDrive</span><span data-hf-id="hf-j9n4" class="wstep"><span data-hf-id="hf-bzve" class="num">03</span>Drag files in — plural</span></div>
+          <div class="lights"><span class="r"></span><span class="y"></span><span class="g"></span></div>
           <div data-hf-id="hf-zay5" class="screen"><div data-hf-id="hf-u7xq" class="vz" id="z-upload"><video data-hf-id="hf-kc26" id="v-upload" class="clip" src="assets/clips/03-multi-upload.mp4" data-start="48.4" data-duration="32.6" data-media-start="0.4" data-track-index="2" muted playsinline crossorigin="anonymous"></video></div></div>
         </div>
       </div>
@@ -493,7 +483,7 @@
       <!-- CLIP 4 · VERIFY (slow zoom on the proof) -->
       <div data-hf-id="hf-3nzg" id="s-verify" class="scene clip-scene">
         <div data-hf-id="hf-4z4n" class="win" id="w-verify">
-          <div data-hf-id="hf-i6ar" class="titlebar"><span data-hf-id="hf-tek2" class="dot r"></span><span data-hf-id="hf-kubh" class="dot y"></span><span data-hf-id="hf-ha3b" class="dot g"></span><span data-hf-id="hf-067g" class="wtitle">WalDrive</span><span data-hf-id="hf-9cww" class="wstep"><span data-hf-id="hf-dzej" class="num">04</span>Render, verify, hash on screen</span></div>
+          <div class="lights"><span class="r"></span><span class="y"></span><span class="g"></span></div>
           <div data-hf-id="hf-zp96" class="screen"><div data-hf-id="hf-zflv" class="vz" id="z-verify" style="transform-origin: 50% 48%;"><video data-hf-id="hf-hb7p" id="v-verify" class="clip" src="assets/clips/04-verify.mp4" data-start="80.4" data-duration="13.6" data-media-start="0.4" data-track-index="3" muted playsinline crossorigin="anonymous"></video></div></div>
         </div>
       </div>
@@ -501,7 +491,7 @@
       <!-- CLIP 5 · ORGANIZE -->
       <div data-hf-id="hf-3ogs" id="s-organize" class="scene clip-scene">
         <div data-hf-id="hf-v44j" class="win" id="w-organize">
-          <div data-hf-id="hf-g6rm" class="titlebar"><span data-hf-id="hf-ve37" class="dot r"></span><span data-hf-id="hf-nmgo" class="dot y"></span><span data-hf-id="hf-ih0e" class="dot g"></span><span data-hf-id="hf-0kih" class="wtitle">WalDrive</span><span data-hf-id="hf-0iyj" class="wstep"><span data-hf-id="hf-edpk" class="num">05</span>Folders &amp; tags — on-chain</span></div>
+          <div class="lights"><span class="r"></span><span class="y"></span><span class="g"></span></div>
           <div data-hf-id="hf-1osb" class="screen"><div data-hf-id="hf-tdx2" class="vz" id="z-organize"><video data-hf-id="hf-r7ek" id="v-organize" class="clip" src="assets/clips/05-organize.mp4" data-start="93.4" data-duration="25.6" data-media-start="0.4" data-track-index="2" muted playsinline crossorigin="anonymous"></video></div></div>
         </div>
       </div>
@@ -509,7 +499,7 @@
       <!-- CLIP 6 · VERSIONS -->
       <div data-hf-id="hf-n1bg" id="s-versions" class="scene clip-scene">
         <div data-hf-id="hf-2bkv" class="win" id="w-versions">
-          <div data-hf-id="hf-fsgl" class="titlebar"><span data-hf-id="hf-vse8" class="dot r"></span><span data-hf-id="hf-n85n" class="dot y"></span><span data-hf-id="hf-i2pd" class="dot g"></span><span data-hf-id="hf-0yti" class="wtitle">WalDrive</span><span data-hf-id="hf-6ud4" class="wstep"><span data-hf-id="hf-d6sh" class="num">06</span>Version history &amp; rollback</span></div>
+          <div class="lights"><span class="r"></span><span class="y"></span><span class="g"></span></div>
           <div data-hf-id="hf-233c" class="screen"><div data-hf-id="hf-q5iq" class="vz" id="z-versions"><video data-hf-id="hf-mrsv" id="v-versions" class="clip" src="assets/clips/06-versions.mp4" data-start="118.4" data-duration="42.4" data-media-start="0.4" data-track-index="3" muted playsinline crossorigin="anonymous"></video></div></div>
         </div>
       </div>
@@ -517,7 +507,7 @@
       <!-- CLIP 7 · STORAGE -->
       <div data-hf-id="hf-ja0i" id="s-storage" class="scene clip-scene">
         <div data-hf-id="hf-2ah7" class="win" id="w-storage">
-          <div data-hf-id="hf-gzdo" class="titlebar"><span data-hf-id="hf-ulh5" class="dot r"></span><span data-hf-id="hf-mtum" class="dot y"></span><span data-hf-id="hf-j9mg" class="dot g"></span><span data-hf-id="hf-1d4j" class="wtitle">WalDrive</span><span data-hf-id="hf-ejlt" class="wstep"><span data-hf-id="hf-dl3i" class="num">07</span>Your storage, renewable</span></div>
+          <div class="lights"><span class="r"></span><span class="y"></span><span class="g"></span></div>
           <div data-hf-id="hf-0w69" class="screen"><div data-hf-id="hf-gmfo" class="vz" id="z-storage"><video data-hf-id="hf-86sb" id="v-storage" class="clip" src="assets/clips/07-storage.mp4" data-start="160.2" data-duration="17.8" data-media-start="0.76" data-track-index="2" muted playsinline crossorigin="anonymous"></video></div></div>
         </div>
       </div>
@@ -525,7 +515,7 @@
       <!-- CLIP 8 · ACCOUNTS -->
       <div data-hf-id="hf-u0gv" id="s-accounts" class="scene clip-scene">
         <div data-hf-id="hf-3lys" class="win" id="w-accounts">
-          <div data-hf-id="hf-gl2n" class="titlebar"><span data-hf-id="hf-uzs6" class="dot r"></span><span data-hf-id="hf-mfjl" class="dot y"></span><span data-hf-id="hf-ivbf" class="dot g"></span><span data-hf-id="hf-1rfk" class="wtitle">WalDrive</span><span data-hf-id="hf-pqo1" class="wstep"><span data-hf-id="hf-fkmn" class="num">08</span>Your key is your drive</span></div>
+          <div class="lights"><span class="r"></span><span class="y"></span><span class="g"></span></div>
           <div data-hf-id="hf-1aha" class="screen"><div data-hf-id="hf-l2s9" class="vz" id="z-accounts"><video data-hf-id="hf-o126" id="v-accounts" class="clip" src="assets/clips/08-accounts.mp4" data-start="177.4" data-duration="15.8" data-media-start="0.4" data-track-index="3" muted playsinline crossorigin="anonymous"></video></div></div>
         </div>
       </div>

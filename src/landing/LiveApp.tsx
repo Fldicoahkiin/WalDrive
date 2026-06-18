@@ -9,9 +9,10 @@ const APP_W = 1280;
 const APP_H = 800;
 
 /**
- * The real WalDrive console, embedded live in a desktop-style window. Shows a
- * poster first and mounts the (heavy) app iframe on click, so the landing stays
- * light until the visitor opts in.
+ * The real WalDrive console, embedded live in a window that mirrors the desktop
+ * app's chrome — macOS overlay traffic lights at the top-left (no fake title bar),
+ * an active-window accent line on the top edge. Shows a poster first and mounts
+ * the (heavy) app iframe on click, so the landing stays light until opted into.
  */
 export function LiveApp({ className }: { className?: string }) {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -29,19 +30,22 @@ export function LiveApp({ className }: { className?: string }) {
   return (
     <figure
       className={cn(
-        "overflow-hidden rounded-xl border border-hairline bg-surface-1 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]",
+        "relative overflow-hidden rounded-xl border border-hairline bg-canvas shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]",
         className,
       )}
     >
-      <div className="flex h-9 items-center gap-2 border-b border-hairline bg-surface-2/60 px-4">
+      {/* active-window top edge — like the real desktop window */}
+      <span
+        aria-hidden
+        className="absolute inset-x-0 top-0 z-10 h-px bg-gradient-to-r from-transparent via-accent-hover/70 to-transparent"
+      />
+      {/* macOS overlay traffic lights, integrated over the console's reserved top-left */}
+      <span aria-hidden className="absolute left-4 top-3.5 z-10 flex gap-2">
         <span className="size-3 rounded-full bg-[#ff5f57]" />
         <span className="size-3 rounded-full bg-[#febc2e]" />
         <span className="size-3 rounded-full bg-[#28c840]" />
-        <span className="ml-2 text-[12px] text-ink-tertiary">
-          WalDrive — {live ? "live console" : "console"}
-        </span>
-      </div>
-      <div ref={hostRef} className="relative w-full overflow-hidden bg-canvas" style={{ height: APP_H * scale }}>
+      </span>
+      <div ref={hostRef} className="relative w-full overflow-hidden" style={{ height: APP_H * scale }}>
         {live ? (
           <iframe
             title="WalDrive live console"

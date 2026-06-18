@@ -2,30 +2,38 @@
 
 > The file-management + verifiable-data console for the data your AI agents store and remember on **Walrus**, built for the **Sui Overflow 2026 Walrus track** (idea #032). The pitch is frontend fluidity over verifiable agent data.
 
+**Live site:** [waldrive.flacier.com](https://waldrive.flacier.com/) · **Install the agent skill:** `npx skills add Fldicoahkiin/WalDrive`
+
 WalDrive is a **cross-platform desktop app** — a Tauri 2.0 shell wrapping a Vite + React SPA. File **metadata lives on Sui** (Move objects), **blob bytes live on Walrus**, and there is **no backend in between** — "verifiable data" means on-chain Sui metadata over content-addressed Walrus blobs. The app signs Sui transactions in-process with a local keypair (no browser, no wallet extension); the **MCP server is the agent write-path**, so AI clients / CLIs write artifacts and memory to the same Walrus data you browse here.
 
 - **Desktop console** — the human surface for agent data on Walrus: drag-to-upload, browse, preview, rename, tag, version, organise into folders, trash / restore, search, and share; a multi-account local wallet (generate / import / switch / balance / faucet) and endpoints from the sidebar.
-- **MCP server** — `upload_file` / `list_files` / `download_file` / `get_file_info` for AI clients and scripts over the same Walrus data.
+- **Agent surfaces** — three ways for an agent to reach the same Walrus data:
+  - **MCP server** — `upload_file` / `list_files` / `download_file` / `get_file_info` for AI clients.
+  - **`waldrive` CLI** — `upload` / `ls` / `download` / `info` for shells, scripts, and CI.
+  - **Agent skill** — `npx skills add Fldicoahkiin/WalDrive` teaches any AI agent to store, retrieve, and verify its data on Walrus.
 - **Move contracts** — `FileRecord` and `ShareLink` objects make file metadata verifiable on-chain.
 
 ---
 
 ## How it works
 
+```mermaid
+flowchart LR
+  console["Desktop console<br/>local keypair · no popup"]
+  agents["Agents<br/>MCP · CLI · skill"]
+
+  console -->|"① PUT bytes"| pub["Walrus publisher"]
+  agents -->|"upload"| pub
+  pub -->|"blobId · fronts WAL cost"| walrus[("Walrus<br/>content-addressed blobs")]
+
+  console -->|"② file_record::register · pays SUI gas"| sui[("Sui<br/>FileRecord metadata")]
+  agents --> sui
+
+  reader["Anyone"] -->|"read blob · no wallet"| walrus
+  sui -.->|"getOwnedObjects · list / read"| console
 ```
-Desktop console (Tauri 2.0 + Vite/React)      MCP server (local, for devs / AI clients)
-   │ local Ed25519 keypair (in-process)           │ dedicated testnet keypair
-   │ — no browser wallet, no popup                 │
-   ├─ Upload (2 steps)                            ├─ upload_file → publisher PUT → register
-   │   ① PUT bytes → Walrus publisher             └─ list_files  → Sui RPC
-   │      ?epochs=N&deletable=true&send_object_to={you}
-   │      → blobId (publisher fronts the WAL cost)
-   │   ② Sui tx: file_record::register(blobId, …)  ← signed in-process
-   │
-   ├─ Read   → GET aggregator /v1/blobs/{blobId}   (public, no wallet)
-   ├─ List   → getOwnedObjects (FileRecord type)   (Sui RPC, paginated)
-   └─ Share  → copy aggregator blobUrl(blobId) to clipboard   (self-contained)
-```
+
+> Two-step write: bytes go to the Walrus publisher (which fronts the WAL storage cost and returns a content-addressed `blobId`), then one in-process Sui transaction records a `FileRecord` (you pay only SUI gas). Reads hit the public aggregator — no wallet. No backend in between.
 
 **Upload is publisher-direct** — a local process has no CORS limits, so the app PUTs straight to the public Walrus testnet publisher; no proxy / backend. The publisher fronts the WAL storage cost and (via `send_object_to`) hands the on-chain Blob object to your local wallet, so you can renew or delete it. You pay only SUI gas for the one `register` transaction.
 
@@ -130,6 +138,53 @@ Client config (e.g. `~/.claude/claude_desktop_config.json`):
 
 ---
 
+## CLI
+
+`waldrive` drives the same upload + on-chain register from a shell — for scripts, CI, or an agent without an MCP client. Reads are wallet-free; only `upload` needs `WALDRIVE_KEYPAIR`. It reads the same env vars as the MCP server (`CONTRACT_PACKAGE_ID`, `SUI_NETWORK`, `WALRUS_*`, `WALDRIVE_KEYPAIR`).
+
+```bash
+# from a WalDrive checkout
+bun run waldrive upload ./report.pdf
+bun run waldrive ls --json
+bun run waldrive download <blobId> --out ./out.pdf
+bun run waldrive info <objectId>
+```
+
+| Command | Description |
+|---|---|
+| `upload <path>` | Upload to Walrus + register a FileRecord on Sui (`--name`, `--epochs`, `--json`) |
+| `ls` | List files owned by the wallet (`--owner`, `--folder`, `--limit`, `--json`) |
+| `download <blobId>` | Download a blob to a local path (`--out`) |
+| `info <objectId>` | On-chain metadata + public read URL (`--json`) |
+
+---
+
+## Agent skill
+
+`skills/waldrive/SKILL.md` teaches any AI agent to use WalDrive's MCP server or CLI to persist, retrieve, and **verify** its own data — artifacts, run outputs, cross-session memory — on Walrus. Install it into an agent's skill directory:
+
+```bash
+npx skills add Fldicoahkiin/WalDrive
+```
+
+The skill frames "verifiable data" as a concrete action: content-addressed Walrus blobs (tamper-evident) plus an on-chain Sui `FileRecord` (auditable provenance), with reads that need no wallet.
+
+---
+
+## Cost & payments
+
+Today everything runs on **testnet**, so storage is effectively free: the public Walrus publisher fronts the WAL storage cost and you pay only SUI gas for the one `register` transaction — and testnet SUI comes from a faucet.
+
+On mainnet the cost is real and lands in two places — **WAL** for Walrus storage and **SUI** gas for the on-chain record — which is what makes this a clean fit for agents paying their own way:
+
+- An agent already holds a keypair to sign `register`; the same wallet holds a small WAL/SUI balance and **pays per upload**, with the on-chain `FileRecord` as the receipt.
+- Spend is **metered and auditable** — every write is one transaction on a public ledger, so an operator can cap or bill an agent's storage by reading its FileRecords.
+- The write-path uses a **dedicated, low-value keypair**, so an agent pays for storage without ever holding keys to real assets.
+
+The mainnet upload path itself (user-signed, self-paid WAL via the Walrus SDK) is on the Roadmap.
+
+---
+
 ## Project structure
 
 ```
@@ -138,7 +193,9 @@ waldrive/
 ├── packages/shared/   # runtime-agnostic: constants, types, Sui/Walrus helpers
 ├── contracts/         # Move: file_record, folder, share_link
 ├── src/               # Vite/React console (main.tsx, App.tsx, components, hooks, stores, lib)
-└── mcp-server/        # MCP server (upload_file, list_files)
+├── mcp-server/        # MCP server (upload_file, list_files, download_file, get_file_info)
+├── cli/               # waldrive CLI (upload, ls, download, info)
+└── skills/waldrive/   # installable agent skill (SKILL.md)
 ```
 
 ## Scripts

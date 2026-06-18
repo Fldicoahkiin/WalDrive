@@ -10,8 +10,8 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const CLIPS = join(ROOT, "out", "clips");
-const APP = "http://localhost:5173";
-const SIZE = { width: 1920, height: 1080 };
+const APP = "http://localhost:5173/app";
+const SIZE = { width: 1456, height: 819 };
 
 // Funded test wallet (hackathon testnet) — used for off-screen top-ups and the
 // "restore on a new device" import scene. Read from the repo's backup env.
@@ -139,6 +139,8 @@ const scenes = {
     await d.click('button:has-text("Generate a new wallet")', { ms: 900 });
     await page.waitForSelector('[aria-label="Switch account"]', { timeout: 20000 });
     await sleep(1600);
+    // hold on the fresh, empty drive so the clip fills the welcome slot (~16s)
+    await sleep(11000);
   },
 
   /** In-app faucet: switch to devnet (testnet's auto-faucet is closed) and grab

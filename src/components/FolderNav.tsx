@@ -9,10 +9,12 @@ import { useFolder } from "@/hooks/useFolder";
 export function FolderNav({
   folders,
   folderId,
+  demoMode,
   onNavigate,
 }: {
   folders: SuiFolder[];
   folderId: string | null;
+  demoMode?: boolean;
   onNavigate: (id: string | null) => void;
 }) {
   const { createFolder, busy, error } = useFolder();
@@ -63,34 +65,39 @@ export function FolderNav({
             </button>
           </span>
         ))}
-        {adding ? (
-          <Input
-            autoFocus
-            aria-label="Folder name"
-            className="ml-1 h-6 w-32 text-xs"
-            disabled={busy}
-            placeholder="Folder name"
-            value={draft}
-            variant="secondary"
-            onBlur={() => {
-              setAdding(false);
-              setDraft("");
-            }}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") void submit();
-              else if (e.key === "Escape") {
+        {!demoMode &&
+          (adding ? (
+            <Input
+              autoFocus
+              aria-label="Folder name"
+              className="ml-1 h-6 w-32 text-xs"
+              disabled={busy}
+              placeholder="Folder name"
+              value={draft}
+              variant="secondary"
+              onBlur={() => {
                 setAdding(false);
                 setDraft("");
-              }
-            }}
-          />
-        ) : (
-          <Button className="ml-1" isDisabled={busy} size="sm" variant="ghost" onPress={() => setAdding(true)}>
-            <FolderPlus className="size-3.5" /> New folder
-          </Button>
+              }}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void submit();
+                else if (e.key === "Escape") {
+                  setAdding(false);
+                  setDraft("");
+                }
+              }}
+            />
+          ) : (
+            <Button className="ml-1" isDisabled={busy} size="sm" variant="ghost" onPress={() => setAdding(true)}>
+              <FolderPlus className="size-3.5" /> New folder
+            </Button>
+          ))}
+        {!demoMode && error && (
+          <span className="truncate text-[11px] text-danger" title={error}>
+            {error}
+          </span>
         )}
-        {error && <span className="truncate text-[11px] text-danger" title={error}>{error}</span>}
       </div>
 
       {subfolders.length > 0 && (

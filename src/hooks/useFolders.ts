@@ -3,6 +3,7 @@ import type { SuiObjectResponse } from "@mysten/sui/jsonRpc";
 import { useSuiClient } from "@/lib/suiClient";
 import { useWallet } from "@/stores/walletStore";
 import { useSettings } from "@/stores/settingsStore";
+import { DEMO_ADDRESS } from "@/lib/constants";
 import type { SuiFolder } from "@waldrive/shared";
 
 function parseFolder(res: SuiObjectResponse): SuiFolder | null {
@@ -19,7 +20,7 @@ function parseFolder(res: SuiObjectResponse): SuiFolder | null {
 
 /** Folders owned by the local wallet (folder::Folder), name-sorted. */
 export function useFolders() {
-  const address = useWallet((s) => s.address);
+  const address = useWallet((s) => s.address) ?? DEMO_ADDRESS;
   const network = useSettings((s) => s.network);
   const packageId = useSettings((s) => s.packageId);
   const suiClient = useSuiClient();

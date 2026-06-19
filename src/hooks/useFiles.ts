@@ -3,7 +3,7 @@ import type { SuiObjectResponse } from "@mysten/sui/jsonRpc";
 import { useSuiClient } from "@/lib/suiClient";
 import { useWallet } from "@/stores/walletStore";
 import { useSettings } from "@/stores/settingsStore";
-import { CONTRACT } from "@/lib/constants";
+import { CONTRACT, DEMO_ADDRESS } from "@/lib/constants";
 import type { BlobFile } from "@waldrive/shared";
 
 /** u64 move fields arrive as strings — Number() them. */
@@ -30,9 +30,9 @@ function parseFileRecord(res: SuiObjectResponse): BlobFile | null {
   };
 }
 
-/** Files owned by the local wallet, newest first, cursor-paginated. */
+/** Files owned by the active wallet (or the read-only demo address), newest first. */
 export function useFiles() {
-  const address = useWallet((s) => s.address);
+  const address = useWallet((s) => s.address) ?? DEMO_ADDRESS;
   const network = useSettings((s) => s.network);
   const packageId = useSettings((s) => s.packageId);
   const suiClient = useSuiClient();

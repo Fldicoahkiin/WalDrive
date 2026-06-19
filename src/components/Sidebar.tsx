@@ -3,6 +3,7 @@ import { Header, ListBox, Separator } from "@heroui/react";
 import type { BlobFile, SuiFolder } from "@waldrive/shared";
 import { Button } from "@/components/ui/Button";
 import { AccountSwitcher } from "@/components/AccountSwitcher";
+import { BrandMark } from "@/components/BrandMark";
 import { formatBytes } from "@/lib/utils";
 import { fileCategory, tagColor, CATEGORY_META, type FileCategory } from "@/lib/fileKind";
 
@@ -16,13 +17,17 @@ export function Sidebar({
   files,
   folders,
   active,
+  demoMode,
   onSelect,
+  onGenerate,
   onOpenSettings,
 }: {
   files: BlobFile[];
   folders: SuiFolder[];
   active: NavKey;
+  demoMode?: boolean;
   onSelect: (key: NavKey) => void;
+  onGenerate?: () => void;
   onOpenSettings: () => void;
 }) {
   const live = files.filter((f) => !f.isDeleted);
@@ -45,7 +50,21 @@ export function Sidebar({
   return (
     <aside className="flex w-60 shrink-0 flex-col bg-surface-1">
       <div data-tauri-drag-region className="h-12 shrink-0" />
-      <AccountSwitcher onOpenSettings={onOpenSettings} />
+      {demoMode ? (
+        <button
+          className="mx-2 flex items-center gap-2.5 rounded-md px-2 py-1.5 text-left outline-none transition-colors hover:bg-surface-2"
+          type="button"
+          onClick={onGenerate}
+        >
+          <BrandMark className="size-7 shrink-0" />
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="text-[13px] font-semibold tracking-tight text-ink">Demo drive</span>
+            <span className="text-[11px] text-ink-tertiary">read-only · generate a wallet</span>
+          </span>
+        </button>
+      ) : (
+        <AccountSwitcher onOpenSettings={onOpenSettings} />
+      )}
 
       <div className="min-h-0 flex-1 overflow-y-auto pt-1">
         <ListBox

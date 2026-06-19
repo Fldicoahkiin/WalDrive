@@ -27,6 +27,16 @@ export const SUI_NETWORK = (import.meta.env.VITE_SUI_NETWORK ?? "testnet") as Su
 /** Local desktop wallet secret (suiprivkey1...). Test wallet for the hackathon. */
 export const WALDRIVE_KEYPAIR = import.meta.env.VITE_WALDRIVE_KEYPAIR ?? "";
 
+/**
+ * Read-only demo wallet ADDRESS (public — no key). With no local wallet the
+ * console browses this address's files, so first-time visitors (and the live
+ * hero embed) land on a populated, verifiable drive instead of an empty
+ * onboarding screen. Reads are wallet-free; writes prompt for a real wallet.
+ */
+export const DEMO_ADDRESS =
+  import.meta.env.VITE_DEMO_ADDRESS ??
+  "0xce98556a6a7f924b32d8f4c03ac74d60c34447cff47856402f5bbcf97393a14f";
+
 // Runtime aggregator base. settingsStore overrides this so blobUrl() reflects the
 // user's configured aggregator without threading the URL through every caller.
 let aggregatorBase = WALRUS.AGGREGATOR;

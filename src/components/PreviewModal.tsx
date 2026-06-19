@@ -17,7 +17,15 @@ import { blobUrl } from "@/lib/constants";
 import { formatBytes } from "@/lib/utils";
 import { fileKind } from "@/lib/fileKind";
 
-export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose: () => void }) {
+export function PreviewModal({
+  file,
+  demoMode,
+  onClose,
+}: {
+  file: BlobFile | null;
+  demoMode?: boolean;
+  onClose: () => void;
+}) {
   // Retain the last file through the close animation so content doesn't vanish.
   const [shown, setShown] = useState<BlobFile | null>(file);
   useEffect(() => {
@@ -101,29 +109,33 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
                       {name}
                     </Modal.Heading>
                   )}
-                  <Button
-                    isIconOnly
-                    aria-label={editing ? "Save name" : "Rename"}
-                    isDisabled={saving}
-                    size="sm"
-                    variant="ghost"
-                    onPress={() => (editing ? submitRename() : setDraft(name))}
-                  >
-                    {saving ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : editing ? (
-                      <Check className="size-4" />
-                    ) : (
-                      <Pencil className="size-4" />
-                    )}
-                  </Button>
+                  {!demoMode && (
+                    <Button
+                      isIconOnly
+                      aria-label={editing ? "Save name" : "Rename"}
+                      isDisabled={saving}
+                      size="sm"
+                      variant="ghost"
+                      onPress={() => (editing ? submitRename() : setDraft(name))}
+                    >
+                      {saving ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : editing ? (
+                        <Check className="size-4" />
+                      ) : (
+                        <Pencil className="size-4" />
+                      )}
+                    </Button>
+                  )}
                   <Modal.CloseTrigger />
                 </Modal.Header>
 
-                <div className="flex items-start justify-between gap-2 px-4 pb-1">
-                  <TagBar file={f} />
-                  {!f.isDeleted && <MoveBar file={f} />}
-                </div>
+                {!demoMode && (
+                  <div className="flex items-start justify-between gap-2 px-4 pb-1">
+                    <TagBar file={f} />
+                    {!f.isDeleted && <MoveBar file={f} />}
+                  </div>
+                )}
 
                 <Modal.Body className="max-h-[62vh] overflow-auto">
                   <VerifiableStorage file={f} />
@@ -167,39 +179,43 @@ export function PreviewModal({ file, onClose }: { file: BlobFile | null; onClose
                       </>
                     ) : (
                       <>
-                        <input
-                          ref={versionInputRef}
-                          className="hidden"
-                          type="file"
-                          onChange={(e) => {
-                            const next = e.target.files?.[0];
-                            if (next) void uploadVersion(f.objectId, next);
-                            e.currentTarget.value = "";
-                          }}
-                        />
-                        <Button
-                          isIconOnly
-                          aria-label="Upload new version"
-                          isDisabled={versioning}
-                          size="sm"
-                          variant="ghost"
-                          onPress={() => versionInputRef.current?.click()}
-                        >
-                          {versioning ? (
-                            <Loader2 className="size-3.5 animate-spin" />
-                          ) : (
-                            <FileUp className="size-3.5" />
-                          )}
-                        </Button>
-                        <DeleteDialog
-                          body={deleteError ?? "You can restore it from Trash later."}
-                          confirmLabel="Move"
-                          disabled={deleting}
-                          heading="Move to trash?"
-                          status="warning"
-                          triggerLabel="Move to trash"
-                          onConfirm={() => act(trash)}
-                        />
+                        {!demoMode && (
+                          <>
+                            <input
+                              ref={versionInputRef}
+                              className="hidden"
+                              type="file"
+                              onChange={(e) => {
+                                const next = e.target.files?.[0];
+                                if (next) void uploadVersion(f.objectId, next);
+                                e.currentTarget.value = "";
+                              }}
+                            />
+                            <Button
+                              isIconOnly
+                              aria-label="Upload new version"
+                              isDisabled={versioning}
+                              size="sm"
+                              variant="ghost"
+                              onPress={() => versionInputRef.current?.click()}
+                            >
+                              {versioning ? (
+                                <Loader2 className="size-3.5 animate-spin" />
+                              ) : (
+                                <FileUp className="size-3.5" />
+                              )}
+                            </Button>
+                            <DeleteDialog
+                              body={deleteError ?? "You can restore it from Trash later."}
+                              confirmLabel="Move"
+                              disabled={deleting}
+                              heading="Move to trash?"
+                              status="warning"
+                              triggerLabel="Move to trash"
+                              onConfirm={() => act(trash)}
+                            />
+                          </>
+                        )}
                         <Button size="sm" variant="secondary" onPress={copyLink}>
                           {copied ? <Check className="size-3.5" /> : <Share2 className="size-3.5" />}
                           {copied ? "Copied" : "Share link"}

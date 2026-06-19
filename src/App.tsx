@@ -11,12 +11,14 @@ import { SettingsModal } from "@/components/SettingsModal";
 import { Onboarding } from "@/components/Onboarding";
 import { EmptyState } from "@/components/EmptyState";
 import { FaucetBanner } from "@/components/FaucetBanner";
+import { DemoBanner } from "@/components/DemoBanner";
 import { FolderNav } from "@/components/FolderNav";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useFiles } from "@/hooks/useFiles";
 import { useFolders } from "@/hooks/useFolders";
 import { useWallet } from "@/stores/walletStore";
 import { useSettings } from "@/stores/settingsStore";
+import { DEMO_ADDRESS } from "@/lib/constants";
 import { fileCategory } from "@/lib/fileKind";
 
 type SortKey = "date" | "name" | "size";
@@ -44,7 +46,11 @@ function inNav(f: BlobFile, nav: NavKey, folderId: string | null): boolean {
 export function App() {
   const initWallet = useWallet((s) => s.init);
   const address = useWallet((s) => s.address);
+  const generate = useWallet((s) => s.generate);
   const uiScale = useSettings((s) => s.uiScale);
+  // No local wallet → browse the read-only demo address instead of an empty
+  // onboarding screen (reads are wallet-free; writes prompt for a real wallet).
+  const demoMode = !address && Boolean(DEMO_ADDRESS);
   useEffect(() => {
     initWallet();
   }, [initWallet]);
@@ -123,7 +129,7 @@ export function App() {
 
   return (
     <div className="flex h-dvh overflow-hidden bg-canvas text-ink">
-      {!address ? (
+      {!address && !demoMode ? (
         <div className="flex h-full w-full flex-col bg-canvas">
           <div data-tauri-drag-region className="h-12 shrink-0" />
           <Onboarding />
@@ -132,8 +138,10 @@ export function App() {
         <>
           <Sidebar
             active={activeNav}
+            demoMode={demoMode}
             files={files ?? []}
             folders={folders ?? []}
+            onGenerate={() => generate()}
             onOpenSettings={() => setSettingsOpen(true)}
             onSelect={handleSelect}
           />
@@ -193,10 +201,19 @@ export function App() {
 
             <div className="flex-1 overflow-auto">
               <div className="mx-auto flex max-w-5xl flex-col gap-5 px-6 py-6">
-                <FaucetBanner />
-                <UploadZone />
+                {demoMode ? (
+                  <DemoBanner onGenerate={() => generate()} onImport={() => setSettingsOpen(true)} />
+                ) : (
+                  <FaucetBanner />
+                )}
+                {!demoMode && <UploadZone />}
                 {nav === "all" && (
-                  <FolderNav folderId={folderId} folders={folders ?? []} onNavigate={setFolderId} />
+                  <FolderNav
+                    demoMode={demoMode}
+                    folderId={folderId}
+                    folders={folders ?? []}
+                    onNavigate={setFolderId}
+                  />
                 )}
                 {isLoading ? (
                   view === "grid" ? (
@@ -228,7 +245,7 @@ export function App() {
           </main>
         </>
       )}
-      <PreviewModal file={selected} onClose={() => setSelected(null)} />
+      <PreviewModal demoMode={demoMode} file={selected} onClose={() => setSelected(null)} />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );

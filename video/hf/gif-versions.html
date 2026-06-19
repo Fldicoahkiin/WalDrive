@@ -68,13 +68,13 @@
                     </div>
                   </div>
                 </div>
-                <div class="preview-md">
+                <div class="preview-md" id="previewmd">
                   <h4>Field Notes (rev 2)</h4>
                   Trimmed the shot list to keepers only.
                 </div>
               </div>
               <div class="modal-foot">
-                text/markdown · 96 B · v2
+                <span id="footmeta">text/markdown · 96 B · v2</span>
                 <div class="mfa">
                   <div class="mbtn" id="newver"><span class="svgic" data-ic="file-up"></span>New version</div>
                   <div class="mbtn pri"><span class="svgic" data-ic="external-link"></span>Open</div>
@@ -98,6 +98,8 @@
         tl.add(() => {
           document.getElementById("verbadge").textContent = "v3";
           document.getElementById("vhcount").textContent = "· 2 earlier versions";
+          document.getElementById("footmeta").textContent = "text/markdown · 127 B · v3";
+          document.getElementById("previewmd").innerHTML = '<h4>Field Notes</h4>Shot list for the trip:<ul><li>harbor at dawn</li><li>the old lighthouse</li><li><b>walrus colony</b> at the point</li></ul><code>gear: 24-70mm</code>';
           const r2 = document.getElementById("vrow2"); r2.style.display = "flex";
         }, 3.0);
         tl.fromTo("#vrow2", { y: 8, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 3.05);

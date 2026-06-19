@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1280, height=800" />
+    <link rel="stylesheet" href="gif-ui.css" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  </head>
+  <body>
+    <div id="root" data-composition-id="root" data-start="0" data-duration="5" data-width="1280" data-height="800">
+      <div class="stage">
+        <div class="win">
+          <div class="lights"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+          <div class="app">
+            <aside class="sidebar">
+              <div class="sb-top"></div>
+              <div class="acct">
+                <div class="ident"><span class="svgic" data-ic="box" style="font-size:16px"></span></div>
+                <div><div class="a-addr">0x66cab…96f56</div><div class="a-bal">2.4 SUI · testnet</div></div>
+                <span class="a-chev svgic" data-ic="chevron-down"></span>
+              </div>
+              <div class="nav"><div class="nav-item active"><span class="ni svgic" data-ic="files"></span>All Files<span class="ct">3</span></div></div>
+              <div class="sb-label">Types</div>
+              <div class="nav">
+                <div class="nav-item"><span class="ni svgic" data-ic="file-image" style="color:var(--c-img)"></span>Images<span class="ct">1</span></div>
+                <div class="nav-item"><span class="ni svgic" data-ic="file-text" style="color:var(--c-md)"></span>Documents<span class="ct">1</span></div>
+                <div class="nav-item"><span class="ni svgic" data-ic="file-json" style="color:var(--c-json)"></span>Code<span class="ct">1</span></div>
+              </div>
+              <div class="sb-foot"><div class="use">107.1 KB stored</div><div class="set" id="setrow"><span class="svgic" data-ic="settings"></span>Settings</div></div>
+            </aside>
+            <main class="content">
+              <div class="toolbar">
+                <div class="search"><span class="svgic" data-ic="search"></span><span>Search files…</span></div>
+                <div class="seg"><b class="on">Date</b><b>Name</b><b>Size</b></div>
+                <div class="iconbtn on"><span class="svgic" data-ic="layout-grid"></span></div>
+                <div class="iconbtn"><span class="svgic" data-ic="list"></span></div>
+                <div class="iconbtn"><span class="svgic" data-ic="moon"></span></div>
+              </div>
+              <div class="body">
+                <div class="crumb"><span class="b1">All Files</span><span class="b2"><span class="svgic" data-ic="folder-plus"></span>New folder</span></div>
+                <div class="grid">
+                  <div class="card"><div class="thumb"><div class="ic" style="background:rgba(76,175,109,0.14); color:var(--c-img)"><span class="svgic" data-ic="file-image"></span></div></div><div class="meta"><div class="nm">trip-photo.png</div><div class="row"><span class="badge" style="background:rgba(76,175,109,0.16); color:var(--c-img)">PNG</span><span class="sz">106.9 KB</span></div></div></div>
+                  <div class="card"><div class="thumb"><div class="ic" style="background:rgba(110,139,214,0.14); color:var(--c-md)"><span class="svgic" data-ic="file-text"></span></div></div><div class="meta"><div class="nm">field-notes.md</div><div class="row"><span class="badge" style="background:rgba(110,139,214,0.16); color:var(--c-md)">MD</span><span class="sz">127 B</span></div></div></div>
+                  <div class="card"><div class="thumb"><div class="ic" style="background:rgba(216,166,87,0.14); color:var(--c-json)"><span class="svgic" data-ic="file-json"></span></div></div><div class="meta"><div class="nm">shoot-log.json</div><div class="row"><span class="badge" style="background:rgba(216,166,87,0.16); color:var(--c-json)">JSON</span><span class="sz">59 B</span></div></div></div>
+                </div>
+              </div>
+            </main>
+          </div>
+          <div class="modal-back" id="back" style="opacity:0">
+            <div class="modal" id="modal">
+              <div class="modal-head">
+                <span class="micon svgic" data-ic="settings" style="color:var(--ink-muted)"></span>
+                <span class="mt">Settings</span>
+                <span class="mx svgic" data-ic="x"></span>
+              </div>
+              <div class="modal-body">
+                <div class="panel">
+                  <div class="pt"><span class="svgic" data-ic="hard-drive"></span>Storage objects</div>
+                  <div class="kv">Your Walrus Blob receipts — renew one before it expires.</div>
+                  <div class="blobrow">
+                    <div class="bi"><span class="svgic" data-ic="hard-drive"></span></div>
+                    <div>
+                      <div class="bid">0x7a3f…e9c2</div>
+                      <div class="bexp" id="bexp">expires epoch 435 · ≈3d left</div>
+                    </div>
+                    <div class="bext" id="extbtn"><span class="svgic" data-ic="clock" style="font-size:13px"></span><span id="extlabel">+10 epochs</span></div>
+                  </div>
+                  <div class="blobrow">
+                    <div class="bi"><span class="svgic" data-ic="hard-drive"></span></div>
+                    <div>
+                      <div class="bid">0xbc81…2d4c</div>
+                      <div class="bexp">expires epoch 451 · ≈8d left</div>
+                    </div>
+                    <div class="bext" style="background:var(--surface-2);color:var(--ink-muted)"><span class="svgic" data-ic="clock" style="font-size:13px"></span>+10 epochs</div>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-foot">
+                2 blobs on Walrus
+                <div class="mfa"><div class="mbtn pri">Done</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <script src="gif-ui.js"></script>
+      <script>
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+        const ep = { v: 435 };
+        tl.to("#back", { opacity: 1, duration: 0.3, ease: "power2.out" }, 0.3);
+        tl.fromTo("#modal", { scale: 0.93, y: 14, opacity: 0 }, { scale: 1, y: 0, opacity: 1, duration: 0.45, ease: "back.out(1.4)" }, 0.32);
+        tl.to("#extbtn", { scale: 0.95, duration: 0.12 }, 1.4);
+        tl.to("#extbtn", { scale: 1, duration: 0.16 }, 1.52);
+        tl.add(() => { document.getElementById("extlabel").textContent = "Extending…"; }, 1.6);
+        tl.to(ep, { v: 445, duration: 1.0, ease: "power1.inOut", onUpdate: () => { document.getElementById("bexp").textContent = "expires epoch " + Math.round(ep.v) + " · ≈" + (Math.round(ep.v) - 432) + "d left"; } }, 2.4);
+        tl.add(() => { const b = document.getElementById("extbtn"); document.getElementById("extlabel").textContent = "Extended"; b.style.background = "rgba(39,166,68,0.9)"; }, 3.45);
+        window.__timelines["root"] = tl;
+      </script>
+    </div>
+  </body>
+</html>

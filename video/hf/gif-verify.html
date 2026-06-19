@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1280, height=800" />
+    <link rel="stylesheet" href="gif-ui.css" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  </head>
+  <body>
+    <div id="root" data-composition-id="root" data-start="0" data-duration="6" data-width="1280" data-height="800">
+      <div class="stage">
+        <div class="win">
+          <div class="lights"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+          <div class="app">
+            <aside class="sidebar">
+              <div class="sb-top"></div>
+              <div class="acct">
+                <div class="ident"><span class="svgic" data-ic="box" style="font-size:16px"></span></div>
+                <div><div class="a-addr">0x66cab…96f56</div><div class="a-bal">2.4 SUI · testnet</div></div>
+                <span class="a-chev svgic" data-ic="chevron-down"></span>
+              </div>
+              <div class="nav"><div class="nav-item active"><span class="ni svgic" data-ic="files"></span>All Files<span class="ct">3</span></div></div>
+              <div class="sb-label">Types</div>
+              <div class="nav">
+                <div class="nav-item"><span class="ni svgic" data-ic="file-image" style="color:var(--c-img)"></span>Images<span class="ct">1</span></div>
+                <div class="nav-item"><span class="ni svgic" data-ic="file-text" style="color:var(--c-md)"></span>Documents<span class="ct">1</span></div>
+                <div class="nav-item"><span class="ni svgic" data-ic="file-json" style="color:var(--c-json)"></span>Code<span class="ct">1</span></div>
+              </div>
+              <div class="sb-foot"><div class="use">107.1 KB stored</div><div class="set"><span class="svgic" data-ic="settings"></span>Settings</div></div>
+            </aside>
+            <main class="content">
+              <div class="toolbar">
+                <div class="search"><span class="svgic" data-ic="search"></span><span>Search files…</span></div>
+                <div class="seg"><b class="on">Date</b><b>Name</b><b>Size</b></div>
+                <div class="iconbtn on"><span class="svgic" data-ic="layout-grid"></span></div>
+                <div class="iconbtn"><span class="svgic" data-ic="list"></span></div>
+                <div class="iconbtn"><span class="svgic" data-ic="moon"></span></div>
+              </div>
+              <div class="body">
+                <div class="crumb"><span class="b1">All Files</span><span class="b2"><span class="svgic" data-ic="folder-plus"></span>New folder</span></div>
+                <div class="grid">
+                  <div class="card"><div class="thumb"><div class="ic" style="background:rgba(76,175,109,0.14); color:var(--c-img)"><span class="svgic" data-ic="file-image"></span></div></div><div class="meta"><div class="nm">trip-photo.png</div><div class="row"><span class="badge" style="background:rgba(76,175,109,0.16); color:var(--c-img)">PNG</span><span class="sz">106.9 KB</span></div></div></div>
+                  <div class="card"><div class="thumb"><div class="ic" style="background:rgba(110,139,214,0.14); color:var(--c-md)"><span class="svgic" data-ic="file-text"></span></div></div><div class="meta"><div class="nm">field-notes.md</div><div class="row"><span class="badge" style="background:rgba(110,139,214,0.16); color:var(--c-md)">MD</span><span class="sz">127 B</span></div></div></div>
+                  <div class="card"><div class="thumb"><div class="ic" style="background:rgba(216,166,87,0.14); color:var(--c-json)"><span class="svgic" data-ic="file-json"></span></div></div><div class="meta"><div class="nm">shoot-log.json</div><div class="row"><span class="badge" style="background:rgba(216,166,87,0.16); color:var(--c-json)">JSON</span><span class="sz">59 B</span></div></div></div>
+                </div>
+              </div>
+            </main>
+          </div>
+          <div class="modal-back" id="back" style="opacity:0">
+            <div class="modal" id="modal">
+              <div class="modal-head">
+                <span class="micon svgic" data-ic="file-text" style="color:var(--c-md)"></span>
+                <span class="mt">field-notes.md</span>
+                <span class="mx svgic" data-ic="x"></span>
+              </div>
+              <div class="modal-sub"><span class="tagchip"><span class="svgic" data-ic="tag" style="font-size:12px"></span>field-notes</span></div>
+              <div class="modal-body">
+                <div class="panel">
+                  <div class="pt"><span class="svgic" data-ic="shield-check"></span>Verifiable storage</div>
+                  <div class="kv">Walrus content ID (content-addressed)</div>
+                  <div class="cid">_NzqNzS3eFUFmJPshyyvtjgLkL9Dy8Q9aBIYdALD0f0</div>
+                  <div class="vrow">
+                    <div class="vbtn pri" id="vbtn"><span class="svgic" data-ic="shield-check"></span><span id="vlabel">Verify</span></div>
+                    <div class="vbtn"><span class="svgic" data-ic="external-link"></span>Open raw</div>
+                    <div class="vbtn"><span class="svgic" data-ic="external-link"></span>View on Suiscan</div>
+                  </div>
+                  <div class="vproof" id="vproof"><span class="svgic" data-ic="check" style="font-size:13px"></span>Retrieved 127 B from Walrus · SHA-256 7f83b16…a4c9e2</div>
+                  <div class="kv" style="margin-top:10px">Walrus expiry: epoch 435 · ≈3d left</div>
+                </div>
+                <div class="preview-md">
+                  <h4>Field Notes</h4>
+                  Shot list for the trip:
+                  <ul><li>harbor at dawn</li><li>the old lighthouse</li><li><b>walrus colony</b> at the point</li></ul>
+                  <code>gear: 24-70mm</code>
+                </div>
+              </div>
+              <div class="modal-foot">
+                text/markdown · 127 B
+                <div class="mfa">
+                  <div class="mbtn"><span class="svgic" data-ic="share"></span>Share link</div>
+                  <div class="mbtn pri"><span class="svgic" data-ic="external-link"></span>Open</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <script src="gif-ui.js"></script>
+      <script>
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+        tl.to("#back", { opacity: 1, duration: 0.3, ease: "power2.out" }, 0.3);
+        tl.fromTo("#modal", { scale: 0.93, y: 14, opacity: 0 }, { scale: 1, y: 0, opacity: 1, duration: 0.45, ease: "back.out(1.4)" }, 0.32);
+        tl.to("#vbtn", { scale: 0.95, duration: 0.12 }, 1.5);
+        tl.to("#vbtn", { scale: 1, duration: 0.16 }, 1.62);
+        tl.add(() => { document.getElementById("vlabel").textContent = "Verifying…"; }, 1.7);
+        tl.add(() => { document.getElementById("vlabel").textContent = "Verify"; }, 2.7);
+        tl.to("#vproof", { opacity: 1, duration: 0.4, ease: "power2.out" }, 2.75);
+        tl.fromTo("#vproof", { y: 6 }, { y: 0, duration: 0.4, ease: "power3.out" }, 2.75);
+        window.__timelines["root"] = tl;
+      </script>
+    </div>
+  </body>
+</html>

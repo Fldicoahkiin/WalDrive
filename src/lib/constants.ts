@@ -16,7 +16,9 @@ export const WALRUS = {
     import.meta.env.VITE_WALRUS_AGGREGATOR ?? "https://aggregator.walrus-testnet.walrus.space",
   PUBLISHER:
     import.meta.env.VITE_WALRUS_PUBLISHER ?? "https://publisher.walrus-testnet.walrus.space",
-  EPOCHS_DEFAULT: 3,
+  // Keep blobs alive long enough that files don't silently 404 in days
+  // (auto-renew before expiry is Roadmap). Was 3 — too short.
+  EPOCHS_DEFAULT: 30,
 } as const;
 
 export type SuiNetwork = "mainnet" | "testnet" | "devnet" | "localnet";

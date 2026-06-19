@@ -31,7 +31,9 @@ const PUBLISHER =
 export const WALRUS = {
   AGGREGATOR,
   PUBLISHER,
-  EPOCHS_DEFAULT: 3,
+  // Walrus drops the blob after this many epochs (FileRecord lingers). Keep it
+  // long enough that files don't silently 404 in days; auto-renew is Roadmap.
+  EPOCHS_DEFAULT: 30,
 } as const;
 
 export type SuiNetwork = "mainnet" | "testnet" | "devnet" | "localnet";

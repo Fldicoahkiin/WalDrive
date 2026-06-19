@@ -23,7 +23,7 @@ const PROPS: Prop[] = [
   {
     Icon: Bot,
     title: "Agent write-path",
-    body: "The MCP server lets AI clients and scripts write artifacts and memory to the same Walrus data you browse here. Agents write, you manage.",
+    body: "Agents write artifacts and memory three ways — an MCP server, a waldrive CLI, or an installable skill — to the same Walrus data you browse here. Agents write, you manage.",
   },
 ];
 

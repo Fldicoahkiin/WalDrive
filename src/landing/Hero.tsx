@@ -51,9 +51,9 @@ export function Hero() {
           className="mt-6 max-w-2xl text-pretty text-[18px] leading-relaxed text-ink-subtle"
           variants={item}
         >
-          Drag a file in and the bytes land on the Walrus decentralized network, the metadata on
-          Sui, with nothing in between. No backend, no account, no lock-in. Files you actually own,
-          verifiable by anyone.
+          Your agents write files via MCP, CLI, or an installable skill — you browse, preview,
+          verify and version them in a fluid desktop console. Bytes on Walrus, metadata on Sui,
+          nothing in between: files you actually own, verifiable by anyone.
         </motion.p>
 
         <motion.div className="mt-9 flex flex-wrap items-center justify-center gap-3" variants={item}>

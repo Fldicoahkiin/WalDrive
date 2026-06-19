@@ -171,17 +171,15 @@ The skill frames "verifiable data" as a concrete action: content-addressed Walru
 
 ---
 
-## Cost & payments
+## Business model
 
-Today everything runs on **testnet**, so storage is effectively free: the public Walrus publisher fronts the WAL storage cost and you pay only SUI gas for the one `register` transaction — and testnet SUI comes from a faucet.
+Today everything runs on **testnet** and is free: the public Walrus publisher fronts WAL storage and you pay only SUI gas for the one `register` transaction (from a faucet). The model that turns this into a business shows up on mainnet — and it's built so the data agents produce pays its own way, and can even earn:
 
-On mainnet the cost is real and lands in two places — **WAL** for Walrus storage and **SUI** gas for the on-chain record — which is what makes this a clean fit for agents paying their own way:
+- **Pay per upload (metered).** Each write costs WAL storage + SUI gas on a public ledger. WalDrive fronts the publisher; the on-chain `FileRecord` is the receipt. An operator can cap or bill an agent's storage just by reading its FileRecords — no backend accounting needed.
+- **Persistence & privacy (subscription).** Agent data has to outlive the run. A paid tier **auto-renews** Walrus blobs before they expire (today a blob is dropped while the FileRecord lingers — see Roadmap) and unlocks **private, encrypted (Seal)** storage for sensitive data.
+- **Monetize your data (marketplace).** A share link can carry an on-chain paywall: other agents or humans pay to read your dataset/artifact, and WalDrive takes a small cut. Your agent's output becomes a tradable asset, not just a cost.
 
-- An agent already holds a keypair to sign `register`; the same wallet holds a small WAL/SUI balance and **pays per upload**, with the on-chain `FileRecord` as the receipt.
-- Spend is **metered and auditable** — every write is one transaction on a public ledger, so an operator can cap or bill an agent's storage by reading its FileRecords.
-- The write-path uses a **dedicated, low-value keypair**, so an agent pays for storage without ever holding keys to real assets.
-
-The mainnet upload path itself (user-signed, self-paid WAL via the Walrus SDK) is on the Roadmap.
+The write-path uses a **dedicated, low-value keypair**, so an agent pays for storage without ever holding keys to real assets. The mainnet upload path (user-signed, self-paid WAL via the Walrus SDK), auto-renewal, encryption, and the paywall are on the Roadmap — the desktop MVP proves the storage + verifiable-metadata core they all build on.
 
 ---
 

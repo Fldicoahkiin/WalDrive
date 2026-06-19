@@ -5,6 +5,7 @@ import { ValueProps } from "./ValueProps";
 import { Features } from "./Features";
 import { Pieces } from "./Pieces";
 import { Mcp } from "./Mcp";
+import { Business } from "./Business";
 import { GetStarted } from "./GetStarted";
 import { ClosingCta, Footer } from "./Footer";
 
@@ -27,6 +28,7 @@ export function Landing() {
         <Features />
         <Pieces />
         <Mcp />
+        <Business />
         <GetStarted />
         <ClosingCta />
       </main>

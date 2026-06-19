@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1280, height=800" />
+    <link rel="stylesheet" href="gif-ui.css" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      .term { margin-top: 2px; background: #08090b; border: 1px solid var(--hairline-strong); border-radius: 11px; overflow: hidden; font-family: "JetBrains Mono", ui-monospace, monospace; box-shadow: 0 20px 50px -18px rgba(0,0,0,0.7); }
+      .term-head { display: flex; align-items: center; gap: 8px; padding: 9px 13px; border-bottom: 1px solid var(--hairline); }
+      .term-head .tdot { width: 10px; height: 10px; border-radius: 999px; }
+      .term-head .ttl { margin-left: 7px; font-size: 11.5px; color: var(--ink-tertiary); display: flex; align-items: center; gap: 7px; }
+      .term-head .ttl .svgic { font-size: 13px; color: var(--accent-hover); }
+      .term-body { padding: 12px 15px; font-size: 12.5px; line-height: 1.72; min-height: 118px; }
+      .tline { color: var(--ink-muted); opacity: 0; white-space: pre; }
+      .tline .pr { color: var(--accent-hover); }
+      .tline .ok { color: var(--success); }
+      .tline .mut { color: var(--ink-tertiary); }
+      .tline .cur { color: var(--ink); }
+      .viabadge { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: rgba(94,106,210,0.2); color: var(--accent-hover); }
+      .viabadge .svgic { font-size: 11px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="root" data-start="0" data-duration="7" data-width="1280" data-height="800">
+      <div class="stage">
+        <div class="win">
+          <div class="lights"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+          <div class="app">
+            <aside class="sidebar">
+              <div class="sb-top"></div>
+              <div class="acct">
+                <div class="ident"><span class="svgic" data-ic="box" style="font-size:16px"></span></div>
+                <div><div class="a-addr">0x66cab…96f56</div><div class="a-bal">2.4 SUI · testnet</div></div>
+                <span class="a-chev svgic" data-ic="chevron-down"></span>
+              </div>
+              <div class="nav"><div class="nav-item active"><span class="ni svgic" data-ic="files"></span>All Files<span class="ct" id="navct">2</span></div></div>
+              <div class="sb-label">Types</div>
+              <div class="nav">
+                <div class="nav-item"><span class="ni svgic" data-ic="file-text" style="color:var(--c-md)"></span>Documents<span class="ct">1</span></div>
+                <div class="nav-item"><span class="ni svgic" data-ic="file-json" style="color:var(--c-json)"></span>Code<span class="ct">1</span></div>
+                <div class="nav-item" id="navdata" style="opacity:0.4"><span class="ni svgic" data-ic="file-text" style="color:var(--c-img)"></span>Data<span class="ct" id="navdatact">0</span></div>
+              </div>
+              <div class="sb-foot"><div class="use" id="usebytes">2.4 KB stored</div><div class="set"><span class="svgic" data-ic="settings"></span>Settings</div></div>
+            </aside>
+            <main class="content">
+              <div class="toolbar">
+                <div class="search"><span class="svgic" data-ic="search"></span><span>Search files…</span></div>
+                <div class="seg"><b class="on">Date</b><b>Name</b><b>Size</b></div>
+                <div class="iconbtn on"><span class="svgic" data-ic="layout-grid"></span></div>
+                <div class="iconbtn"><span class="svgic" data-ic="list"></span></div>
+                <div class="iconbtn"><span class="svgic" data-ic="moon"></span></div>
+              </div>
+              <div class="body">
+                <div class="crumb"><span class="b1">All Files</span><span class="b2"><span class="svgic" data-ic="folder-plus"></span>New folder</span></div>
+                <div class="grid" id="grid">
+                  <div class="card"><div class="thumb"><div class="ic" style="background:rgba(110,139,214,0.14); color:var(--c-md)"><span class="svgic" data-ic="file-text"></span></div></div><div class="meta"><div class="nm">summary.md</div><div class="row"><span class="badge" style="background:rgba(110,139,214,0.16); color:var(--c-md)">MD</span><span class="sz">1.3 KB · agent</span></div></div></div>
+                  <div class="card"><div class="thumb"><div class="ic" style="background:rgba(216,166,87,0.14); color:var(--c-json)"><span class="svgic" data-ic="file-json"></span></div></div><div class="meta"><div class="nm">run-log.json</div><div class="row"><span class="badge" style="background:rgba(216,166,87,0.16); color:var(--c-json)">JSON</span><span class="sz">1.1 KB · agent</span></div></div></div>
+                  <div class="card" id="newcard" style="opacity:0"><div class="thumb"><div class="ic" style="background:rgba(76,175,109,0.14); color:var(--c-img)"><span class="svgic" data-ic="file-text"></span></div></div><div class="meta"><div class="nm">q3-metrics.csv</div><div class="row"><span class="badge" style="background:rgba(76,175,109,0.16); color:var(--c-img)">CSV</span><span class="sz">4.2 KB · now</span><span class="viabadge"><span class="svgic" data-ic="box"></span>via agent</span></div></div></div>
+                </div>
+                <div class="term">
+                  <div class="term-head"><span class="tdot" style="background:#ff5f57"></span><span class="tdot" style="background:#febc2e"></span><span class="tdot" style="background:#28c840"></span><span class="ttl"><span class="svgic" data-ic="box"></span>agent · waldrive CLI / MCP</span></div>
+                  <div class="term-body">
+                    <div class="tline" id="t1"><span class="pr">agent ~ $</span> waldrive upload q3-metrics.csv</div>
+                    <div class="tline" id="t2"><span class="mut">  ↑ PUT 4.2 KB → Walrus publisher</span></div>
+                    <div class="tline" id="t3">  <span class="ok">✓</span> blobId      <span class="cur">7f83b16e…a4c9e2</span></div>
+                    <div class="tline" id="t4">  <span class="ok">✓</span> FileRecord  <span class="cur">0x2a65…58edc</span> <span class="mut">· tx 2ApB…74Kbo</span></div>
+                    <div class="tline" id="t5">  <span class="ok">✓ stored on Walrus, registered on Sui</span></div>
+                  </div>
+                </div>
+              </div>
+            </main>
+          </div>
+        </div>
+      </div>
+      <script src="gif-ui.js"></script>
+      <script>
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+        function line(id, at) { tl.fromTo(id, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" }, at); }
+        line("#t1", 0.5);
+        line("#t2", 1.3);
+        line("#t3", 2.1);
+        line("#t4", 2.7);
+        tl.fromTo("#newcard", { opacity: 0, scale: 0.86, y: 14 }, { opacity: 1, scale: 1, y: 0, duration: 0.55, ease: "back.out(1.5)" }, 3.2);
+        tl.add(() => {
+          document.getElementById("navct").textContent = "3";
+          document.getElementById("navdatact").textContent = "1";
+          document.getElementById("navdata").style.opacity = "1";
+          document.getElementById("usebytes").textContent = "6.6 KB stored";
+        }, 3.35);
+        line("#t5", 3.7);
+        window.__timelines["root"] = tl;
+      </script>
+    </div>
+  </body>
+</html>

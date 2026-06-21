@@ -61,17 +61,30 @@ flowchart LR
 
 ## Getting started
 
+### Quick start — zero config (what a judge runs)
+
+```bash
+bun install
+bun dev          # → http://localhost:5173
+```
+
+No `.env.local`, no contract deploy, no wallet: the app falls back to a live
+testnet deployment and opens on a **read-only demo drive** — real files on
+Walrus you can browse, preview and **verify** (live SHA-256 from the public
+aggregator). To upload your own, click **Generate a wallet** in-app. Everything
+below is optional — only for the native desktop window or deploying your own contract.
+
 ### Prerequisites
-- [bun](https://bun.sh)
-- [Rust](https://rustup.rs) + the [Tauri 2.0 system dependencies](https://tauri.app/start/prerequisites/) for your OS
-- [Sui CLI](https://docs.sui.io) with a testnet address and some gas (`sui client faucet`)
+- [bun](https://bun.sh) — the only requirement for the web Quick start above
+- *(desktop window only)* [Rust](https://rustup.rs) + [Tauri 2.0 system deps](https://tauri.app/start/prerequisites/) for your OS
+- *(deploying your own contract only)* [Sui CLI](https://docs.sui.io) with a funded testnet address (`sui client faucet`)
 
 ### Install
 ```bash
 bun install
 ```
 
-### Deploy the contracts (or reuse the existing testnet deployment)
+### Deploy the contracts — optional (a testnet deployment already exists and is used by default)
 ```bash
 sui move build  --path contracts
 sui client publish --gas-budget 200000000 contracts
@@ -90,7 +103,7 @@ cp .env.local.example .env.local
 ```
 ```bash
 # .env.local — Vite reads import.meta.env.VITE_*
-VITE_CONTRACT_PACKAGE_ID=0x2fc3…b5f6
+VITE_CONTRACT_PACKAGE_ID=0xf7ac2790c5fe604fdd4b7666605a7e7423cf2feb43e37564b6158d9db800ad45
 VITE_WALRUS_AGGREGATOR=https://aggregator.walrus-testnet.walrus.space
 VITE_WALRUS_PUBLISHER=https://publisher.walrus-testnet.walrus.space
 VITE_SUI_NETWORK=testnet
@@ -101,8 +114,8 @@ VITE_WALDRIVE_KEYPAIR=suiprivkey1…   # optional — seeds the wallet on first 
 
 ### Run
 ```bash
-bun tauri dev    # launches the desktop window (also starts Vite)
-# or: bun dev    # browser preview at http://localhost:5173
+bun dev          # browser preview at http://localhost:5173 — fastest, no Rust needed
+bun tauri dev    # or: the native desktop window (needs Rust + Tauri deps)
 ```
 Drag a file onto the drive to upload it — the local keypair signs in-process, no popup.
 

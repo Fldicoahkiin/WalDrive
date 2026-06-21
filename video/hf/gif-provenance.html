@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1280, height=800" />
+    <link rel="stylesheet" href="gif-ui.css" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      .prov { padding-top: 2px; }
+      .prov-row { display: flex; gap: 12px; padding-bottom: 15px; position: relative; }
+      .prov-row.last { padding-bottom: 2px; }
+      .prov-rail { position: absolute; left: 4.5px; top: 14px; width: 1px; height: 100%; background: var(--hairline); }
+      .prov-dot { margin-top: 3px; width: 10px; height: 10px; border-radius: 999px; border: 1px solid var(--hairline-strong); background: var(--canvas); flex-shrink: 0; }
+      .prov-dot.head { border-color: var(--accent); background: var(--accent); }
+      .prov-main { flex: 1; }
+      .pm-top { display: flex; align-items: center; gap: 9px; }
+      .pv { font-family: monospace; font-size: 12px; color: var(--ink); }
+      .curchip { font-size: 10px; font-weight: 600; color: var(--accent); background: rgba(94,106,210,0.15); padding: 1px 7px; border-radius: 5px; }
+      .pmeta { font-size: 11px; color: var(--ink-tertiary); }
+      .pact { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ink-muted); border: 1px solid var(--hairline-strong); padding: 3px 9px; border-radius: 6px; }
+      .pact .svgic { font-size: 11px; }
+      .pm-bot { display: flex; align-items: center; gap: 9px; margin-top: 3px; }
+      .pblob { font-family: monospace; font-size: 10px; color: var(--ink-tertiary); }
+      .pdiff { font-size: 10px; color: var(--ink-tertiary); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="root" data-start="0" data-duration="6" data-width="1280" data-height="800">
+      <div class="stage">
+        <div class="win">
+          <div class="lights"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+          <div class="app">
+            <aside class="sidebar">
+              <div class="sb-top"></div>
+              <div class="acct">
+                <div class="ident"><span class="svgic" data-ic="box" style="font-size:16px"></span></div>
+                <div><div class="a-addr">0xce985…a14f</div><div class="a-bal">2.4 SUI · testnet</div></div>
+                <span class="a-chev svgic" data-ic="chevron-down"></span>
+              </div>
+              <div class="nav"><div class="nav-item active"><span class="ni svgic" data-ic="files"></span>All Files<span class="ct">4</span></div></div>
+              <div class="sb-label">Types</div>
+              <div class="nav">
+                <div class="nav-item"><span class="ni svgic" data-ic="file-text" style="color:var(--c-md)"></span>Documents<span class="ct">3</span></div>
+                <div class="nav-item"><span class="ni svgic" data-ic="file-json" style="color:var(--c-json)"></span>Code<span class="ct">1</span></div>
+              </div>
+              <div class="sb-foot"><div class="use">449 B stored</div><div class="set"><span class="svgic" data-ic="settings"></span>Settings</div></div>
+            </aside>
+            <main class="content">
+              <div class="toolbar">
+                <div class="search"><span class="svgic" data-ic="search"></span><span>Search files…</span></div>
+                <div class="seg"><b class="on">Date</b><b>Name</b><b>Size</b></div>
+                <div class="iconbtn on"><span class="svgic" data-ic="layout-grid"></span></div>
+                <div class="iconbtn"><span class="svgic" data-ic="list"></span></div>
+                <div class="iconbtn"><span class="svgic" data-ic="moon"></span></div>
+              </div>
+              <div class="body">
+                <div class="crumb"><span class="b1">All Files</span><span class="b2"><span class="svgic" data-ic="folder-plus"></span>New folder</span></div>
+                <div class="grid">
+                  <div class="card"><div class="thumb"><div class="ic" style="background:rgba(110,139,214,0.14); color:var(--c-md)"><span class="svgic" data-ic="file-text"></span></div></div><div class="meta"><div class="nm">field-notes.md</div><div class="row"><span class="badge" style="background:rgba(110,139,214,0.16); color:var(--c-md)">MD</span><span class="sz">127 B · v3</span></div></div></div>
+                  <div class="card"><div class="thumb"><div class="ic" style="background:rgba(76,175,109,0.14); color:var(--c-img)"><span class="svgic" data-ic="file-image"></span></div></div><div class="meta"><div class="nm">trip-photo.png</div><div class="row"><span class="badge" style="background:rgba(76,175,109,0.16); color:var(--c-img)">PNG</span><span class="sz">106.9 KB</span></div></div></div>
+                  <div class="card"><div class="thumb"><div class="ic" style="background:rgba(216,166,87,0.14); color:var(--c-json)"><span class="svgic" data-ic="file-json"></span></div></div><div class="meta"><div class="nm">shoot-log.json</div><div class="row"><span class="badge" style="background:rgba(216,166,87,0.16); color:var(--c-json)">JSON</span><span class="sz">59 B</span></div></div></div>
+                </div>
+              </div>
+            </main>
+          </div>
+          <div class="modal-back" id="back" style="opacity:0">
+            <div class="modal" id="modal">
+              <div class="modal-head">
+                <span class="micon svgic" data-ic="file-text" style="color:var(--c-md)"></span>
+                <span class="mt">field-notes.md</span>
+                <span class="vbadge">v3</span>
+                <span class="mx svgic" data-ic="x"></span>
+              </div>
+              <div class="modal-body">
+                <div class="panel">
+                  <div class="pt"><span class="svgic" data-ic="git-branch"></span>Provenance<span style="color:var(--ink-tertiary);font-weight:400;margin-left:4px">· 3 revisions on chain</span></div>
+                  <div class="prov">
+                    <div class="prov-row" id="pr3" style="opacity:0"><span class="prov-rail"></span><span class="prov-dot head"></span><div class="prov-main"><div class="pm-top"><span class="pv">v3</span><span class="curchip">current</span><span class="pmeta">127 B · just now</span></div><div class="pm-bot"><span class="pblob">DpM3xQ…a8Kf2</span><span class="pdiff" id="d3" style="opacity:0">identical bytes — v1</span></div></div></div>
+                    <div class="prov-row" id="pr2" style="opacity:0"><span class="prov-rail"></span><span class="prov-dot"></span><div class="prov-main"><div class="pm-top"><span class="pv">v2</span><span class="pmeta">96 B · 2m ago</span><span class="pact"><span class="svgic" data-ic="rotate-ccw"></span>Restore</span></div><div class="pm-bot"><span class="pblob">7sR1bK…u4Wp9</span><span class="pdiff">new bytes</span></div></div></div>
+                    <div class="prov-row last" id="pr1" style="opacity:0"><span class="prov-dot"></span><div class="prov-main"><div class="pm-top"><span class="pv">v1</span><span class="pmeta">127 B · 4m ago</span><span class="pact"><span class="svgic" data-ic="rotate-ccw"></span>Restore</span></div><div class="pm-bot"><span class="pblob">DpM3xQ…a8Kf2</span><span class="pdiff">new bytes</span></div></div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-foot">
+                <span>text/markdown · 127 B · v3</span>
+                <div class="mfa">
+                  <div class="mbtn"><span class="svgic" data-ic="external-link"></span>Open raw</div>
+                  <div class="mbtn pri"><span class="svgic" data-ic="external-link"></span>Open</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <script src="gif-ui.js"></script>
+      <script>
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+        tl.to("#back", { opacity: 1, duration: 0.3, ease: "power2.out" }, 0.3);
+        tl.fromTo("#modal", { scale: 0.93, y: 14, opacity: 0 }, { scale: 1, y: 0, opacity: 1, duration: 0.45, ease: "back.out(1.4)" }, 0.32);
+        tl.fromTo("#pr3", { x: 8, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 1.2);
+        tl.fromTo("#pr2", { x: 8, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 1.5);
+        tl.fromTo("#pr1", { x: 8, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 1.8);
+        tl.fromTo("#d3", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 2.8);
+        tl.fromTo("#d3", { color: "var(--accent-hover)" }, { color: "var(--ink-tertiary)", duration: 0.9, ease: "power2.out" }, 3.2);
+        window.__timelines["root"] = tl;
+      </script>
+    </div>
+  </body>
+</html>

@@ -18,7 +18,7 @@ const STAGE: Record<Stage, { value: number; color: "warning" | "accent" | "succe
 };
 
 export function UploadZone() {
-  const { upload, status, error, needsGas, reset } = useUpload();
+  const { upload, status, error, needsGas, deduped, reset } = useUpload();
   const faucet = useFaucet();
   const faucetWeb = faucet.status === "error";
   const uploadMethod = useSettings((s) => s.uploadMethod);
@@ -28,9 +28,13 @@ export function UploadZone() {
   const stage = status in STAGE ? STAGE[status as Stage] : null;
   const [batch, setBatch] = useState<{ index: number; total: number } | null>(null);
   const baseLabel =
-    stage && status === "uploading" && uploadMethod === "wallet"
-      ? "Encoding & storing on Walrus (paid by your wallet)…"
-      : stage?.label;
+    deduped && (status === "saving_meta" || status === "done")
+      ? status === "done"
+        ? "Reused existing blob — content-addressed dedupe"
+        : "Reused existing blob — registering on Sui…"
+      : stage && status === "uploading" && uploadMethod === "wallet"
+        ? "Encoding & storing on Walrus (paid by your wallet)…"
+        : stage?.label;
   const stageLabel =
     batch && batch.total > 1 ? `${batch.index + 1} of ${batch.total} — ${baseLabel}` : baseLabel;
 

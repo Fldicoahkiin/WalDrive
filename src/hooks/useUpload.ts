@@ -8,6 +8,7 @@ import { useWallet } from "@/stores/walletStore";
 import { useSettings } from "@/stores/settingsStore";
 import { uploadBlobWithWallet } from "@/lib/walrusSdk";
 import { sealEncrypt } from "@/lib/seal";
+import { contentId, lookupBlob, recordBlob } from "@/lib/dedupe";
 import { CONTRACT } from "@/lib/constants";
 
 const SUI_CLOCK_ID = "0x6";
@@ -33,6 +34,7 @@ export function useUpload() {
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const [needsGas, setNeedsGas] = useState(false);
+  const [deduped, setDeduped] = useState(false);
 
   const upload = useCallback(
     async (file: File) => {
@@ -48,22 +50,42 @@ export function useUpload() {
       }
       setError(null);
       setNeedsGas(false);
+      setDeduped(false);
       let phase: "walrus" | "sui" = "walrus";
       try {
         setStatus("uploading");
-        let bytes = new Uint8Array(await file.arrayBuffer());
-        if (encrypt) {
-          bytes = await sealEncrypt(bytes, { owner: address, packageId, suiClient });
+        const plain = new Uint8Array(await file.arrayBuffer());
+        // Content-address the plaintext (before Seal) and reuse an existing blob
+        // if we've stored these exact bytes before — skips the Walrus PUT.
+        let hash: string | null = null;
+        try {
+          hash = await contentId(plain);
+        } catch {
+          hash = null; // no Web Crypto — fall back to a normal upload
         }
-        const { blobId, endEpoch } =
-          uploadMethod === "wallet"
-            ? await uploadBlobWithWallet(bytes, { keypair, network, epochs })
-            : await uploadBlob(bytes, {
-                sendObjectTo: address,
-                publisher,
-                epochs,
-                authToken: publisherToken,
-              });
+        const cached = hash ? lookupBlob(hash, encrypt) : null;
+        let blobId: string;
+        let endEpoch: number | null;
+        if (cached) {
+          ({ blobId, endEpoch } = cached);
+          setDeduped(true);
+        } else {
+          const bytes = encrypt
+            ? await sealEncrypt(plain, { owner: address, packageId, suiClient })
+            : plain;
+          const stored =
+            uploadMethod === "wallet"
+              ? await uploadBlobWithWallet(bytes, { keypair, network, epochs })
+              : await uploadBlob(bytes, {
+                  sendObjectTo: address,
+                  publisher,
+                  epochs,
+                  authToken: publisherToken,
+                });
+          blobId = stored.blobId;
+          endEpoch = stored.endEpoch;
+          if (hash) recordBlob(hash, encrypt, blobId, endEpoch ?? 0);
+        }
 
         phase = "sui";
         setStatus("saving_meta");
@@ -118,10 +140,12 @@ export function useUpload() {
     status,
     error,
     needsGas,
+    deduped,
     reset: () => {
       setStatus("idle");
       setError(null);
       setNeedsGas(false);
+      setDeduped(false);
     },
   };
 }

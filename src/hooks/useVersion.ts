@@ -7,6 +7,7 @@ import type { UploadStatus } from "@waldrive/shared";
 import { useWallet } from "@/stores/walletStore";
 import { useSettings } from "@/stores/settingsStore";
 import { uploadBlobWithWallet } from "@/lib/walrusSdk";
+import { contentId, lookupBlob, recordBlob } from "@/lib/dedupe";
 import { CONTRACT } from "@/lib/constants";
 
 const SUI_CLOCK_ID = "0x6";
@@ -29,6 +30,7 @@ export function useVersion() {
   const suiClient = useSuiClient();
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [deduped, setDeduped] = useState(false);
 
   const uploadVersion = useCallback(
     async (oldObjectId: string, file: File) => {
@@ -38,18 +40,38 @@ export function useVersion() {
         return false;
       }
       setError(null);
+      setDeduped(false);
       try {
         setStatus("uploading");
-        const bytes = new Uint8Array(await file.arrayBuffer());
-        const { blobId, endEpoch } =
-          uploadMethod === "wallet"
-            ? await uploadBlobWithWallet(bytes, { keypair, network, epochs })
-            : await uploadBlob(bytes, {
-                sendObjectTo: address,
-                publisher,
-                epochs,
-                authToken: publisherToken,
-              });
+        const plain = new Uint8Array(await file.arrayBuffer());
+        // Reuse an existing blob if these exact bytes were stored before (the
+        // version path uploads plaintext, so the dedupe key is the raw hash).
+        let hash: string | null = null;
+        try {
+          hash = await contentId(plain);
+        } catch {
+          hash = null;
+        }
+        const cached = hash ? lookupBlob(hash, false) : null;
+        let blobId: string;
+        let endEpoch: number | null;
+        if (cached) {
+          ({ blobId, endEpoch } = cached);
+          setDeduped(true);
+        } else {
+          const stored =
+            uploadMethod === "wallet"
+              ? await uploadBlobWithWallet(plain, { keypair, network, epochs })
+              : await uploadBlob(plain, {
+                  sendObjectTo: address,
+                  publisher,
+                  epochs,
+                  authToken: publisherToken,
+                });
+          blobId = stored.blobId;
+          endEpoch = stored.endEpoch;
+          if (hash) recordBlob(hash, false, blobId, endEpoch ?? 0);
+        }
 
         setStatus("saving_meta");
         const tx = new Transaction();
@@ -58,7 +80,7 @@ export function useVersion() {
           arguments: [
             tx.object(oldObjectId),
             tx.pure.string(blobId),
-            tx.pure.u64(BigInt(bytes.length)),
+            tx.pure.u64(BigInt(plain.length)),
             tx.pure.u64(BigInt(endEpoch ?? 0)),
             tx.object(SUI_CLOCK_ID),
           ],
@@ -119,5 +141,5 @@ export function useVersion() {
     [keypair, address, packageId, suiClient, queryClient],
   );
 
-  return { uploadVersion, restoreVersion, status, error };
+  return { uploadVersion, restoreVersion, status, error, deduped };
 }

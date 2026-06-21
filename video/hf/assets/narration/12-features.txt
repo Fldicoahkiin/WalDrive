@@ -1,0 +1,1 @@
+Every file goes further. Seal-encrypt it — the bytes on Walrus become ciphertext only your wallet can open. Each version is its own content-addressed object. And renew its storage on chain, before it ever expires.

@@ -316,5 +316,37 @@ window.__captions = {
       "start": 11.74,
       "end": 12.82
     }
+  ],
+  "12-features": [
+    {
+      "text": "Every file goes further, ceiling crypt",
+      "start": 0.03,
+      "end": 2.52
+    },
+    {
+      "text": "It, the bytes on Walrus become",
+      "start": 2.52,
+      "end": 4.1
+    },
+    {
+      "text": "Ciphertext only your wallet can open,",
+      "start": 4.12,
+      "end": 6.6
+    },
+    {
+      "text": "Each version is its own content",
+      "start": 6.79,
+      "end": 8.42
+    },
+    {
+      "text": "Addressed object, and renew its storage",
+      "start": 8.42,
+      "end": 10.63
+    },
+    {
+      "text": "On chain before it ever expires.",
+      "start": 10.63,
+      "end": 12.64
+    }
   ]
 };

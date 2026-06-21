@@ -1,6 +1,8 @@
 # WalDrive
 
 > The file-management + verifiable-data console for the data your AI agents store and remember on **Walrus**, built for the **Sui Overflow 2026 Walrus track** (idea #032). The pitch is frontend fluidity over verifiable agent data.
+>
+> Everyone else in the track ships a protocol or an SDK — WalDrive is the **human interface layer**: the screen you operate agent data from. Every feature in the demo is live on testnet, no mock.
 
 **Live site:** [waldrive.flacier.com](https://waldrive.flacier.com/) · **Install the agent skill:** `npx skills add Fldicoahkiin/WalDrive`
 

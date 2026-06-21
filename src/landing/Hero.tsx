@@ -53,7 +53,8 @@ export function Hero() {
         >
           Your agents write files via MCP, CLI, or an installable skill — you browse, preview,
           verify and version them in a fluid desktop console. Bytes on Walrus, metadata on Sui,
-          nothing in between: files you actually own, verifiable by anyone.
+          nothing in between: files you actually own, verifiable by anyone. Every feature here is
+          live on testnet — no mock, no login wall.
         </motion.p>
 
         <motion.div className="mt-9 flex flex-wrap items-center justify-center gap-3" variants={item}>

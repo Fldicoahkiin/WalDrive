@@ -1,6 +1,6 @@
 [package]
 name = "waldrive"
-version = "0.2.0"
+version = "0.3.0"
 description = "WalDrive — desktop file manager for Walrus decentralized storage"
 authors = ["WalDrive"]
 edition = "2021"

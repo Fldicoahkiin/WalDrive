@@ -23,11 +23,14 @@ const fail = (m) => {
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
-await page.addInitScript(() => {
+// Seed the funded keypair so the app opens with a real wallet (not the
+// read-only demo drive, which has no upload zone).
+await page.addInitScript((key) => {
   try {
     localStorage.setItem("waldrive-theme", "dark");
+    localStorage.setItem("waldrive-wallets", JSON.stringify({ active: null, accounts: [{ secret: key }] }));
   } catch {}
-});
+}, KEY);
 
 try {
   console.log(`▶ e2e against ${APP}`);

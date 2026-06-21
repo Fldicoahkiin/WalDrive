@@ -7,6 +7,8 @@ import { createSuiClient, uploadBlob, blobUrl, CONTRACT, type BlobFile } from "@
 import { loadKeypair } from "./wallet";
 
 const SUI_CLOCK_ID = "0x6";
+/** Public demo wallet — `ls` with no --owner and no key browses this read-only. */
+const DEMO_ADDRESS = "0xce98556a6a7f924b32d8f4c03ac74d60c34447cff47856402f5bbcf97393a14f";
 
 const MIME_BY_EXT: Record<string, string> = {
   ".txt": "text/plain", ".md": "text/markdown", ".json": "application/json",
@@ -133,7 +135,9 @@ async function cmdList(flags: Record<string, string | true>): Promise<void> {
   const owner =
     typeof flags.owner === "string"
       ? flags.owner
-      : loadKeypair().getPublicKey().toSuiAddress();
+      : process.env.WALDRIVE_KEYPAIR
+        ? loadKeypair().getPublicKey().toSuiAddress()
+        : DEMO_ADDRESS;
   const client = createSuiClient();
   const structType = `${packageId}::${CONTRACT.FILE_RECORD}::FileRecord`;
   const cap = typeof flags.limit === "string" ? Number(flags.limit) : 50;

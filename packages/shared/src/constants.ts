@@ -15,7 +15,9 @@ function readEnv(...keys: string[]): string | undefined {
 }
 
 export const CONTRACT = {
-  PACKAGE_ID: readEnv("NEXT_PUBLIC_CONTRACT_PACKAGE_ID", "CONTRACT_PACKAGE_ID") ?? "",
+  PACKAGE_ID:
+    readEnv("NEXT_PUBLIC_CONTRACT_PACKAGE_ID", "CONTRACT_PACKAGE_ID") ??
+    "0xf7ac2790c5fe604fdd4b7666605a7e7423cf2feb43e37564b6158d9db800ad45",
   FILE_RECORD: "file_record",
   SHARE_LINK: "share_link",
 } as const;

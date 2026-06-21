@@ -8,7 +8,7 @@
 
 WalDrive is a **cross-platform desktop app** — a Tauri 2.0 shell wrapping a Vite + React SPA. File **metadata lives on Sui** (Move objects), **blob bytes live on Walrus**, and there is **no backend in between** — "verifiable data" means on-chain Sui metadata over content-addressed Walrus blobs. The app signs Sui transactions in-process with a local keypair (no browser, no wallet extension); the **MCP server is the agent write-path**, so AI clients / CLIs write artifacts and memory to the same Walrus data you browse here.
 
-- **Desktop console** — the human surface for agent data on Walrus: drag-to-upload, browse, preview, rename, tag, version, organise into folders, trash / restore, search, and share; optional **Seal end-to-end encryption** (owner-only), **one-click storage renewal** before expiry, and a content-addressed **version timeline**; a multi-account local wallet (generate / import / switch / balance / faucet) and endpoints from the sidebar.
+- **Desktop console** — the human surface for agent data on Walrus: drag-to-upload, browse, preview, rename, tag, version, organise into folders, trash / restore, search, and share; optional **Seal end-to-end encryption** (owner-only), **content-addressed dedupe** (identical bytes skip re-upload), **one-click storage renewal** before expiry, and a **version timeline**; a multi-account local wallet (generate / import / switch / balance / faucet) and endpoints from the sidebar.
 - **Agent surfaces** — three ways for an agent to reach the same Walrus data:
   - **MCP server** — `upload_file` / `list_files` / `download_file` / `get_file_info` for AI clients.
   - **`waldrive` CLI** — `upload` / `ls` / `download` / `info` for shells, scripts, and CI.
@@ -38,6 +38,8 @@ flowchart LR
 > Two-step write: bytes go to the Walrus publisher (which fronts the WAL storage cost and returns a content-addressed `blobId`), then one in-process Sui transaction records a `FileRecord` (you pay only SUI gas). Reads hit the public aggregator — no wallet. No backend in between.
 
 **Upload is publisher-direct** — a local process has no CORS limits, so the app PUTs straight to the public Walrus testnet publisher; no proxy / backend. The publisher fronts the WAL storage cost and (via `send_object_to`) hands the on-chain Blob object to your local wallet, so you can renew or delete it. You pay only SUI gas for the one `register` transaction.
+
+**Identical content is deduped** — before the PUT the client SHA-256-hashes the pre-encryption bytes and checks a local content-address index; on a hit it reuses the existing `blobId` and skips the upload, so re-storing the same file (or an agent re-writing the same artifact) costs no bandwidth and points multiple `FileRecord`s at one Walrus blob.
 
 **Sharing is self-contained** — the desktop app has no web share page, so "Share link" copies the public aggregator URL (`/v1/blobs/{blobId}`) to the clipboard; anyone can open it, no wallet. (`share_link.move` is kept on-chain for a future web share surface — Roadmap.)
 
@@ -90,7 +92,7 @@ sui move build  --path contracts
 sui client publish --gas-budget 200000000 contracts
 # copy the PackageID into .env.local as VITE_CONTRACT_PACKAGE_ID
 ```
-A testnet deployment already exists:
+A testnet deployment already exists (and is what the zero-config Quick start uses) — [verify it on Suiscan](https://suiscan.xyz/testnet/object/0xf7ac2790c5fe604fdd4b7666605a7e7423cf2feb43e37564b6158d9db800ad45):
 ```
 PACKAGE_ID = 0xf7ac2790c5fe604fdd4b7666605a7e7423cf2feb43e37564b6158d9db800ad45
 ```
@@ -141,7 +143,7 @@ Client config (e.g. `~/.claude/claude_desktop_config.json`):
       "args": ["/abs/path/to/waldrive/mcp-server/src/index.ts"],
       "env": {
         "SUI_NETWORK": "testnet",
-        "CONTRACT_PACKAGE_ID": "0x2fc3…b5f6",
+        "CONTRACT_PACKAGE_ID": "0xf7ac2790c5fe604fdd4b7666605a7e7423cf2feb43e37564b6158d9db800ad45",
         "WALRUS_AGGREGATOR": "https://aggregator.walrus-testnet.walrus.space",
         "WALRUS_PUBLISHER": "https://publisher.walrus-testnet.walrus.space",
         "WALDRIVE_KEYPAIR": "suiprivkey1…"
@@ -156,6 +158,8 @@ Client config (e.g. `~/.claude/claude_desktop_config.json`):
 ## CLI
 
 `waldrive` drives the same upload + on-chain register from a shell — for scripts, CI, or an agent without an MCP client. Reads are wallet-free; only `upload` needs `WALDRIVE_KEYPAIR`. It reads the same env vars as the MCP server (`CONTRACT_PACKAGE_ID`, `SUI_NETWORK`, `WALRUS_*`, `WALDRIVE_KEYPAIR`).
+
+Run `waldrive ls` with **no env at all** — it falls back to the live testnet package and a public demo owner, listing real on-chain files (the same zero-config path as the web Quick start).
 
 ```bash
 # from a WalDrive checkout
@@ -228,6 +232,7 @@ sui move build --path contracts   # build contracts
 Deferred past the hackathon MVP (kept by design). Shipped since the original cut: multi-account wallet, trash, tags, versioning, nested folders + breadcrumb, sort + type filter, the mainnet publisher-auth header, and the `download_file` / `get_file_info` MCP tools.
 
 - SDK `writeFilesFlow` upload (user-paid WAL, fully on-chain) for mainnet
+- Block-level CDC delta-sync + cross-file chunk dedupe for large files (dedupe today is whole-file, content-addressed)
 - Blob renewal before expiry; mainnet end-to-end test
 - Virtual scrolling; share-link expiry / `is_public` toggle
 - Web share surface + short share codes (`share_link.move` exists but the desktop copies the aggregator URL)
@@ -239,5 +244,6 @@ Deferred past the hackathon MVP (kept by design). Shipped since the original cut
 - Aggregator read path is `/v1/blobs/{blobId}`.
 - The publisher fronts WAL (storage); you still pay SUI gas for `register`.
 - Walrus erasure-codes to a ~66 MB minimum billed size, so tiny files cost about the same.
+- Dedupe is whole-file and content-addressed (SHA-256 of the pre-encryption bytes): it skips the re-upload (bandwidth), not the per-blob storage cost — block-level delta-sync is Roadmap.
 - The app signs in-process with a **local Ed25519 keypair** you generate or import in-app (seeded from `VITE_WALDRIVE_KEYPAIR` on first run, then kept in `localStorage`) — no browser wallet, no popup. Use a **dedicated testnet keypair**, never one holding real assets.
 - Move objects are the source of truth; the UI reconciles against chain on load.

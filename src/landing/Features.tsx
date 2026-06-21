@@ -18,7 +18,7 @@ export function Features() {
       <div className="mt-16 flex flex-col gap-20 sm:gap-28">
         <FeatureRow
           Icon={UploadCloud}
-          body="Drop one file or a dozen. WalDrive PUTs the bytes to the Walrus publisher, signs the FileRecord on Sui in-process, and the file appears in the grid live — optimistic first, confirmed on-chain a moment later."
+          body="Drop one file or a dozen. WalDrive PUTs the bytes to the Walrus publisher, signs the FileRecord on Sui in-process, and the file appears in the grid live — optimistic first, confirmed on-chain a moment later. Upload the same content again and it is deduped — content-addressed bytes reuse the existing blob instead of storing it twice."
           eyebrow="Drag-to-upload"
           points={[
             "Multi-file drag, with a per-file progress stage",

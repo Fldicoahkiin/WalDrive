@@ -17,8 +17,8 @@ const PROPS: Prop[] = [
   },
   {
     Icon: KeyRound,
-    title: "You own your files",
-    body: "Each upload sends the on-chain Blob object to your wallet, so you can renew it before expiry or delete it. The data is yours, not a host's.",
+    title: "Yours, and encrypted",
+    body: "The on-chain Blob object lands in your wallet — renew it before expiry or delete it. Turn on Seal and the bytes on Walrus are ciphertext that only your wallet can unseal.",
   },
   {
     Icon: Bot,

@@ -8,7 +8,7 @@
 
 WalDrive is a **cross-platform desktop app** — a Tauri 2.0 shell wrapping a Vite + React SPA. File **metadata lives on Sui** (Move objects), **blob bytes live on Walrus**, and there is **no backend in between** — "verifiable data" means on-chain Sui metadata over content-addressed Walrus blobs. The app signs Sui transactions in-process with a local keypair (no browser, no wallet extension); the **MCP server is the agent write-path**, so AI clients / CLIs write artifacts and memory to the same Walrus data you browse here.
 
-- **Desktop console** — the human surface for agent data on Walrus: drag-to-upload, browse, preview, rename, tag, version, organise into folders, trash / restore, search, and share; a multi-account local wallet (generate / import / switch / balance / faucet) and endpoints from the sidebar.
+- **Desktop console** — the human surface for agent data on Walrus: drag-to-upload, browse, preview, rename, tag, version, organise into folders, trash / restore, search, and share; optional **Seal end-to-end encryption** (owner-only), **one-click storage renewal** before expiry, and a content-addressed **version timeline**; a multi-account local wallet (generate / import / switch / balance / faucet) and endpoints from the sidebar.
 - **Agent surfaces** — three ways for an agent to reach the same Walrus data:
   - **MCP server** — `upload_file` / `list_files` / `download_file` / `get_file_info` for AI clients.
   - **`waldrive` CLI** — `upload` / `ls` / `download` / `info` for shells, scripts, and CI.

@@ -19,6 +19,7 @@ module waldrive::file_record_tests {
                 string::utf8(b"text/plain"),
                 42,
                 10,
+                false,
                 &clk,
                 ts::ctx(&mut sc),
             );
@@ -223,6 +224,7 @@ module waldrive::file_record_tests {
             string::utf8(b"text/plain"),
             42,
             10,
+            false,
             &clk,
             ts::ctx(sc),
         );

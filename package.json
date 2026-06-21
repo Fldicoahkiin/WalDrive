@@ -19,6 +19,7 @@
   "dependencies": {
     "@heroui/react": "3.0.1",
     "@heroui/styles": "3.0.1",
+    "@mysten/seal": "^1.2.1",
     "@mysten/sui": "^2.16.2",
     "@mysten/walrus": "^1.1.7",
     "@mysten/walrus-wasm": "0.2.2",

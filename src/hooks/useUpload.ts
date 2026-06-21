@@ -7,6 +7,7 @@ import type { UploadStatus } from "@waldrive/shared";
 import { useWallet } from "@/stores/walletStore";
 import { useSettings } from "@/stores/settingsStore";
 import { uploadBlobWithWallet } from "@/lib/walrusSdk";
+import { sealEncrypt } from "@/lib/seal";
 import { CONTRACT } from "@/lib/constants";
 
 const SUI_CLOCK_ID = "0x6";
@@ -26,6 +27,7 @@ export function useUpload() {
   const epochs = useSettings((s) => s.epochs);
   const packageId = useSettings((s) => s.packageId);
   const uploadMethod = useSettings((s) => s.uploadMethod);
+  const encrypt = useSettings((s) => s.encrypt);
   const queryClient = useQueryClient();
   const suiClient = useSuiClient();
   const [status, setStatus] = useState<UploadStatus>("idle");
@@ -49,7 +51,10 @@ export function useUpload() {
       let phase: "walrus" | "sui" = "walrus";
       try {
         setStatus("uploading");
-        const bytes = new Uint8Array(await file.arrayBuffer());
+        let bytes = new Uint8Array(await file.arrayBuffer());
+        if (encrypt) {
+          bytes = await sealEncrypt(bytes, { owner: address, packageId, suiClient });
+        }
         const { blobId, endEpoch } =
           uploadMethod === "wallet"
             ? await uploadBlobWithWallet(bytes, { keypair, network, epochs })
@@ -71,6 +76,7 @@ export function useUpload() {
             tx.pure.string(file.type || "application/octet-stream"),
             tx.pure.u64(BigInt(file.size)),
             tx.pure.u64(BigInt(endEpoch ?? 0)),
+            tx.pure.bool(encrypt),
             tx.object(SUI_CLOCK_ID),
           ],
         });
@@ -104,7 +110,7 @@ export function useUpload() {
         return false;
       }
     },
-    [keypair, address, network, publisher, publisherToken, epochs, packageId, uploadMethod, suiClient, queryClient],
+    [keypair, address, network, publisher, publisherToken, epochs, packageId, uploadMethod, encrypt, suiClient, queryClient],
   );
 
   return {

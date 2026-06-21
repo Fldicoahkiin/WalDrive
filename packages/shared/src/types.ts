@@ -18,6 +18,8 @@ export interface BlobFile {
   /** Walrus expiry epoch number (not a timestamp). */
   expiryEpoch: number;
   isPublic: boolean;
+  /** Seal end-to-end encrypted — the Walrus bytes are ciphertext, owner-only. */
+  isEncrypted?: boolean;
   /** Soft-delete flag — trashed files are filtered out of the main view. */
   isDeleted?: boolean;
   /** 1-based version number (bumped by create_version). */

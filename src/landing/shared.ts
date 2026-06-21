@@ -9,7 +9,7 @@ export const EASE = [0.16, 1, 0.3, 1] as const;
 
 export const REPO_URL = "https://github.com/Fldicoahkiin/WalDrive";
 export const RELEASE_URL = "https://github.com/Fldicoahkiin/WalDrive/releases/latest";
-export const PACKAGE_ID = "0x2fc345f205e241e8941cc5228ed6dd76f11e82484b6583c4070bc63eb914b5f6";
+export const PACKAGE_ID = "0xf7ac2790c5fe604fdd4b7666605a7e7423cf2feb43e37564b6158d9db800ad45";
 export const SUISCAN_PACKAGE_URL = `https://suiscan.xyz/testnet/object/${PACKAGE_ID}`;
 export const DEEPSURGE_URL =
   "https://www.deepsurge.xyz/projects/c13d586b-9a0a-4d77-b827-d5e6b3374a47";

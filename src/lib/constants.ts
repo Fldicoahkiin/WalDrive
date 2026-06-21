@@ -6,7 +6,7 @@ export const CONTRACT = {
   // .env; override with VITE_CONTRACT_PACKAGE_ID to point at another deployment.
   PACKAGE_ID:
     import.meta.env.VITE_CONTRACT_PACKAGE_ID ??
-    "0x2fc345f205e241e8941cc5228ed6dd76f11e82484b6583c4070bc63eb914b5f6",
+    "0xf7ac2790c5fe604fdd4b7666605a7e7423cf2feb43e37564b6158d9db800ad45",
   FILE_RECORD: "file_record",
   SHARE_LINK: "share_link",
 } as const;

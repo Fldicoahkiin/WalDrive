@@ -79,7 +79,7 @@ sui client publish --gas-budget 200000000 contracts
 ```
 A testnet deployment already exists:
 ```
-PACKAGE_ID = 0x2fc345f205e241e8941cc5228ed6dd76f11e82484b6583c4070bc63eb914b5f6
+PACKAGE_ID = 0xf7ac2790c5fe604fdd4b7666605a7e7423cf2feb43e37564b6158d9db800ad45
 ```
 
 ### Configure env

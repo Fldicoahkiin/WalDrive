@@ -102,6 +102,7 @@ async function cmdUpload(positionals: string[], flags: Record<string, string | t
       tx.pure.string(mime),
       tx.pure.u64(BigInt(size)),
       tx.pure.u64(BigInt(endEpoch ?? 0)),
+      tx.pure.bool(false),
       tx.object(SUI_CLOCK_ID),
     ],
   });

@@ -160,6 +160,27 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
                     pays WAL itself via the Walrus SDK — fully self-custodial.
                   </span>
                 </div>
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-xs text-ink-subtle">Encryption</span>
+                  <ToggleButtonGroup
+                    aria-label="Encrypt uploads"
+                    disallowEmptySelection
+                    selectedKeys={new Set([s.encrypt ? "on" : "off"])}
+                    selectionMode="single"
+                    onSelectionChange={(keys) => {
+                      const k = firstKey(keys);
+                      if (k) s.setEncrypt(k === "on");
+                    }}
+                  >
+                    <ToggleButton id="off">Public</ToggleButton>
+                    <ToggleButton id="on">Encrypted (Seal)</ToggleButton>
+                  </ToggleButtonGroup>
+                  <span className="text-[11px] text-ink-tertiary">
+                    Public blobs are readable by anyone with the link. Encrypted uploads are sealed
+                    to your wallet with Seal — the bytes on Walrus are ciphertext and only you can
+                    unseal them.
+                  </span>
+                </div>
                 <EndpointField label="Aggregator" onCommit={s.setAggregator} value={s.aggregator} />
                 <EndpointField label="Publisher" onCommit={s.setPublisher} value={s.publisher} />
                 <EndpointField

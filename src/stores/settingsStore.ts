@@ -13,6 +13,8 @@ interface SettingsState {
   packageId: string;
   publisherToken: string;
   uploadMethod: UploadMethod;
+  /** Encrypt uploads end-to-end with Seal — the owner alone can unseal them. */
+  encrypt: boolean;
   /** Display scale (DPI handling): root font-size multiplier the whole UI keys off. */
   uiScale: number;
   setNetwork: (network: SuiNetwork) => void;
@@ -22,6 +24,7 @@ interface SettingsState {
   setPackageId: (packageId: string) => void;
   setPublisherToken: (token: string) => void;
   setUploadMethod: (method: UploadMethod) => void;
+  setEncrypt: (encrypt: boolean) => void;
   setUiScale: (scale: number) => void;
   reset: () => void;
 }
@@ -34,6 +37,7 @@ const DEFAULTS = {
   packageId: CONTRACT.PACKAGE_ID,
   publisherToken: "",
   uploadMethod: "publisher" as UploadMethod,
+  encrypt: false,
   uiScale: 1,
 };
 
@@ -56,6 +60,7 @@ export const useSettings = create<SettingsState>()(
       setPackageId: (packageId) => set({ packageId }),
       setPublisherToken: (publisherToken) => set({ publisherToken }),
       setUploadMethod: (uploadMethod) => set({ uploadMethod }),
+      setEncrypt: (encrypt) => set({ encrypt }),
       setUiScale: (uiScale) => set({ uiScale }),
       reset: () => {
         setAggregatorBase(DEFAULTS.aggregator);

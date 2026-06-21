@@ -55,6 +55,7 @@ export function registerUploadTool(server: McpServer): void {
             tx.pure.string(mime),
             tx.pure.u64(BigInt(size)),
             tx.pure.u64(BigInt(endEpoch ?? 0)),
+            tx.pure.bool(false),
             tx.object(SUI_CLOCK_ID),
           ],
         });

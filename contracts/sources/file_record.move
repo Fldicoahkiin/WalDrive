@@ -17,6 +17,7 @@ module waldrive::file_record {
         uploaded_at_ms: u64,             // unix ms from Clock
         expiry_epoch: u64,               // Walrus expiry epoch (countdown UI)
         is_public: bool,
+        is_encrypted: bool,              // Seal end-to-end encryption (owner-only)
         version: u64,                    // 1-based; bumped by create_version
         parent_version_id: Option<ID>,   // previous version's object id
         is_deleted: bool,                // soft-delete flag (trash)
@@ -30,11 +31,12 @@ module waldrive::file_record {
         mime_type: String,
         size: u64,
         expiry_epoch: u64,
+        is_encrypted: bool,
         clock: &Clock,
         ctx: &mut TxContext,
     ) {
         transfer::transfer(
-            new_record(blob_id, name, mime_type, size, expiry_epoch, 1, option::none(), clock, ctx),
+            new_record(blob_id, name, mime_type, size, expiry_epoch, is_encrypted, 1, option::none(), clock, ctx),
             ctx.sender(),
         );
     }
@@ -45,6 +47,7 @@ module waldrive::file_record {
         mime_type: String,
         size: u64,
         expiry_epoch: u64,
+        is_encrypted: bool,
         version: u64,
         parent_version_id: Option<ID>,
         clock: &Clock,
@@ -62,6 +65,7 @@ module waldrive::file_record {
             uploaded_at_ms: clock::timestamp_ms(clock),
             expiry_epoch,
             is_public: false,
+            is_encrypted,
             version,
             parent_version_id,
             is_deleted: false,
@@ -122,6 +126,7 @@ module waldrive::file_record {
             old.mime_type,
             new_size,
             new_expiry_epoch,
+            old.is_encrypted,
             old.version + 1,
             option::some(object::id(old)),
             clock,
@@ -147,6 +152,7 @@ module waldrive::file_record {
             uploaded_at_ms: _,
             expiry_epoch: _,
             is_public: _,
+            is_encrypted: _,
             version: _,
             parent_version_id: _,
             is_deleted: _,
@@ -169,6 +175,9 @@ module waldrive::file_record {
 
     #[test_only]
     public fun is_public(record: &FileRecord): bool { record.is_public }
+
+    #[test_only]
+    public fun is_encrypted(record: &FileRecord): bool { record.is_encrypted }
 
     #[test_only]
     public fun tags(record: &FileRecord): vector<String> { record.tags }

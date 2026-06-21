@@ -23,6 +23,7 @@ function parseFileRecord(res: SuiObjectResponse): BlobFile | null {
     uploadedAtMs: Number(f.uploaded_at_ms ?? 0),
     expiryEpoch: Number(f.expiry_epoch ?? 0),
     isPublic: Boolean(f.is_public ?? false),
+    isEncrypted: Boolean(f.is_encrypted ?? false),
     isDeleted: Boolean(f.is_deleted ?? false),
     version: Number(f.version ?? 1),
     parentVersionId: (f.parent_version_id as string | null) ?? null,

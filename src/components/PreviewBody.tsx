@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Loader2 } from "lucide-react";
 import type { BlobFile } from "@waldrive/shared";
-import { blobUrl } from "@/lib/constants";
+import { useBlobSource } from "@/hooks/useBlobSource";
 import { formatBytes } from "@/lib/utils";
 import { previewMode, type FileKind } from "@/lib/fileKind";
 
@@ -23,28 +24,43 @@ function FallbackTile({ kind, note }: { kind: FileKind; note: string }) {
   );
 }
 
-/** Inline preview body: image / pdf / video / audio / markdown / json / text. */
+/** Inline preview body: image / pdf / video / audio / markdown / json / text.
+ *  Encrypted files are decrypted in-memory by {@link useBlobSource} first. */
 export function PreviewBody({ file, kind }: { file: BlobFile; kind: FileKind }) {
   const mode = previewMode(file.mimeType, file.name);
   const isTextual = TEXTUAL.has(mode);
   const textTooLarge = isTextual && file.size > TEXT_CAP;
+  const source = useBlobSource(file);
+
   const { data: text, isLoading: textLoading } = useQuery({
-    queryKey: ["blob-text", file.blobId],
-    enabled: isTextual && !textTooLarge,
+    queryKey: ["blob-text", file.objectId, source.url],
+    enabled: isTextual && !textTooLarge && Boolean(source.url),
     staleTime: Infinity,
     queryFn: async () => {
-      const res = await fetch(blobUrl(file.blobId));
+      const res = await fetch(source.url!);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return res.text();
     },
   });
+
+  // Encrypted blobs decrypt asynchronously — surface that before rendering.
+  if (source.loading) {
+    return (
+      <div className="flex h-40 flex-col items-center justify-center gap-2 text-sm text-ink-subtle">
+        <Loader2 className="size-5 animate-spin text-accent" />
+        Decrypting…
+      </div>
+    );
+  }
+  if (source.error) return <FallbackTile kind={kind} note={source.error} />;
+  if (!source.url) return <FallbackTile kind={kind} note="No inline preview. Open to view." />;
 
   if (mode === "image") {
     return (
       <img
         alt={file.name}
         className="mx-auto max-h-[60vh] rounded-lg object-contain"
-        src={blobUrl(file.blobId)}
+        src={source.url}
       />
     );
   }
@@ -52,7 +68,7 @@ export function PreviewBody({ file, kind }: { file: BlobFile; kind: FileKind }) 
     return (
       <iframe
         className="h-[62vh] w-full rounded-lg border border-hairline bg-canvas"
-        src={blobUrl(file.blobId)}
+        src={source.url}
         title={file.name}
       />
     );
@@ -63,7 +79,7 @@ export function PreviewBody({ file, kind }: { file: BlobFile; kind: FileKind }) 
       <video
         controls
         className="mx-auto max-h-[60vh] w-full rounded-lg border border-hairline bg-canvas"
-        src={blobUrl(file.blobId)}
+        src={source.url}
       />
     );
   }
@@ -77,7 +93,7 @@ export function PreviewBody({ file, kind }: { file: BlobFile; kind: FileKind }) 
           <kind.Icon aria-hidden className="size-7" style={{ color: kind.color }} strokeWidth={1.5} />
         </span>
         {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-        <audio controls className="w-full max-w-md" src={blobUrl(file.blobId)} />
+        <audio controls className="w-full max-w-md" src={source.url} />
       </div>
     );
   }
